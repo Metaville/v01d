@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>METAVILLE: V.01.D / Genesis Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk/dist/tonconnect.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -47,8 +48,9 @@
             border-bottom: 1px solid #2a2a4a;
             z-index: 10;
             gap: 8px;
+            
         }
-        
+   
         .resource-item {
             display: flex;
             align-items: center;
@@ -744,6 +746,10 @@
             </div>
             <div class="resource-item" id="parts-resource">
                 <span>🛠️ <span id="parts-value">18</span></span>
+     <button id="connect-wallet" class="btn btn-warning">
+  <i class="fas fa-wallet"></i> Подключить TON‑кошелек
+</button>
+<span id="wallet-address" style="margin-left:10px; color:#00ffcc;"></span>
             </div>
         </div>
         
@@ -1320,6 +1326,53 @@
     </div>
     
     <script>
+        // 1. Создаём клиент TonConnect
+const tonConnect = new TonConnect({
+  manifestUrl: "https://metaville.github.io/v01d/manifest.json"
+});
+
+// 2. Кнопка и элемент для адреса
+const connectBtn = document.getElementById("connect-wallet");
+const addressSpan = document.getElementById("wallet-address");
+
+// 3. Обработчик нажатия
+connectBtn.addEventListener("click", async () => {
+  try {
+    // Показываем UI для выбора кошелька (Tonkeeper, Tonhub и т.п.)
+    const session = await tonConnect.connect();
+    
+    // session.account.address — строка с адресом
+    addressSpan.textContent = session.account.address;
+    connectBtn.textContent = "Кошелёк подключён";
+    connectBtn.disabled = true;
+    
+    // Сохраняйте session для отправки транзакций:
+    window.tonSession = session;
+  } catch (err) {
+    console.error("Не удалось подключить кошелек:", err);
+  }
+});
+
+// 4. Чтобы отправить перевод (пример):
+async function sendTons(toAddress, amount) {
+  if (!window.tonSession) {
+    alert("Сначала подключите кошелек");
+    return;
+  }
+  try {
+    const transfer = {
+      to: toAddress,
+      amount: amount,       // в нанотонах (1 TON = 10^9 нт)
+      payload: "Привет от Metaville"
+    };
+    await tonConnect.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 60, transfer });
+    alert("Транзакция отправлена!");
+  } catch (e) {
+    console.error(e);
+    alert("Ошибка отправки TON");
+  }
+}
+
         // Состояние игры
         const gameState = {
             resources: {
