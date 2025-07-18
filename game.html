@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <!-- TonConnect SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk/dist/tonconnect.min.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>METAVILLE: V.01.D / Genesis Platform</title>
@@ -25,7 +28,7 @@
         
         .container {
             width: 100%;
-            max-width: 470px;
+            max-width: 475px;
             height: 680px;
             background: #0a0a15;
             border-radius: 25px;
@@ -47,6 +50,7 @@
             border-bottom: 1px solid #2a2a4a;
             z-index: 10;
             gap: 8px;
+
         }
         
         .resource-item {
@@ -89,6 +93,7 @@
             font-weight: 600;
         }
         
+
         /* Карта */
         .map-container {
             position: relative;
@@ -695,8 +700,8 @@
         
         /* Анимации */
         @keyframes pulse {
-            20% { transform: scale(1); }
-            700% { transform: scale(1.05); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
         
@@ -737,13 +742,14 @@
                 <span>⚡ <span id="energy-value">850</span></span>
             </div>
             <div class="resource-item" id="mvc-resource">
-                <span>MVC: <span id="mvc-value">480</span></span>
+                <span>MVC: <span id="mvc-value">2,480</span></span>
             </div>
             <div class="resource-item" id="bio-resource">
                 <span>🧪 <span id="bio-value">42</span></span>
             </div>
             <div class="resource-item" id="parts-resource">
                 <span>🛠️ <span id="parts-value">18</span></span>
+
             </div>
         </div>
         
@@ -1113,6 +1119,7 @@
             </div>
             
             <!-- Экран Квестов -->
+
             <div id="quest-screen" class="screen">
                 <h2 class="section-title">Миссии и квесты</h2>
                 
@@ -1245,27 +1252,38 @@
         </div>
         
         <!-- Нижнее меню навигации -->
-        <div class="nav-menu">
-            <div class="nav-item active" data-screen="map-screen">
-                <i class="fas fa-globe-americas"></i>
-                <span>Карта</span>
-            </div>
-            <div class="nav-item" data-screen="base-screen">
-                <i class="fas fa-hard-hat"></i>
-                <span>База</span>
-            </div>
-            <div class="nav-item" data-screen="research-screen">
-                <i class="fas fa-flask"></i>
-                <span>Исследования</span>
-            </div>
-            <div class="nav-item" data-screen="market-screen">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Маркет</span>
-            </div>
-            <div class="nav-item" data-screen="quest-screen">
-                <i class="fas fa-tasks"></i>
-                <span>Квесты</span>
-            </div>
+        <!-- Нижнее меню навигации -->
+<div class="nav-menu">
+    <div class="nav-item active" data-screen="map-screen">
+        <i class="fas fa-globe-americas"></i>
+        <span>Карта</span>
+    </div>
+    <div class="nav-item" data-screen="base-screen">
+        <i class="fas fa-hard-hat"></i>
+        <span>База</span>
+    </div>
+    <div class="nav-item" data-screen="research-screen">
+        <i class="fas fa-flask"></i>
+        <span>Исследования</span>
+    </div>
+    <div class="nav-item" data-screen="market-screen">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Маркет</span>
+    </div>
+    <div class="nav-item" data-screen="quest-screen">
+        <i class="fas fa-tasks"></i>
+        <span>Квесты</span>
+    </div>
+    <!-- Новый отдельный элемент для кнопки кошелька -->
+    <div class="nav-item" id="wallet-item">
+        <button id="connect-wallet" class="btn btn-warning">
+            <i class="fas fa-wallet"></i>
+            <span>Кошелек</span>
+        </button>
+        <span id="wallet-address" style="margin-left:10px; color:#00ffcc;"></span>
+    </div>
+</div>
+
         </div>
     </div>
     
