@@ -63,20 +63,15 @@ html, body {
       .resource-bar {
             background: rgba(10, 15, 30, 0.9);
             padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
+            display: flex;  /* не даём элементам переноситься на новую строку */
+            justify-content: space-evenly; /* или flex-start, если хотите прижать влево */
+    /* увеличиваем или уменьшаем отступы между ними */
+            /*justify-content: space-between; */
+            flex-wrap: nowrap; /* равномерно распределяем их по горизонтали */
             border-bottom: 1px solid #2a2a4a;
             z-index: 10;
-            gap: 8px;
-        
-    display: flex;
-    /* не даём элементам переноситься на новую строку */
-    flex-wrap: nowrap;
-    /* равномерно распределяем их по горизонтали */
-    justify-content: space-evenly; /* или flex-start, если хотите прижать влево */
-    /* увеличиваем или уменьшаем отступы между ними */
-    gap: 4px; /* подберите своё значение */
+            gap: 8px; /* подберите своё значение */
+   
     overflow-x: auto; /* на всякий случай, чтобы не было «вылезания» за экран */
 }
 
