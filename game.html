@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <!-- TonConnect SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk/dist/tonconnect.min.js"></script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+ <!-- TON Connect UI Kit -->
+<script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
 
     <title>METAVILLE: V.01.D / Genesis Platform</title>
+    <link rel="tonconnect" href="/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -70,7 +71,7 @@ html, body {
             flex-wrap: nowrap; /* равномерно распределяем их по горизонтали */
             border-bottom: 1px solid #2a2a4a;
             z-index: 10;
-            gap: 8px; /* подберите своё значение */
+            gap: 2px; /* подберите своё значение */
    
     overflow-x: auto; /* на всякий случай, чтобы не было «вылезания» за экран */
 }
@@ -1310,16 +1311,17 @@ html, body {
         <span>Квесты</span>
     </div>
     <!-- Новый отдельный элемент для кнопки кошелька -->
+
     <div class="nav-item" id="wallet-item">
         <button id="connect-wallet" class="btn btn-warning">
             <i class="fas fa-wallet"></i>
-            <span> </span>
+            <span></span>
         </button>
         <span id="wallet-address" style="margin-left:10px; color:#00ffcc;"></span>
         <script>
   // создаём UI-кнопку
-  const ui = new TonConnect.UI();
-
+ const ui = new TonConnectUI();
+await ui.connect()
   document
     .getElementById('connect-wallet')
     .addEventListener('click', async () => {
