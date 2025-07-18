@@ -61,17 +61,24 @@ html, body {
         }
         
         /* Верхняя панель ресурсов */
-        .resource-bar {
-            background: rgba(10, 15, 30, 0.9);
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            border-bottom: 1px solid #2a2a4a;
-            z-index: 10;
-            gap: 8px;
+       .resource-bar {
+    display: flex;
+    /* не даём элементам переноситься на новую строку */
+    flex-wrap: nowrap;
+    /* равномерно распределяем их по горизонтали */
+    justify-content: space-evenly; /* или flex-start, если хотите прижать влево */
+    /* увеличиваем или уменьшаем отступы между ними */
+    gap: 12px; /* подберите своё значение */
+    overflow-x: auto; /* на всякий случай, чтобы не было «вылезания» за экран */
+}
 
-        }
+.resource-item {
+    /* можно убрать минимальную ширину, если она мешает */
+    min-width: auto;
+    /* или задать более гибкую ширину */
+    flex: 1 1 auto;
+}
+
         
         .resource-item {
             display: flex;
