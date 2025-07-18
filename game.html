@@ -764,6 +764,14 @@
     </style>
 </head>
 <body>
+     <script>
+    window.Telegram.WebApp.ready();
+    if (window.Telegram.WebApp.requestFullscreen) {
+      window.Telegram.WebApp.requestFullscreen();
+    } else {
+      window.Telegram.WebApp.expand();
+    }
+  </script>
     <div id="app" class="container">
         <!-- Верхняя панель ресурсов -->
         <div class="resource-bar">
