@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.expand(); // Разворачивает WebApp на весь экран
-
-  tg.ready();  // Сообщаем Telegram, что страница готова
-
-  console.log(tg.initDataUnsafe?.user); // можно получить имя, id и т.п.
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>METAVILLE: V.01.D / Genesis Platform</title>
@@ -64,7 +55,7 @@
             gap: 5px;
             font-size: 14px;
             font-weight: 600;
-            min-width: 40px;
+            min-width: 70px;
         }
         
         /* Основной контент */
@@ -1329,13 +1320,6 @@
     </div>
     
     <script>
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-    let tg = window.Telegram.WebApp;
-    tg.expand(); // чтобы растянуть окно
-    console.log(tg.initDataUnsafe); // можно использовать для проверки пользователя
-
         // Состояние игры
         const gameState = {
             resources: {
