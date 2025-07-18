@@ -786,7 +786,7 @@
                         <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                        <span id="mission-time">-:-</span>
+                        <span id="mission-time"> 0% </span>
                         <span id="mission-harvest">Комбайны: 0/2</span>
                         <span id="mission-risk" style="color: #ffcc00;">Риск: 0% ⚠️</span>
                     </div>
@@ -1456,7 +1456,7 @@
                 elements.missionSector.textContent = gameState.missions.sector;
                 elements.missionBelt.textContent = gameState.missions.belt;
                 elements.missionProgress.style.width = gameState.missions.progress + '%';
-                elements.missionTime.textContent = formatTime(gameState.missions.time);
+                elements.missionTime.textContent = Math.round(gameState.missions.progress) + '%';
                 elements.missionRisk.textContent = `Риск: ${gameState.missions.risk}% ⚠️`;
                 elements.probeProgress.style.width = gameState.missions.progress + '%';
                 elements.missionHarvest.textContent = `Сборщик: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
