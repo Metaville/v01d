@@ -1,6 +1,6 @@
 {
   "description": "WebApp Metaville: Игровой мир и квесты",
-  "icons": [""],
+  "icons": ["https://github.com/Metaville/v01d/main/icon-wallet.png"],
   "name": "Metaville Game",
   "permissions": ["transfer"],
   "version": "1.0.0",
