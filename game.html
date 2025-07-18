@@ -2,8 +2,7 @@
 <html lang="ru">
 <head>
     <!-- TonConnect SDK -->
-<!-- подключаем TonConnect UI -->
-<script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk/dist/tonconnect.min.js"></script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -61,14 +60,23 @@ html, body {
         }
         
         /* Верхняя панель ресурсов */
-       .resource-bar {
+      .resource-bar {
+            background: rgba(10, 15, 30, 0.9);
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #2a2a4a;
+            z-index: 10;
+            gap: 8px;
+        
     display: flex;
     /* не даём элементам переноситься на новую строку */
     flex-wrap: nowrap;
     /* равномерно распределяем их по горизонтали */
     justify-content: space-evenly; /* или flex-start, если хотите прижать влево */
     /* увеличиваем или уменьшаем отступы между ними */
-    gap: 12px; /* подберите своё значение */
+    gap: 4px; /* подберите своё значение */
     overflow-x: auto; /* на всякий случай, чтобы не было «вылезания» за экран */
 }
 
@@ -76,7 +84,7 @@ html, body {
     /* можно убрать минимальную ширину, если она мешает */
     min-width: auto;
     /* или задать более гибкую ширину */
-    flex: 1 1 auto;
+    flex: 3 3 auto;
 }
 
         
@@ -583,7 +591,7 @@ html, body {
         }
         
         /* Уведомления */
-.notification {
+        .notification {
     position: fixed;
     top: 0;
     left: 0;
@@ -606,6 +614,7 @@ html, body {
     transition: all 0.3s ease;
 }
 
+        
         
         .notification.show {
             opacity: 1;
@@ -767,13 +776,13 @@ html, body {
         <!-- Верхняя панель ресурсов (без дублирующихся иконок) -->
         <div class="resource-bar">
             <div class="resource-item" id="oxygen-resource">
-                <span>O₂: <span id="oxygen-value">1,250</span></span>
+                <span>O₂: <span id="oxygen-value">250</span></span>
             </div>
             <div class="resource-item" id="energy-resource">
                 <span>⚡ <span id="energy-value">850</span></span>
             </div>
             <div class="resource-item" id="mvc-resource">
-                <span>MVC: <span id="mvc-value">2,480</span></span>
+                <span>MVC: <span id="mvc-value">480</span></span>
             </div>
             <div class="resource-item" id="bio-resource">
                 <span>🧪 <span id="bio-value">42</span></span>
@@ -1287,31 +1296,52 @@ html, body {
 <div class="nav-menu">
     <div class="nav-item active" data-screen="map-screen">
         <i class="fas fa-globe-americas"></i>
-        <span>MAP</span>
+        <span>Карта</span>
     </div>
     <div class="nav-item" data-screen="base-screen">
         <i class="fas fa-hard-hat"></i>
-        <span>BASE</span>
+        <span>База</span>
     </div>
     <div class="nav-item" data-screen="research-screen">
         <i class="fas fa-flask"></i>
-        <span>CRAFT</span>
+        <span>Исследования</span>
     </div>
     <div class="nav-item" data-screen="market-screen">
         <i class="fas fa-shopping-cart"></i>
-        <span>MARKET</span>
+        <span>Маркет</span>
     </div>
     <div class="nav-item" data-screen="quest-screen">
         <i class="fas fa-tasks"></i>
-        <span>QUESTS</span>
+        <span>Квесты</span>
     </div>
     <!-- Новый отдельный элемент для кнопки кошелька -->
     <div class="nav-item" id="wallet-item">
         <button id="connect-wallet" class="btn btn-warning">
             <i class="fas fa-wallet"></i>
-            <span></span>
+            <span> </span>
         </button>
         <span id="wallet-address" style="margin-left:10px; color:#00ffcc;"></span>
+        <script>
+  // создаём UI-кнопку
+  const ui = new TonConnect.UI();
+
+  document
+    .getElementById('connect-wallet')
+    .addEventListener('click', async () => {
+      try {
+        // откроет модалку с выбором кошелька
+        const session = await ui.connect();
+        // session – объект с address, разрешениями и т. д.
+        console.log('Connected:', session.account.address);
+        // показываем адрес в интерфейсе
+        document.getElementById('wallet-address').textContent = 
+          session.account.address;
+      } catch (err) {
+        console.error('Connection failed:', err);
+      }
+    });
+</script>
+
     </div>
 </div>
 
