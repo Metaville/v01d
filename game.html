@@ -576,25 +576,29 @@ html, body {
         }
         
         /* Уведомления */
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(30, 10, 20, 0.9);
-            color: #ff99aa;
-            padding: 15px 20px;
-            border-radius: 10px;
-            border-left: 4px solid #ff5555;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            max-width: 90%;
-        }
+.notification {
+    position: fixed;
+    top: 0;
+    left: 0;
+    /* убираем центрирование */
+    transform: none;
+    /* делаем на всю ширину */
+    width: 100%;
+    max-width: 100%;
+    /* можно убрать скругления по бокам */
+    border-radius: 0;
+    /* фон и отступы при желании скорректировать */
+    padding: 15px;
+    box-sizing: border-box;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
         
         .notification.show {
             opacity: 1;
