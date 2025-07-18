@@ -1320,6 +1320,13 @@
     </div>
     
     <script>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand(); // чтобы растянуть окно
+    console.log(tg.initDataUnsafe); // можно использовать для проверки пользователя
+
         // Состояние игры
         const gameState = {
             resources: {
