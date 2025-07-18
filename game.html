@@ -5,7 +5,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@tonconnect/sdk/dist/tonconnect.min.js"></script>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+
     <title>METAVILLE: V.01.D / Genesis Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -15,6 +18,22 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        /* Полноэкранный режим на мобильных */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
         
         body {
             background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2f 100%);
@@ -732,7 +751,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="app" class="container">
         <!-- Верхняя панель ресурсов (без дублирующихся иконок) -->
         <div class="resource-bar">
             <div class="resource-item" id="oxygen-resource">
