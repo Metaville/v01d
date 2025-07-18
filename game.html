@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>METAVILLE: Genesis Platform</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2f 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 10px;
+            padding-bottom: 70px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 100%;
+            background: #0a0a15;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 30, 0.5);
+            position: relative;
+            border: 1px solid #2a2a4a;
+            margin: 0 auto;
+        }
+        
+        .resource-bar {
+            background: rgba(10, 15, 30, 0.9);
+            padding: 12px 10px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #2a2a4a;
+            gap: 6px;
+        }
+        
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 30px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background: rgba(20, 25, 40, 0.5);
+        }
+        
+        .main-content {
+            overflow-y: auto;
+            padding: 12px;
+            max-height: calc(100vh - 140px);
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-title {
+            color: #00ffcc;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #2a2a4a;
+            font-size: 17px;
+            font-weight: 600;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 250px;
+            background: #0d0d1a;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 1px solid #2a2a4a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .map-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .inner-ring {
+            width: 100px;
+            height: 100px;
+            border-color: #00cc99;
+            z-index: 3;
+        }
+        
+        .middle-ring {
+            width: 160px;
+            height: 160px;
+            border-color: #ffcc00;
+            z-index: 2;
+        }
+        
+        .outer-ring {
+            width: 220px;
+            height: 220px;
+            border-color: #ff5555;
+            z-index: 1;
+        }
+        
+        .ring-label {
+            position: absolute;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 500;
+            background: rgba(10, 15, 30, 0.8);
+            padding: 2px 6px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+        
+        .inner-label {
+            top: calc(50% - 60px);
+        }
+        
+        .middle-label {
+            top: calc(50% - 90px);
+        }
+        
+        .outer-label {
+            top: calc(50% - 120px);
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2f 100%);
+            color: #e0e0ff;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            border: 1px solid #3a3a5a;
+            font-size: 13px;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00cc99 0%, #009973 100%);
+            color: #001a14;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffcc00 0%, #cc9900 100%);
+            color: #332900;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff5555 0%, #cc0000 100%);
+            color: #1a0000;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .status-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #3a3a5a;
+            font-size: 13px;
+        }
+        
+        .status-title {
+            font-size: 13px;
+            color: #a0a0d0;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #00ffcc;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #1a1a2f;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #00cc99, #00ffcc);
+        }
+        
+        .research-node {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #3a3a5a;
+            font-size: 13px;
+        }
+        
+        .node-title {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .node-progress {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        
+        .progress-dots {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2a2a4a;
+        }
+        
+        .dot.filled {
+            background: #00ffcc;
+        }
+        
+        .node-cost {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+        
+        .cost-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .market-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 5px;
+            background: #1a1a2f;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .tab.active {
+            background: #2a2a4a;
+            color: #00ffcc;
+        }
+        
+        .offer-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #3a3a5a;
+            font-size: 13px;
+        }
+        
+        .offer-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .offer-vendor {
+            color: #ffcc00;
+            font-weight: 500;
+        }
+        
+        .offer-rating {
+            color: #ffcc00;
+        }
+        
+        .offer-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .offer-price {
+            font-weight: 600;
+            color: #00ffcc;
+            font-size: 14px;
+        }
+        
+        .vote-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #3a3a5a;
+            font-size: 13px;
+        }
+        
+        .vote-title {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #00ffcc;
+        }
+        
+        .vote-progress {
+            height: 8px;
+            background: #1a1a2f;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        
+        .vote-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0099ff, #00ccff);
+            border-radius: 4px;
+        }
+        
+        .vote-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #a0a0d0;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .vote-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .vote-input {
+            flex: 1;
+            background: #1a1a2f;
+            border: 1px solid #3a3a5a;
+            border-radius: 6px;
+            color: #fff;
+            padding: 6px 8px;
+            text-align: center;
+            font-size: 13px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            background: rgba(10, 15, 30, 0.95);
+            border-top: 1px solid #2a2a4a;
+            padding: 8px 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 5px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #a0a0d0;
+            font-size: 11px;
+        }
+        
+        .nav-item.active {
+            color: #00ffcc;
+        }
+        
+        .nav-item i {
+            font-size: 18px;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 10, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 15px;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: #0f0f1a;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #2a2a4a;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .modal-title {
+            color: #00ffcc;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: #a0a0d0;
+            font-size: 24px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sectors-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .sector-item {
+            background: #1a1a2f;
+            border-radius: 8px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #3a3a5a;
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+        
+        .sector-item:active {
+            transform: scale(0.95);
+        }
+        
+        .sector-name {
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        
+        .sector-risk {
+            font-size: 11px;
+            color: #ff5555;
+        }
+        
+        .sector-risk.low {
+            color: #00cc99;
+        }
+        
+        .sector-risk.medium {
+            color: #ffcc00;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .modal-actions .btn {
+            flex: 1;
+            padding: 10px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 10, 20, 0.9);
+            color: #ff99aa;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border-left: 4px solid #ff5555;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            max-width: 90%;
+            font-size: 14px;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            visibility: visible;
+            top: 20px;
+        }
+        
+        .notification i {
+            font-size: 18px;
+        }
+        
+        .notification.success {
+            background: rgba(10, 30, 15, 0.9);
+            color: #99ffaa;
+            border-left: 4px solid #00cc99;
+        }
+        
+        .mission-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #3a3a5a;
+            position: relative;
+            font-size: 13px;
+        }
+        
+        .mission-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: #00ffcc;
+            border-radius: 0 0 3px 0;
+        }
+        
+        .quest-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #3a3a5a;
+            position: relative;
+            overflow: hidden;
+            font-size: 13px;
+        }
+        
+        .quest-title {
+            font-size: 14px;
+            color: #00ffcc;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .quest-description {
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #a0a0d0;
+        }
+        
+        .quest-reward {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #ffcc00;
+            margin-bottom: 8px;
+        }
+        
+        .quest-progress {
+            height: 5px;
+            background: #1a1a2f;
+            border-radius: 3px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        
+        .quest-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0099ff, #00ccff);
+            border-radius: 3px;
+        }
+        
+        .quest-status {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #a0a0d0;
+            flex-wrap: wrap;
+        }
+        
+        .quest-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .quest-actions .btn {
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+        
+        .quest-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .new-badge {
+            background: linear-gradient(135deg, #ffcc00, #cc9900);
+            color: #332900;
+        }
+        
+        .active-badge {
+            background: linear-gradient(135deg, #0099ff, #0066cc);
+            color: #fff;
+        }
+        
+        .completed-badge {
+            background: linear-gradient(135deg, #00cc99, #009973);
+            color: #001a14;
+        }
+        
+        /* Анимации */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        .resource-item.changed {
+            animation: highlight 1s;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: rgba(0, 255, 204, 0.3); }
+            100% { background-color: transparent; }
+        }
+        
+        .quest-card.new {
+            border-left: 4px solid #ffcc00;
+        }
+        
+        .quest-card.active {
+            border-left: 4px solid #0099ff;
+        }
+        
+        .quest-card.completed {
+            border-left: 4px solid #00cc99;
+        }
+        
+        /* Telegram theme adaptation */
+        body.tg-theme-dark {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2f 100%);
+        }
+        
+        body.tg-theme-light {
+            background: linear-gradient(135deg, #e0e0ff 0%, #d0d0f0 100%);
+            color: #0a0a15;
+        }
+        
+        body.tg-theme-light .container,
+        body.tg-theme-light .resource-bar,
+        body.tg-theme-light .status-card,
+        body.tg-theme-light .research-node,
+        body.tg-theme-light .offer-card,
+        body.tg-theme-light .vote-card,
+        body.tg-theme-light .mission-card,
+        body.tg-theme-light .quest-card,
+        body.tg-theme-light .modal-content {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #d0d0e0;
+            color: #333;
+        }
+        
+        body.tg-theme-light .section-title,
+        body.tg-theme-light .status-value,
+        body.tg-theme-light .offer-price,
+        body.tg-theme-light .vote-title,
+        body.tg-theme-light .quest-title,
+        body.tg-theme-light .modal-title {
+            color: #0077cc;
+        }
+        
+        body.tg-theme-light .btn {
+            background: linear-gradient(135deg, #e0e0ff 0%, #d0d0f0 100%);
+            color: #333;
+            border-color: #b0b0d0;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 340px) {
+            .resource-item {
+                font-size: 11px;
+                padding: 3px 6px;
+            }
+            
+            .section-title {
+                font-size: 15px;
+            }
+            
+            .btn {
+                font-size: 12px;
+                padding: 8px;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (min-width: 500px) {
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 15px;
+                padding-bottom: 80px;
+            }
+            
+            .container {
+                max-width: 375px;
+                height: 667px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Верхняя панель ресурсов -->
+        <div class="resource-bar">
+            <div class="resource-item" id="oxygen-resource">
+                <span>O₂: <span id="oxygen-value">1,250</span></span>
+            </div>
+            <div class="resource-item" id="energy-resource">
+                <span>⚡ <span id="energy-value">850</span></span>
+            </div>
+            <div class="resource-item" id="mvc-resource">
+                <span>MVC: <span id="mvc-value">2,480</span></span>
+            </div>
+            <div class="resource-item" id="bio-resource">
+                <span>🧪 <span id="bio-value">42</span></span>
+            </div>
+            <div class="resource-item" id="parts-resource">
+                <span>🛠️ <span id="parts-value">18</span></span>
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="main-content">
+            <!-- Экран Карта -->
+            <div id="map-screen" class="screen active">
+                <h2 class="section-title">Сканирование поверхности</h2>
+                
+                <div class="map-container">
+                    <div class="map-circle inner-ring">
+                        <span class="ring-label inner-label">Ближний пояс (0-50км)</span>
+                    </div>
+                    <div class="map-circle middle-ring">
+                        <span class="ring-label middle-label">Средний пояс (50-100км)</span>
+                    </div>
+                    <div class="map-circle outer-ring">
+                        <span class="ring-label outer-label">Дальний пояс (100-150км)</span>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="scan-btn">
+                        <i class="fas fa-satellite"></i> Сканировать
+                    </button>
+                    <button class="btn" id="harvest-btn" disabled>
+                        <i class="fas fa-tractor"></i> Отправить сборщик
+                    </button>
+                </div>
+                
+                <h3 class="section-title" style="margin-top: 15px;">Активные миссии</h3>
+                <div class="mission-card" id="probe-mission">
+                    <div class="mission-progress" id="probe-progress" style="width: 0%"></div>
+                    <div class="status-title">
+                        <i class="fas fa-satellite-dish"></i> Зонд-1: Разведка
+                    </div>
+                    <div>Сектор <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px;">
+                        <span id="mission-time">-:-</span>
+                        <span id="mission-harvest">Комбайны: 0/2</span>
+                        <span id="mission-risk" style="color: #ffcc00;">Риск: 0% ⚠️</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Экран База -->
+            <div id="base-screen" class="screen">
+                <h2 class="section-title">Состояние платформы</h2>
+                
+                <div class="status-grid">
+                    <div class="status-card">
+                        <div class="status-title">
+                            <i class="fas fa-solar-panel"></i> Солнечные батареи
+                        </div>
+                        <div class="status-value">87%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 87%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="status-card">
+                        <div class="status-title">
+                            <i class="fas fa-tint"></i> Запас воды
+                        </div>
+                        <div class="status-value">3,200L</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 64%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="status-card">
+                        <div class="status-title">
+                            <i class="fas fa-wind"></i> Генерация O₂
+                        </div>
+                        <div class="status-value">120/min</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="status-card">
+                        <div class="status-title">
+                            <i class="fas fa-hard-hat"></i> Механики
+                        </div>
+                        <div class="status-value"><span id="drones-value">0</span> дрона</div>
+                        <div>В ремонте</div>
+                    </div>
+                    
+                    <div class="status-card">
+                        <div class="status-title">
+                            <i class="fas fa-microchip"></i> Модули
+                        </div>
+                        <div class="status-value"><span id="slots-value">2</span> слота</div>
+                        <div>Свободно</div>
+                    </div>
+                    
+                    <div class="status-card">
+                        <div class="status-title">
+                            <i class="fas fa-bed"></i> Капсулы отдыха
+                        </div>
+                        <div class="status-value">84%</div>
+                        <div>Занято</div>
+                    </div>
+                    
+                    <div class="status-card">
+                        <div class="status-title">
+                            <i class="fas fa-seedling"></i> Теплица
+                        </div>
+                        <div class="status-value">+3%</div>
+                        <div>Восстановление</div>
+                    </div>
+                    
+                    <div class="status-card">
+                        <div class="status-title">
+                            <i class="fas fa-shield-alt"></i> Защита
+                        </div>
+                        <div class="status-value">92%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 92%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons" style="margin-top: 15px;">
+                    <button class="btn btn-primary" id="upgrade-btn">
+                        <i class="fas fa-sync-alt"></i> Обновить системы
+                    </button>
+                    <button class="btn btn-warning" id="emergency-btn">
+                        <i class="fas fa-bolt"></i> Экстренное питание
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Экран Исследования -->
+            <div id="research-screen" class="screen">
+                <h2 class="section-title">Дерево технологий</h2>
+                
+                <div class="research-node">
+                    <div class="node-title">
+                        <span>Стелс-модули</span>
+                        <span>Зонды</span>
+                    </div>
+                    <div class="node-progress">
+                        <span>Прогресс:</span>
+                        <div class="progress-dots" id="stealth-dots">
+                            <div class="dot filled"></div>
+                            <div class="dot filled"></div>
+                            <div class="dot filled"></div>
+                            <div class="dot filled"></div>
+                            <div class="dot filled"></div>
+                            <div class="dot filled"></div>
+                            <div class="dot filled"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                    <p>Снижает риск обнаружения зондов на 25%</p>
+                    <div class="node-cost">
+                        <div class="cost-item">
+                            <i class="fas fa-coins" style="color: #00ccff;"></i>
+                            <span>120 MVC</span>
+                        </div>
+                        <div class="cost-item">
+                            <i class="fas fa-cog" style="color: #a0a0d0;"></i>
+                            <span>40 🛠️</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 8px;" id="stealth-btn">
+                        <i class="fas fa-flask"></i> Исследовать
+                    </button>
+                </div>
+                
+                <div class="research-node">
+                    <div class="node-title">
+                        <span>Адаптация к радиации</span>
+                        <span>Безопасность</span>
+                    </div>
+                    <div class="node-progress">
+                        <span>Прогресс:</span>
+                        <div class="progress-dots" id="radiation-dots">
+                            <div class="dot filled"></div>
+                            <div class="dot filled"></div>
+                            <div class="dot filled"></div>
+                            <div class="dot filled"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                    <p>Позволяет работать в зонах с высоким радиационным фоном</p>
+                    <div class="node-cost">
+                        <div class="cost-item">
+                            <i class="fas fa-dna" style="color: #cc66ff;"></i>
+                            <span>5 🧪</span>
+                        </div>
+                        <div class="cost-item">
+                            <i class="fas fa-coins" style="color: #00ccff;"></i>
+                            <span>85 MVC</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 8px;" id="radiation-btn">
+                        <i class="fas fa-flask"></i> Исследовать
+                    </button>
+                </div>
+                
+                <div class="research-node">
+                    <div class="node-title">
+                        <span>Улучшенные двигатели</span>
+                        <span>Транспорт</span>
+                    </div>
+                    <div class="node-progress">
+                        <span>Прогресс:</span>
+                        <div id="engine-status" style="color: #00ffcc;">Не начато</div>
+                    </div>
+                    <p>Увеличивает скорость транспорта на 15%</p>
+                    <div class="node-cost">
+                        <div class="cost-item">
+                            <i class="fas fa-coins" style="color: #00ccff;"></i>
+                            <span>200 MVC</span>
+                        </div>
+                        <div class="cost-item">
+                            <i class="fas fa-cog" style="color: #a0a0d0;"></i>
+                            <span>25 🛠️</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 8px;" id="engine-btn">
+                        <i class="fas fa-flask"></i> Начать исследование
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Экран Маркет -->
+            <div id="market-screen" class="screen">
+                <h2 class="section-title">Рынок V-01-d</h2>
+                
+                <div class="market-tabs">
+                    <div class="tab active">Ресурсы</div>
+                    <div class="tab">Оборудование</div>
+                    <div class="tab">Контракты</div>
+                </div>
+                
+                <div class="offer-card">
+                    <div class="offer-header">
+                        <div class="offer-vendor">ГЛОРИЯ</div>
+                        <div class="offer-rating">★★★★☆</div>
+                    </div>
+                    <div style="margin-bottom: 8px;">Полимеры • 85 ед.</div>
+                    <div class="offer-details">
+                        <div class="offer-price">12 MVC/ед.</div>
+                        <button class="btn buy-btn" data-resource="polymers" data-price="12" data-amount="85" style="padding: 6px 10px; font-size: 12px;">Купить</button>
+                    </div>
+                </div>
+                
+                <div class="offer-card">
+                    <div class="offer-header">
+                        <div class="offer-vendor">СИНДИКАТ-7</div>
+                        <div class="offer-rating">★★★☆☆</div>
+                    </div>
+                    <div style="margin-bottom: 8px;">Редкоземы • 12 ед.</div>
+                    <div class="offer-details">
+                        <div class="offer-price">28 MVC/ед.</div>
+                        <button class="btn buy-btn" data-resource="rare" data-price="28" data-amount="12" style="padding: 6px 10px; font-size: 12px;">Купить</button>
+                    </div>
+                </div>
+                
+                <div class="offer-card">
+                    <div class="offer-header">
+                        <div class="offer-vendor">БАР У ДЖО</div>
+                        <div class="offer-rating">★★★★★</div>
+                    </div>
+                    <div style="margin-bottom: 8px;">O₂ • 150 ед.</div>
+                    <div class="offer-details">
+                        <div class="offer-price">10 MVC/ед.</div>
+                        <button class="btn buy-btn" data-resource="oxygen" data-price="10" data-amount="150" style="padding: 6px 10px; font-size: 12px;">Купить</button>
+                    </div>
+                </div>
+                
+                <div class="offer-card">
+                    <div class="offer-header">
+                        <div class="offer-vendor">ЦЕХ МОДУЛЕЙ</div>
+                        <div class="offer-rating">★★★★☆</div>
+                    </div>
+                    <div style="margin-bottom: 8px;">Стелс-модуль для зонда</div>
+                    <div class="offer-details">
+                        <div class="offer-price">450 MVC</div>
+                        <button class="btn buy-btn" data-resource="stealth" data-price="450" data-amount="1" style="padding: 6px 10px; font-size: 12px;">Купить</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Экран Голосования -->
+            <div id="vote-screen" class="screen">
+                <h2 class="section-title">Голосования DAO</h2>
+                
+                <div class="vote-card">
+                    <div class="vote-title">Проект Орион: Строительство новой платформы</div>
+                    <div class="vote-progress">
+                        <div class="vote-fill" id="orion-progress" style="width: 72%"></div>
+                    </div>
+                    <div class="vote-info">
+                        <div>Прогресс: <span id="orion-percent">72</span>%</div>
+                        <div>Стоимость: 120,000 MVC</div>
+                    </div>
+                    <div style="margin-top: 8px; color: #00ffcc;">
+                        <i class="fas fa-check-circle"></i> Ваш голос: <span id="user-votes">150</span> токенов
+                    </div>
+                    <div class="vote-controls">
+                        <input type="number" min="1" max="150" value="5" class="vote-input" id="orion-votes">
+                        <button class="btn btn-primary vote-btn" data-project="orion">
+                            <i class="fas fa-vote-yea"></i> Голосовать
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="vote-card">
+                    <div class="vote-title">Обновление систем безопасности</div>
+                    <div class="vote-progress">
+                        <div class="vote-fill" id="security-progress" style="width: 45%"></div>
+                    </div>
+                    <div class="vote-info">
+                        <div>Прогресс: <span id="security-percent">45</span>%</div>
+                        <div>Стоимость: 85,000 MVC</div>
+                    </div>
+                    <div class="vote-controls">
+                        <input type="number" min="1" max="150" value="5" class="vote-input" id="security-votes">
+                        <button class="btn btn-primary vote-btn" data-project="security">
+                            <i class="fas fa-vote-yea"></i> Голосовать
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="vote-card">
+                    <div class="vote-title">Экспедиция на Луну</div>
+                    <div class="vote-progress">
+                        <div class="vote-fill" id="moon-progress" style="width: 28%"></div>
+                    </div>
+                    <div class="vote-info">
+                        <div>Прогресс: <span id="moon-percent">28</span>%</div>
+                        <div>Стоимость: 950,000 MVC</div>
+                    </div>
+                    <div class="vote-controls">
+                        <input type="number" min="1" max="150" value="5" class="vote-input" id="moon-votes">
+                        <button class="btn btn-primary vote-btn" data-project="moon">
+                            <i class="fas fa-vote-yea"></i> Голосовать
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="vote-card">
+                    <div class="vote-title">Создать новое предложение</div>
+                    <p style="margin: 8px 0; font-size: 13px;">Предложите новый проект для голосования сообщества</p>
+                    <div class="vote-controls">
+                        <input type="text" placeholder="Название проекта" class="vote-input">
+                        <button class="btn btn-primary" id="create-proposal-btn" style="font-size: 12px;">
+                            <i class="fas fa-plus"></i> Создать
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Экран Квестов -->
+            <div id="quest-screen" class="screen">
+                <h2 class="section-title">Миссии и квесты</h2>
+                
+                <div class="quest-card new">
+                    <div class="quest-badge new-badge">Новый!</div>
+                    <div class="quest-title">
+                        <i class="fas fa-star"></i> Пробуждение
+                    </div>
+                    <div class="quest-description">
+                        Исследуйте свою капсулу и найдите способ выбраться наружу. Осмотрите все отсеки капсулы для получения ключевых предметов.
+                    </div>
+                    <div class="quest-reward">
+                        <i class="fas fa-gift"></i> Награда: 100 MVC, Карта Метавиля
+                    </div>
+                    <div class="quest-progress">
+                        <div class="quest-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="quest-status">
+                        <span>Прогресс: 0%</span>
+                        <span>Принято: Нет</span>
+                    </div>
+                    <div class="quest-actions">
+                        <button class="btn btn-primary" data-quest="awakening">
+                            Принять квест
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="quest-card">
+                    <div class="quest-badge active-badge">Активен</div>
+                    <div class="quest-title">
+                        <i class="fas fa-satellite"></i> Сканирование поверхности
+                    </div>
+                    <div class="quest-description">
+                        Выберите сектор для сканирования и запустите зонды для сбора данных. Используйте полученные данные для дальнейшего исследования.
+                    </div>
+                    <div class="quest-reward">
+                        <i class="fas fa-gift"></i> Награда: 250 MVC, 5 биоматериалов
+                    </div>
+                    <div class="quest-progress">
+                        <div class="quest-progress-fill" style="width: 45%"></div>
+                    </div>
+                    <div class="quest-status">
+                        <span>Прогресс: 45%</span>
+                        <span>Завершить: Карта > Сканировать</span>
+                    </div>
+                    <div class="quest-actions">
+                        <button class="btn" disabled>
+                            В процессе
+                        </button>
+                        <button class="btn btn-danger">
+                            Отменить
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="quest-card completed">
+                    <div class="quest-badge completed-badge">Завершено</div>
+                    <div class="quest-title">
+                        <i class="fas fa-truck"></i> Первая доставка
+                    </div>
+                    <div class="quest-description">
+                        Доставьте посылку Борису в центральный хаб. Избегайте опасных зон и следите за уровнем энергии.
+                    </div>
+                    <div class="quest-reward">
+                        <i class="fas fa-gift"></i> Награда: 150 MVC, Инструкция по выживанию
+                    </div>
+                    <div class="quest-progress">
+                        <div class="quest-progress-fill" style="width: 100%"></div>
+                    </div>
+                    <div class="quest-status">
+                        <span>Прогресс: 100%</span>
+                        <span>Завершено: 15.07.2025</span>
+                    </div>
+                    <div class="quest-actions">
+                        <button class="btn btn-primary" disabled>
+                            Получить награду
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="quest-card">
+                    <div class="quest-title">
+                        <i class="fas fa-microchip"></i> Поиск фрагментов чипа
+                    </div>
+                    <div class="quest-description">
+                        Найти 5 фрагментов чипа Начала по всей территории Метавиля. Каждый фрагмент открывает новые возможности платформы.
+                    </div>
+                    <div class="quest-reward">
+                        <i class="fas fa-gift"></i> Награда: 500 MVC, Улучшенный сканер
+                    </div>
+                    <div class="quest-progress">
+                        <div class="quest-progress-fill" style="width: 20%"></div>
+                    </div>
+                    <div class="quest-status">
+                        <span>Прогресс: 1/5 фрагментов</span>
+                        <span>Статус: Доступен</span>
+                    </div>
+                    <div class="quest-actions">
+                        <button class="btn btn-primary">
+                            Принять квест
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="quest-card">
+                    <div class="quest-title">
+                        <i class="fas fa-cogs"></i> Активация Машины Начала
+                    </div>
+                    <div class="quest-description">
+                        Собрав все фрагменты чипа, активируйте Машину Начала в центральной лаборатории. Это откроет доступ к новым технологиям.
+                    </div>
+                    <div class="quest-reward">
+                        <i class="fas fa-gift"></i> Награда: 1000 MVC, Доступ к V-01-d
+                    </div>
+                    <div class="quest-progress">
+                        <div class="quest-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="quest-status">
+                        <span>Прогресс: 0%</span>
+                        <span>Статус: Недоступен</span>
+                    </div>
+                    <div class="quest-actions">
+                        <button class="btn" disabled>
+                            Требуется 5 фрагментов
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Нижнее меню навигации -->
+        <div class="nav-menu">
+            <div class="nav-item active" data-screen="map-screen">
+                <i class="fas fa-globe-americas"></i>
+                <span>Карта</span>
+            </div>
+            <div class="nav-item" data-screen="base-screen">
+                <i class="fas fa-hard-hat"></i>
+                <span>База</span>
+            </div>
+            <div class="nav-item" data-screen="research-screen">
+                <i class="fas fa-flask"></i>
+                <span>Исследования</span>
+            </div>
+            <div class="nav-item" data-screen="market-screen">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Маркет</span>
+            </div>
+            <div class="nav-item" data-screen="quest-screen">
+                <i class="fas fa-tasks"></i>
+                <span>Квесты</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно сканирования -->
+    <div class="modal" id="scan-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Сканирование сектора</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <p style="margin-bottom: 10px;">Выберите сектор для сканирования (стоимость: <span id="scan-cost">50</span> ⚡):</p>
+            
+            <div class="sectors-grid">
+                <div class="sector-item" data-sector="3" data-belt="Ближний пояс" data-risk="low">
+                    <div class="sector-name">Сектор 3</div>
+                    <div class="sector-risk low">Риск: Низкий</div>
+                </div>
+                <div class="sector-item" data-sector="7" data-belt="Средний пояс" data-risk="medium">
+                    <div class="sector-name">Сектор 7</div>
+                    <div class="sector-risk medium">Риск: Средний</div>
+                </div>
+                <div class="sector-item" data-sector="9" data-belt="Дальний пояс" data-risk="high">
+                    <div class="sector-name">Сектор 9</div>
+                    <div class="sector-risk">Риск: Высокий</div>
+                </div>
+                <div class="sector-item" data-sector="12" data-belt="Дальний пояс" data-risk="high">
+                    <div class="sector-name">Сектор 12</div>
+                    <div class="sector-risk">Риск: Высокий</div>
+                </div>
+                <div class="sector-item" data-sector="15" data-belt="Средний пояс" data-risk="medium">
+                    <div class="sector-name">Сектор 15</div>
+                    <div class="sector-risk medium">Риск: Средний</div>
+                </div>
+                <div class="sector-item" data-sector="18" data-belt="Ближний пояс" data-risk="low">
+                    <div class="sector-name">Сектор 18</div>
+                    <div class="sector-risk low">Риск: Низкий</div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-danger close-modal">Отмена</button>
+                <button class="btn btn-primary" id="confirm-scan">Начать сканирование</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомление -->
+    <div class="notification" id="notification">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div id="notification-text">Транспорт-7 атакован рейдерами! Потери: 35 ресурсов</div>
+    </div>
+    
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            
+            // Применение темы Telegram
+            document.body.classList.add(`tg-theme-${tg.colorScheme}`);
+        }
+        
+        // Состояние игры
+        const gameState = {
+            resources: {
+                oxygen: 1250,
+                energy: 850,
+                mvc: 2480,
+                bio: 42,
+                parts: 18
+            },
+            missions: {
+                scanning: false,
+                sector: null,
+                belt: null,
+                risk: 0,
+                progress: 0,
+                time: 0,
+                harvestCount: 0,
+                maxHarvests: 2
+            },
+            research: {
+                stealth: 7,
+                radiation: 4,
+                engines: false
+            },
+            votes: {
+                orion: 72,
+                security: 45,
+                moon: 28
+            },
+            userVotes: 150,
+            drones: 0,
+            slots: 2,
+            quests: [
+                { id: 1, title: "Пробуждение", status: "new", progress: 0, accepted: false, completed: false },
+                { id: 2, title: "Сканирование поверхности", status: "active", progress: 45, accepted: true, completed: false },
+                { id: 3, title: "Первая доставка", status: "completed", progress: 100, accepted: true, completed: true },
+                { id: 4, title: "Поиск фрагментов чипа", status: "available", progress: 20, accepted: false, completed: false },
+                { id: 5, title: "Активация Машины Начала", status: "locked", progress: 0, accepted: false, completed: false }
+            ]
+        };
+
+        // DOM элементы
+        const elements = {
+            oxygen: document.getElementById('oxygen-value'),
+            energy: document.getElementById('energy-value'),
+            mvc: document.getElementById('mvc-value'),
+            bio: document.getElementById('bio-value'),
+            parts: document.getElementById('parts-value'),
+            missionSector: document.getElementById('mission-sector'),
+            missionBelt: document.getElementById('mission-belt'),
+            missionProgress: document.getElementById('mission-progress'),
+            missionTime: document.getElementById('mission-time'),
+            missionRisk: document.getElementById('mission-risk'),
+            missionHarvest: document.getElementById('mission-harvest'),
+            probeProgress: document.getElementById('probe-progress'),
+            stealthDots: document.getElementById('stealth-dots'),
+            radiationDots: document.getElementById('radiation-dots'),
+            engineStatus: document.getElementById('engine-status'),
+            dronesValue: document.getElementById('drones-value'),
+            slotsValue: document.getElementById('slots-value'),
+            userVotes: document.getElementById('user-votes'),
+            orionProgress: document.getElementById('orion-progress'),
+            orionPercent: document.getElementById('orion-percent'),
+            securityProgress: document.getElementById('security-progress'),
+            securityPercent: document.getElementById('security-percent'),
+            moonProgress: document.getElementById('moon-progress'),
+            moonPercent: document.getElementById('moon-percent'),
+            notification: document.getElementById('notification'),
+            notificationText: document.getElementById('notification-text')
+        };
+
+        // Обновление интерфейса
+        function updateUI() {
+            // Ресурсы
+            elements.oxygen.textContent = gameState.resources.oxygen.toLocaleString();
+            elements.energy.textContent = gameState.resources.energy.toLocaleString();
+            elements.mvc.textContent = gameState.resources.mvc.toLocaleString();
+            elements.bio.textContent = gameState.resources.bio.toLocaleString();
+            elements.parts.textContent = gameState.resources.parts.toLocaleString();
+            
+            // Миссии
+            if (gameState.missions.scanning) {
+                elements.missionSector.textContent = gameState.missions.sector;
+                elements.missionBelt.textContent = gameState.missions.belt;
+                elements.missionProgress.style.width = gameState.missions.progress + '%';
+                elements.missionTime.textContent = formatTime(gameState.missions.time);
+                elements.missionRisk.textContent = `Риск: ${gameState.missions.risk}% ⚠️`;
+                elements.probeProgress.style.width = gameState.missions.progress + '%';
+                elements.missionHarvest.textContent = `Комбайны: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
+                document.getElementById('harvest-btn').disabled = 
+                    gameState.missions.progress < 100 || 
+                    gameState.missions.harvestCount >= gameState.missions.maxHarvests;
+            } else {
+                document.getElementById('harvest-btn').disabled = true;
+            }
+            
+            // Исследования
+            updateResearchDots('stealth', gameState.research.stealth);
+            updateResearchDots('radiation', gameState.research.radiation);
+            
+            if (gameState.research.engines) {
+                elements.engineStatus.textContent = "Активно • 3:45 ⏳";
+                document.getElementById('engine-btn').textContent = "Ускорить";
+            } else {
+                elements.engineStatus.textContent = "Не начато";
+                document.getElementById('engine-btn').textContent = "Начать исследование";
+            }
+            
+            // База
+            elements.dronesValue.textContent = gameState.drones;
+            elements.slotsValue.textContent = gameState.slots;
+            
+            // Голосования
+            elements.userVotes.textContent = gameState.userVotes;
+            elements.orionProgress.style.width = gameState.votes.orion + '%';
+            elements.orionPercent.textContent = gameState.votes.orion;
+            elements.securityProgress.style.width = gameState.votes.security + '%';
+            elements.securityPercent.textContent = gameState.votes.security;
+            elements.moonProgress.style.width = gameState.votes.moon + '%';
+            elements.moonPercent.textContent = gameState.votes.moon;
+        }
+        
+        // Форматирование времени
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+        }
+        
+        // Обновление точек прогресса исследований
+        function updateResearchDots(type, progress) {
+            const dots = elements[`${type}Dots`].querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                if (index < progress) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+        
+        // Показать уведомление
+        function showNotification(message, isSuccess = false) {
+            if (tg?.showPopup) {
+                tg.showPopup({
+                    title: isSuccess ? 'Успех!' : 'Внимание!',
+                    message: message,
+                    buttons: [{ type: 'ok' }]
+                }, () => {});
+            } else {
+                elements.notificationText.textContent = message;
+                elements.notification.classList.remove('success');
+                
+                if (isSuccess) {
+                    elements.notification.classList.add('success');
+                }
+                
+                elements.notification.classList.add('show');
+                
+                setTimeout(() => {
+                    elements.notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // Изменить ресурсы
+        function updateResource(resource, amount) {
+            if (gameState.resources[resource] + amount >= 0) {
+                gameState.resources[resource] += amount;
+                updateUI();
+                
+                // Анимация изменения
+                const element = document.getElementById(`${resource}-resource`);
+                element.classList.add('changed');
+                setTimeout(() => {
+                    element.classList.remove('changed');
+                }, 1000);
+                
+                // Автосохранение
+                saveGameState();
+                return true;
+            }
+            showNotification(`Недостаточно ${getResourceName(resource)}`, false);
+            return false;
+        }
+        
+        // Получение имени ресурса
+        function getResourceName(resource) {
+            const names = {
+                oxygen: "O₂",
+                energy: "энергии",
+                mvc: "MVC",
+                bio: "биоматериалов",
+                parts: "запчастей"
+            };
+            return names[resource] || resource;
+        }
+        
+        // Навигация по экранам
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                
+                const screenId = this.getAttribute('data-screen');
+                document.getElementById(screenId).classList.add('active');
+                
+                // Показываем кнопку "Назад" только для модальных окон
+                if (tg?.BackButton) {
+                    tg.BackButton.hide();
+                }
+            });
+        });
+        
+        // Открытие модального окна сканирования
+        document.getElementById('scan-btn').addEventListener('click', function() {
+            if (updateResource('energy', -50)) {
+                document.getElementById('scan-modal').classList.add('active');
+                if (tg?.BackButton) {
+                    tg.BackButton.show();
+                    tg.BackButton.onClick(() => {
+                        document.getElementById('scan-modal').classList.remove('active');
+                        tg.BackButton.hide();
+                    });
+                }
+            }
+        });
+        
+        // Закрытие модальных окон
+        document.querySelectorAll('.close-modal').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('scan-modal').classList.remove('active');
+                if (tg?.BackButton) {
+                    tg.BackButton.hide();
+                }
+            });
+        });
+        
+        // Выбор сектора для сканирования
+        let selectedSector = null;
+        document.querySelectorAll('.sector-item').forEach(sector => {
+            sector.addEventListener('click', function() {
+                document.querySelectorAll('.sector-item').forEach(s => {
+                    s.style.borderColor = '#3a3a5a';
+                    s.style.background = '#1a1a2f';
+                });
+                this.style.borderColor = '#00ffcc';
+                this.style.background = '#2a2a4a';
+                selectedSector = this;
+            });
+        });
+        
+        // Начать сканирование
+        document.getElementById('confirm-scan').addEventListener('click', function() {
+            if (!selectedSector) {
+                showNotification("Выберите сектор для сканирования!", false);
+                return;
+            }
+            
+            document.getElementById('scan-modal').classList.remove('active');
+            if (tg?.BackButton) tg.BackButton.hide();
+            
+            // Начало миссии сканирования
+            gameState.missions.scanning = true;
+            gameState.missions.sector = selectedSector.dataset.sector;
+            gameState.missions.belt = selectedSector.dataset.belt;
+            gameState.missions.risk = selectedSector.dataset.risk === 'low' ? 5 : 
+                                     selectedSector.dataset.risk === 'medium' ? 15 : 30;
+            gameState.missions.progress = 0;
+            gameState.missions.time = 135;
+            gameState.missions.harvestCount = 0;
+            
+            updateUI();
+            saveGameState();
+            
+            // Запуск таймера сканирования
+            const scanInterval = setInterval(() => {
+                if (gameState.missions.progress < 100) {
+                    gameState.missions.progress += 2;
+                    gameState.missions.time -= 2.7;
+                    
+                    // Случайные события
+                    if (Math.random() < 0.02) {
+                        const events = [
+                            "Обнаружены редкие ресурсы! +15 🧪",
+                            "Сканирование прервано радиационной бурей!",
+                            "Обнаружен заброшенный склад! +25 🛠️"
+                        ];
+                        const event = events[Math.floor(Math.random() * events.length)];
+                        
+                        if (event.includes("+")) {
+                            const resource = event.includes("🧪") ? 'bio' : 'parts';
+                            const amount = parseInt(event.match(/\d+/)[0]);
+                            updateResource(resource, amount);
+                        }
+                        
+                        showNotification(event, !event.includes("прервано"));
+                    }
+                    
+                    updateUI();
+                } else {
+                    clearInterval(scanInterval);
+                    showNotification("Сканирование сектора завершено!", true);
+                    updateResource('oxygen', -5);
+                    updateResource('bio', 1);
+                    saveGameState();
+                }
+            }, 200);
+        });
+        
+        // Отправка комбайнов
+        document.getElementById('harvest-btn').addEventListener('click', function() {
+            if (gameState.missions.harvestCount >= gameState.missions.maxHarvests) {
+                showNotification("Достигнут лимит отправок комбайнов!", false);
+                return;
+            }
+            
+            if (updateResource('oxygen', -15) && updateResource('energy', -70)) {
+                gameState.missions.harvestCount++;
+                updateResource('mvc', 60);
+                updateResource('parts', 2);
+                showNotification(`Комбайны отправлены на добычу (${gameState.missions.harvestCount}/${gameState.missions.maxHarvests})`, true);
+            }
+        });
+        
+        // Исследование стелс-модулей
+        document.getElementById('stealth-btn').addEventListener('click', function() {
+            if (gameState.research.stealth < 10) {
+                if (updateResource('mvc', -120) && updateResource('parts', -40)) {
+                    gameState.research.stealth++;
+                    updateUI();
+                    showNotification("Исследование стелс-модулей продвинуто!", true);
+                }
+            } else {
+                showNotification("Исследование стелс-модулей завершено!", true);
+            }
+        });
+        
+        // Исследование радиационной адаптации
+        document.getElementById('radiation-btn').addEventListener('click', function() {
+            if (gameState.research.radiation < 10) {
+                if (updateResource('mvc', -85) && updateResource('bio', -5)) {
+                    gameState.research.radiation++;
+                    updateUI();
+                    showNotification("Исследование радиационной адаптации продвинуто!", true);
+                }
+            } else {
+                showNotification("Исследование радиационной адаптации завершено!", true);
+            }
+        });
+        
+        // Исследование двигателей
+        document.getElementById('engine-btn').addEventListener('click', function() {
+            if (!gameState.research.engines) {
+                if (updateResource('mvc', -200) && updateResource('parts', -25)) {
+                    gameState.research.engines = true;
+                    updateUI();
+                    showNotification("Исследование двигателей начато!", true);
+                    saveGameState();
+                    
+                    setTimeout(() => {
+                        gameState.research.engines = false;
+                        showNotification("Исследование двигателей завершено! +15% к скорости транспорта", true);
+                        updateUI();
+                        saveGameState();
+                    }, 22500);
+                }
+            } else {
+                if (updateResource('mvc', -100)) {
+                    showNotification("Исследование двигателей ускорено!", true);
+                }
+            }
+        });
+        
+        // Обновление систем
+        document.getElementById('upgrade-btn').addEventListener('click', function() {
+            if (updateResource('mvc', -200) && updateResource('parts', -15)) {
+                gameState.drones = Math.min(3, gameState.drones + 1);
+                updateUI();
+                showNotification("Системы обновлены! Дроны в ремонте: " + gameState.drones, true);
+            }
+        });
+        
+        // Экстренное питание
+        document.getElementById('emergency-btn').addEventListener('click', function() {
+            if (updateResource('mvc', -80)) {
+                updateResource('energy', 100);
+                showNotification("Экстренное питание активировано! +100 ⚡", true);
+            }
+        });
+        
+        // Покупка на рынке
+        document.querySelectorAll('.buy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const price = parseInt(this.dataset.price);
+                const amount = parseInt(this.dataset.amount);
+                const resource = this.dataset.resource;
+                
+                if (updateResource('mvc', -price)) {
+                    let resourceName = "";
+                    
+                    switch(resource) {
+                        case "oxygen":
+                            updateResource('oxygen', amount);
+                            resourceName = "O₂";
+                            break;
+                        case "stealth":
+                            gameState.slots--;
+                            resourceName = "стелс-модуль";
+                            break;
+                        default:
+                            resourceName = resource === "polymers" ? "полимеры" : "редкоземы";
+                    }
+                    
+                    showNotification(`Куплено: ${resourceName}`, true);
+                }
+            });
+        });
+        
+        // Голосование
+        document.querySelectorAll('.vote-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const project = this.dataset.project;
+                const voteInput = document.getElementById(`${project}-votes`);
+                let votes = parseInt(voteInput.value);
+                
+                if (isNaN(votes) {
+                    showNotification("Введите количество голосов!", false);
+                    return;
+                }
+                
+                if (votes <= 0) {
+                    showNotification("Количество голосов должно быть положительным!", false);
+                    return;
+                }
+                
+                if (gameState.userVotes < votes) {
+                    showNotification("Недостаточно голосов для поддержки проекта!", false);
+                    return;
+                }
+                
+                gameState.userVotes -= votes;
+                
+                switch(project) {
+                    case "orion":
+                        gameState.votes.orion = Math.min(100, gameState.votes.orion + votes);
+                        break;
+                    case "security":
+                        gameState.votes.security = Math.min(100, gameState.votes.security + votes);
+                        break;
+                    case "moon":
+                        gameState.votes.moon = Math.min(100, gameState.votes.moon + votes);
+                        break;
+                }
+                
+                updateUI();
+                saveGameState();
+                showNotification(`Ваши ${votes} голосов учтены для проекта!`, true);
+            });
+        });
+        
+        // Создание нового предложения
+        document.getElementById('create-proposal-btn').addEventListener('click', function() {
+            showNotification("Новое предложение отправлено на модерацию", true);
+        });
+        
+        // Принятие квеста
+        document.querySelectorAll('.quest-actions .btn-primary').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const questId = this.getAttribute('data-quest');
+                if (questId === "awakening") {
+                    const awakeningQuest = gameState.quests.find(q => q.id === 1);
+                    if (awakeningQuest && !awakeningQuest.accepted) {
+                        awakeningQuest.accepted = true;
+                        awakeningQuest.status = "active";
+                        showNotification("Квест 'Пробуждение' принят! Осмотрите капсулу для выполнения.", true);
+                        updateUI();
+                        saveGameState();
+                    }
+                }
+            });
+        });
+        
+        // Имитация случайных событий
+        setInterval(() => {
+            if (Math.random() < 0.1 && gameState.missions.scanning) {
+                const events = [
+                    "Радиационная буря! Сканирование замедлено",
+                    "Обнаружены редкие ресурсы! +10 🧪",
+                    "Атака рейдеров! Потери ресурсов"
+                ];
+                const event = events[Math.floor(Math.random() * events.length)];
+                
+                if (event.includes("+")) {
+                    updateResource('bio', 10);
+                } else if (event.includes("Потери")) {
+                    updateResource('oxygen', -20);
+                }
+                
+                showNotification(event, event.includes("+"));
+            }
+        }, 15000);
+        
+        // Сохранение игры
+        function saveGameState() {
+            localStorage.setItem('metaville_save', JSON.stringify(gameState));
+            if (tg?.sendData) {
+                tg.sendData(JSON.stringify(gameState));
+            }
+        }
+        
+        // Загрузка игры
+        function loadGameState() {
+            const saved = localStorage.getItem('metaville_save');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    Object.assign(gameState, parsed);
+                } catch (e) {
+                    console.error('Ошибка загрузки:', e);
+                }
+            }
+            updateUI();
+        }
+        
+        // Инициализация игры
+        loadGameState();
+        
+        // Стартовое уведомление
+        setTimeout(() => {
+            showNotification("Добро пожаловать в METAVILLE на платформу V.01.D!", true);
+        }, 1000);
+    </script>
+</body>
+</html>
