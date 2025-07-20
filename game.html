@@ -778,10 +778,10 @@
                 <span>MVC: <span id="mvc-value">200</span></span>
             </div>
             <div class="resource-item" id="bio-resource">
-                <span>🧪 <span id="bio-value">0</span></span>
+                <span>🧪 <span id="bio-value">10</span></span>
             </div>
             <div class="resource-item" id="parts-resource">
-                <span>🛠️ <span id="parts-value">0</span></span>
+                <span>🛠️ <span id="parts-value">10</span></span>
             </div>
         </div>
         
@@ -789,7 +789,7 @@
         <div class="main-content">
             <!-- Экран Карта -->
             <div id="map-screen" class="screen active">
-                <h2 class="section-title">Scan within the radius of the platform</h2>
+                <h2 class="section-title">Scan radius of the platform</h2>
                 
                 <div class="map-container">
                     <div class="map-circle inner-ring">
@@ -825,20 +825,20 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 5px;">
                         <span id="mission-time"> 0% </span>
-                        <span id="mission-harvest">Комбайны: 0/2</span>
-                        <span id="mission-risk" style="color: #ffcc00;">Риск: 0% ⚠️</span>
+                        <span id="mission-harvest">HARVESTER: 0/2</span>
+                        <span id="mission-risk" style="color: #ffcc00;">RISK: 0% ⚠️</span>
                     </div>
                 </div>
             </div>
             
             <!-- Экран База -->
             <div id="base-screen" class="screen">
-                <h2 class="section-title">Состояние платформы</h2>
+                <h2 class="section-title">Platform status</h2>
                 
                 <div class="status-grid">
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-solar-panel"></i> Солнечные батареи
+                            <i class="fas fa-solar-panel"></i> Solar panels
                         </div>
                         <div class="status-value">87%</div>
                         <div class="progress-bar">
@@ -848,9 +848,9 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-tint"></i> Запас воды
+                            <i class="fas fa-tint"></i> Watter supplay
                         </div>
-                        <div class="status-value">3,200L</div>
+                        <div class="status-value">1,200L</div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 64%"></div>
                         </div>
@@ -858,7 +858,7 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-wind"></i> Генерация O₂
+                            <i class="fas fa-wind"></i> Generation O₂
                         </div>
                         <div class="status-value">120/min</div>
                         <div class="progress-bar">
@@ -868,39 +868,39 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-hard-hat"></i> Механики
+                            <i class="fas fa-hard-hat"></i> Mehanicus
                         </div>
-                        <div class="status-value"><span id="drones-value">0</span> дрона</div>
-                        <div>В ремонте</div>
+                        <div class="status-value"><span id="drones-value">0</span> drone</div>
+                        <div>Under renovation</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-microchip"></i> Модули
+                            <i class="fas fa-microchip"></i> Modules
                         </div>
                         <div class="status-value"><span id="slots-value">2</span> слота</div>
-                        <div>Свободно</div>
+                        <div>Free</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-bed"></i> Капсулы отдыха
+                            <i class="fas fa-bed"></i> Rest capsules
                         </div>
-                        <div class="status-value">84%</div>
-                        <div>Занято</div>
+                        <div class="status-value">30%</div>
+                        <div>Occupied</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-seedling"></i> Теплица
+                            <i class="fas fa-seedling"></i> Greenhouse
                         </div>
                         <div class="status-value">+3%</div>
-                        <div>Восстановление</div>
+                        <div>Recovery</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-shield-alt"></i> Защита
+                            <i class="fas fa-shield-alt"></i> Shields
                         </div>
                         <div class="status-value">92%</div>
                         <div class="progress-bar">
@@ -911,25 +911,25 @@
                 
                 <div class="action-buttons" style="margin-top: 20px;">
                     <button class="btn btn-primary" id="upgrade-btn">
-                        <i class="fas fa-sync-alt"></i> Обновить системы
+                        <i class="fas fa-sync-alt"></i> Upgrade systems
                     </button>
                     <button class="btn btn-warning" id="emergency-btn">
-                        <i class="fas fa-bolt"></i> Экстренное питание
+                        <i class="fas fa-bolt"></i> Emergency energy
                     </button>
                 </div>
             </div>
             
             <!-- Экран Исследования -->
             <div id="research-screen" class="screen">
-                <h2 class="section-title">Дерево технологий</h2>
+                <h2 class="section-title">Technology tree</h2>
                 
                 <div class="research-node">
                     <div class="node-title">
-                        <span>Стелс-модули</span>
-                        <span>Зонды</span>
+                        <span>Stealth modules</span>
+                        <span>Drones</span>
                     </div>
                     <div class="node-progress">
-                        <span>Прогресс:</span>
+                        <span>Progress:</span>
                         <div class="progress-dots" id="stealth-dots">
                             <div class="dot filled"></div>
                             <div class="dot filled"></div>
