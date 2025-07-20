@@ -2,14 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-       <title>METAVILLE: V.01.D / Genesis Platform</title>
-    <!-- TON Connect UI Kit -->
-    <script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
- 
-    <link rel="tonconnect" href="/manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>METAVILLE: V.01.D / Genesis Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -17,21 +11,6 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        /* Полноэкранный режим на мобильных */
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-        }
-        .container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
         }
         
         body {
@@ -46,8 +25,8 @@
         
         .container {
             width: 100%;
-            max-width: 475px;
-            height: 680px;
+            max-width: 375px;
+            height: 667px;
             background: #0a0a15;
             border-radius: 25px;
             overflow: hidden;
@@ -63,12 +42,11 @@
             background: rgba(10, 15, 30, 0.9);
             padding: 12px 15px;
             display: flex;
-            justify-content: space-evenly;
-            flex-wrap: nowrap;
+            justify-content: space-between;
+            flex-wrap: wrap;
             border-bottom: 1px solid #2a2a4a;
             z-index: 10;
-            gap: 2px;
-            overflow-x: auto;
+            gap: 8px;
         }
         
         .resource-item {
@@ -77,7 +55,7 @@
             gap: 5px;
             font-size: 14px;
             font-weight: 600;
-            min-width: 70px;
+            min-width: 30px;
         }
         
         /* Основной контент */
@@ -435,7 +413,7 @@
             display: flex;
             background: rgba(10, 15, 30, 0.95);
             border-top: 1px solid #2a2a4a;
-            padding: 1px 0;
+            padding: 10px 0;
         }
         
         .nav-item {
@@ -481,7 +459,6 @@
             transition: all 0.3s ease;
         }
         
-
         .modal.active {
             opacity: 1;
             visibility: visible;
@@ -576,13 +553,14 @@
         /* Уведомления */
         .notification {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            max-width: 100%;
-            border-radius: 0;
-            padding: 15px;
-            box-sizing: border-box;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 10, 20, 0.9);
+            color: #ff99aa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ff5555;
             z-index: 100;
             display: flex;
             align-items: center;
@@ -590,6 +568,7 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
+            max-width: 90%;
         }
         
         .notification.show {
@@ -745,44 +724,26 @@
         .quest-card.completed {
             border-left: 4px solid #00cc99;
         }
-
-        /* Кошелек */
-        #wallet-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 0;
-            flex: 1;
-        }
-        
-        #wallet-address {
-            font-size: 12px;
-            color: #00ffcc;
-            margin-left: 8px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100px;
-        }
     </style>
 </head>
 <body>
-    <div id="app" class="container">
-        <!-- Верхняя панель ресурсов -->
+    <div class="container">
+        <!-- Верхняя панель ресурсов (без дублирующихся иконок) -->
         <div class="resource-bar">
             <div class="resource-item" id="oxygen-resource">
-                <span>O₂: <span id="oxygen-value">100</span></span>
+                <span>O₂: <span id="oxygen-value">1,250</span></span>
             </div>
             <div class="resource-item" id="energy-resource">
-                <span>⚡ <span id="energy-value">500</span></span>
+                <span>⚡ <span id="energy-value">850</span></span>
             </div>
             <div class="resource-item" id="mvc-resource">
-                <span>MVC: <span id="mvc-value">200</span></span>
+                <span>MVC: <span id="mvc-value">2,480</span></span>
             </div>
             <div class="resource-item" id="bio-resource">
-                <span>🧪 <span id="bio-value">0</span></span>
+                <span>🧪 <span id="bio-value">42</span></span>
             </div>
             <div class="resource-item" id="parts-resource">
-                <span>🛠️ <span id="parts-value">0</span></span>
+                <span>🛠️ <span id="parts-value">18</span></span>
             </div>
         </div>
         
@@ -790,56 +751,56 @@
         <div class="main-content">
             <!-- Экран Карта -->
             <div id="map-screen" class="screen active">
-                <h2 class="section-title">Scan within the radius of the platform</h2>
+                <h2 class="section-title">Сканирование поверхности</h2>
                 
                 <div class="map-container">
                     <div class="map-circle inner-ring">
-                        <span class="ring-label inner-label">The radius of the abandoned lands (0-50 km)</span>
+                        <span class="ring-label inner-label">Ближний пояс (0-50км)</span>
                     </div>
                     <div class="map-circle middle-ring">
-                        <span class="ring-label middle-label">The average level of intelligence (50-100 km)</span>
+                        <span class="ring-label middle-label">Средний пояс (50-100км)</span>
                     </div>
                     <div class="map-circle outer-ring">
-                        <span class="ring-label outer-label">Area that is dangerous (100-150 km)</span>
+                        <span class="ring-label outer-label">Дальний пояс (100-150км)</span>
                     </div>
                 </div>
                 
-                <!-- Упрощенное меню действий -->
+                <!-- Упрощенное меню действий (только сканирование и комбайны) -->
                 <div class="action-buttons">
                     <button class="btn btn-primary" id="scan-btn">
-                        <i class="fas fa-satellite"></i> Scanning 
+                        <i class="fas fa-satellite"></i> Сканировать
                     </button>
                     <button class="btn" id="harvest-btn" disabled>
-                        <i class="fas fa-tractor"></i> Send harvester
+                        <i class="fas fa-tractor"></i> Отправить сборщик
                     </button>
                 </div>
                 
-                <h3 class="section-title" style="margin-top: 20px;">Active missions</h3>
+                <h3 class="section-title" style="margin-top: 20px;">Активные миссии</h3>
                 <div class="mission-card" id="probe-mission">
                     <div class="mission-progress" id="probe-progress" style="width: 0%"></div>
                     <div class="status-title">
-                        <i class="fas fa-satellite-dish"></i> Drone : Terrain Survey
+                        <i class="fas fa-satellite-dish"></i> Зонд-1: Разведка
                     </div>
                     <div>Сектор <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
                     <div class="progress-bar">
                         <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                        <span id="mission-time"> 0% </span>
-                        <span id="mission-harvest"Harvester: 0/2</span>
-                        <span id="mission-risk" style="color: #ffcc00;">Risk : 0% ⚠️</span>
+                        <span id="mission-time">-:-</span>
+                        <span id="mission-harvest">Комбайны: 0/2</span>
+                        <span id="mission-risk" style="color: #ffcc00;">Риск: 0% ⚠️</span>
                     </div>
                 </div>
             </div>
             
             <!-- Экран База -->
             <div id="base-screen" class="screen">
-                <h2 class="section-title">Platform status</h2>
+                <h2 class="section-title">Состояние платформы</h2>
                 
                 <div class="status-grid">
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-solar-panel"></i> Solar panels
+                            <i class="fas fa-solar-panel"></i> Солнечные батареи
                         </div>
                         <div class="status-value">87%</div>
                         <div class="progress-bar">
@@ -849,7 +810,7 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-tint"></i> Water supply
+                            <i class="fas fa-tint"></i> Запас воды
                         </div>
                         <div class="status-value">3,200L</div>
                         <div class="progress-bar">
@@ -859,9 +820,9 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-wind"></i> Generation O₂
+                            <i class="fas fa-wind"></i> Генерация O₂
                         </div>
-                        <div class="status-value">20/h</div>
+                        <div class="status-value">120/min</div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 75%"></div>
                         </div>
@@ -869,23 +830,23 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-hard-hat"></i> Mechanics
+                            <i class="fas fa-hard-hat"></i> Механики
                         </div>
                         <div class="status-value"><span id="drones-value">0</span> дрона</div>
-                        <div>Under renovation</div>
+                        <div>В ремонте</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-microchip"></i> Modules
+                            <i class="fas fa-microchip"></i> Модули
                         </div>
-                        <div class="status-value"><span id="slots-value">2</span> slots</div>
-                        <div>Free</div>
+                        <div class="status-value"><span id="slots-value">2</span> слота</div>
+                        <div>Свободно</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-bed"></i> 
+                            <i class="fas fa-bed"></i> Капсулы отдыха
                         </div>
                         <div class="status-value">84%</div>
                         <div>Занято</div>
@@ -1152,136 +1113,285 @@
             </div>
             
             <!-- Экран Квестов -->
-            <div id="quest-screen" class="screen">
-                <h2 class="section-title">Миссии и квесты</h2>
-                
-                <div class="quest-card new">
-                    <div class="quest-badge new-badge">Новый!</div>
-                    <div class="quest-title">
-                        <i class="fas fa-star"></i> Пробуждение
-                    </div>
-                    <div class="quest-description">
-                        Исследуйте свою капсулу и найдите способ выбраться наружу. Осмотрите все отсеки капсулы для получения ключевых предметов.
-                    </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Награда: 100 MVC, Карта Метавиля
-                    </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 0%"></div>
-                    </div>
-                    <div class="quest-status">
-                        <span>Прогресс: 0%</span>
-                        <span>Принято: Нет</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn btn-primary" data-quest="wake_up">
-    Принять квест
-</button>
-                    </div>
-                </div>
-                
-                <div class="quest-card">
-                    <div class="quest-badge active-badge">Активен</div>
-                    <div class="quest-title">
-                        <i class="fas fa-satellite"></i> Сканирование поверхности
-                    </div>
-                    <div class="quest-description">
-                        Выберите сектор для сканирования и запустите зонды для сбора данных. Используйте полученные данные для дальнейшего исследования.
-                    </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Награда: 250 MVC, 5 биоматериалов
-                    </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 45%"></div>
-                    </div>
-                    <div class="quest-status">
-                        <span>Прогресс: 45%</span>
-                        <span>Завершить: Карта > Сканировать</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn" disabled>
-                            В процессе
-                        </button>
-                        <button class="btn btn-danger">
-                            Отменить
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="quest-card completed">
-                    <div class="quest-badge completed-badge">Завершено</div>
-                    <div class="quest-title">
-                        <i class="fas fa-truck"></i> Первая доставка
-                    </div>
-                    <div class="quest-description">
-                        Доставьте посылку Борису в центральный хаб. Избегайте опасных зон и следите за уровнем энергии.
-                    </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Награда: 150 MVC, Инструкция по выживанию
-                    </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 100%"></div>
-                    </div>
-                    <div class="quest-status">
-                        <span>Прогресс: 100%</span>
-                        <span>Завершено: 15.07.2025</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn btn-primary" disabled>
-                            Получить награду
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="quest-card">
-                    <div class="quest-title">
-                        <i class="fas fa-microchip"></i> Поиск фрагментов чипа
-                    </div>
-                    <div class="quest-description">
-                        Найти 5 фрагментов чипа Начала по всей территории Метавиля. Каждый фрагмент открывает новые возможности платформы.
-                    </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Награда: 500 MVC, Улучшенный сканер
-                    </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 20%"></div>
-                    </div>
-                    <div class="quest-status">
-                        <span>Прогресс: 1/5 фрагментов</span>
-                        <span>Статус: Доступен</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn btn-primary">
-                            Принять квест
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="quest-card">
-                    <div class="quest-title">
-                        <i class="fas fa-cogs"></i> Активация Машины Начала
-                    </div>
-                    <div class="quest-description">
-                        Собрав все фрагменты чипа, активируйте Машину Начала в центральной лаборатории. Это откроет доступ к новым технологиям.
-                    </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Награда: 1000 MVC, Доступ к V-01-d
-                    </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 0%"></div>
-                    </div>
-                    <div class="quest-status">
-                        <span>Прогресс: 0%</span>
-                        <span>Статус: Недоступен</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn" disabled>
-                            Требуется 5 фрагментов
-                        </button>
-                    </div>
-                </div>
-            </div>
+           <!-- Замена содержимого экрана квестов -->
+<div id="quest-screen" class="screen">
+    <h2 class="section-title">Миссии и квесты</h2>
+    
+    <!-- Часть 1: Ключ Судьбы -->
+    <div class="quest-card new">
+        <div class="quest-badge new-badge">Новый!</div>
+        <div class="quest-title">
+            <i class="fas fa-star"></i> Пробуждение
         </div>
+        <div class="quest-description">
+            Исследуйте свою капсулу и найдите способ выбраться наружу. Осмотрите все отсеки для получения ключевых предметов.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 100 MVC, Карта Метавиля
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Принято: Нет</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn btn-primary" data-quest="awakening">
+                Принять квест
+            </button>
+        </div>
+    </div>
+    
+    <div class="quest-card">
+        <div class="quest-badge">Доступен</div>
+        <div class="quest-title">
+            <i class="fas fa-truck"></i> Курьерская доставка
+        </div>
+        <div class="quest-description">
+            Доставьте посылку Борису в центральный хаб. Избегайте опасных зон и следите за уровнем энергии.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 150 MVC, Инструкция по выживанию
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Статус: Доступен</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn btn-primary" data-quest="delivery">
+                Принять квест
+            </button>
+        </div>
+    </div>
+    
+    <div class="quest-card">
+        <div class="quest-badge">Доступен</div>
+        <div class="quest-title">
+            <i class="fas fa-microchip"></i> Таинственный чип
+        </div>
+        <div class="quest-description">
+            Изучите чип, найденный у умирающего курьера, и доставьте его по назначению.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 250 MVC, 5 биоматериалов
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Статус: Доступен</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn btn-primary" data-quest="chip">
+                Принять квест
+            </button>
+        </div>
+    </div>
+    
+    <!-- Часть 2: Эхо Машины Начала -->
+    <div class="quest-card">
+        <div class="quest-badge">Блокирован</div>
+        <div class="quest-title">
+            <i class="fas fa-users"></i> Выбор фракции
+        </div>
+        <div class="quest-description">
+            Присоединитесь к одной из фракций Метавиля: Гуманисты, Синдикат или Гильдии.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 200 MVC, Доступ к фракционным заданиям
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Статус: Требуется завершение "Таинственный чип"</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn" disabled>
+                Требуется предыдущий квест
+            </button>
+        </div>
+    </div>
+    
+    <div class="quest-card">
+        <div class="quest-badge">Блокирован</div>
+        <div class="quest-title">
+            <i class="fas fa-tasks"></i> Задание фракции
+        </div>
+        <div class="quest-description">
+            Выполните первое задание для своей фракции, чтобы заслужить доверие.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 300 MVC, Репутация во фракции
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Статус: Требуется выбор фракции</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn" disabled>
+                Требуется выбор фракции
+            </button>
+        </div>
+    </div>
+    
+    <div class="quest-card">
+        <div class="quest-badge">Блокирован</div>
+        <div class="quest-title">
+            <i class="fas fa-puzzle-piece"></i> Поиск фрагментов чипа
+        </div>
+        <div class="quest-description">
+            Соберите 5 фрагментов чипа Начала по всей территории Метавиля.
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0/5 фрагментов</span>
+            <span>Статус: Требуется задание фракции</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn" disabled>
+                Требуется задание фракции
+            </button>
+        </div>
+    </div>
+    
+    <!-- Часть 3: Код Возрождения -->
+    <div class="quest-card">
+        <div class="quest-badge">Блокирован</div>
+        <div class="quest-title">
+            <i class="fas fa-dna"></i> Откровение Генезиса
+        </div>
+        <div class="quest-description">
+            Узнайте правду о V-01-d и получите задание найти Код Возрождения.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 400 MVC, Доступ к лабораториям
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Статус: Требуется 5 фрагментов чипа</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn" disabled>
+                Требуется 5 фрагментов
+            </button>
+        </div>
+    </div>
+    
+    <div class="quest-card">
+        <div class="quest-badge">Блокирован</div>
+        <div class="quest-title">
+            <i class="fas fa-flask"></i> Крио-лаборатория "Гиперион"
+        </div>
+        <div class="quest-description">
+            Исследуйте лабораторию под токсичным озером и найдите часть кода.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 350 MVC, Часть кода 1/3
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Статус: Требуется Откровение Генезиса</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn" disabled>
+                Требуется Откровение
+            </button>
+        </div>
+    </div>
+    
+    <div class="quest-card">
+        <div class="quest-badge">Блокирован</div>
+        <div class="quest-title">
+            <i class="fas fa-network-wired"></i> Нейросеть "Прометей"
+        </div>
+        <div class="quest-description">
+            Взломайте нейросеть и извлеките часть кода.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 350 MVC, Часть кода 2/3
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Статус: Требуется Гиперион</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn" disabled>
+                Требуется Гиперион
+            </button>
+        </div>
+    </div>
+    
+    <div class="quest-card">
+        <div class="quest-badge">Блокирован</div>
+        <div class="quest-title">
+            <i class="fas fa-robot"></i> Хранилище "Атлас"
+        </div>
+        <div class="quest-description">
+            Преодолейте защиту хранилища и добудьте последнюю часть кода.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 350 MVC, Часть кода 3/3
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Статус: Требуется Прометей</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn" disabled>
+                Требуется Прометей
+            </button>
+        </div>
+    </div>
+    
+    <div class="quest-card">
+        <div class="quest-badge">Блокирован</div>
+        <div class="quest-title">
+            <i class="fas fa-bolt"></i> Активация V-01-d
+        </div>
+        <div class="quest-description">
+            Активируйте систему восстановления Земли с помощью Кода Возрождения.
+        </div>
+        <div class="quest-reward">
+            <i class="fas fa-gift"></i> Награда: 1000 MVC, Доступ к финалу
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="quest-status">
+            <span>Прогресс: 0%</span>
+            <span>Статус: Требуются все части кода</span>
+        </div>
+        <div class="quest-actions">
+            <button class="btn" disabled>
+                Требуются 3 части кода
+            </button>
+        </div>
+    </div>
+</div>
         
         <!-- Нижнее меню навигации -->
         <div class="nav-menu">
@@ -1304,13 +1414,6 @@
             <div class="nav-item" data-screen="quest-screen">
                 <i class="fas fa-tasks"></i>
                 <span>Квесты</span>
-            </div>
-            <!-- Элемент кошелька -->
-            <div id="wallet-container">
-                <button id="connect-wallet" class="btn btn-warning">
-                    <i class="fas fa-wallet"></i>
-                </button>
-                <span id="wallet-address"></span>
             </div>
         </div>
     </div>
@@ -1358,19 +1461,7 @@
             </div>
         </div>
     </div>
-    <!-- Модальное окно для квестов -->
-<div id="quest-modal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closeModal('quest-modal')">&times;</span>
-    <h3 class="modal-title" id="modal-quest-title">Название квеста</h3>
-    <div class="modal-description" id="modal-quest-description">
-      Описание квеста…
-    </div>
-    <div class="choices" id="modal-quest-choices">
-      <!-- сюда будем вставлять кнопки выбора -->
-    </div>
-  </div>
-</div>
+    
     <!-- Уведомление -->
     <div class="notification" id="notification">
         <i class="fas fa-exclamation-triangle"></i>
@@ -1378,84 +1469,6 @@
     </div>
     
     <script>
-
-        // В начале скрипта
-
-
-        // Описание квестов (можно вынести в общий объект)
-const quests = {
-  wake_up: {
-    title: "ПРОБУЖДЕНИЕ",
-    // Здесь берём HTML из renderWakeUp() или просто текстовое описание:
-    description: `
-      <p>Вы медленно приходите в себя. Вокруг вас — металлическая капсула…</p>
-      <p>Голос из динамиков: "Добро пожаловать в Метавиль…"</p>
-    `,
-    // Соответствие кнопок тем же переходам, что и в renderWakeUp()
-    choices: [
-      { text: "▶ Осмотреть капсулу", nextScene: "capsule_examine" },
-      { text: "▶ Попытаться открыть капсулу", nextScene: "capsule_open" }
-    ]
-  },
-  // сюда можно добавить другие квесты…
-};
-    // открытие квеста //
-function selectChoice(choiceIndex) {
-    const quest = quests[gameState.currentQuest];
-    if (!quest) return;
-    
-    const choice = quest.choices[choiceIndex];
-    showNotification(`Вы выбрали: ${choice.text}`, true);
-    
-    // Закрываем модальное окно
-    document.getElementById('quest-modal').classList.remove('active'); 
-  document.getElementById("modal-quest-title").textContent = quest.title;
-    document.getElementById("modal-quest-description").innerHTML = quest.description;
-    
-    const container = document.getElementById("modal-quest-choices");
-    container.innerHTML = quest.choices
-        .map((choice, i) => 
-            `<button class="btn" onclick="selectChoice(${i})">${choice.text}</button>`
-        )
-        .join("");
-    
-    document.getElementById('quest-modal').classList.add('active');
-}
-// Закрытие модального окна квеста
-document.querySelector('#quest-modal .close').addEventListener('click', function() {
-    document.getElementById('quest-modal').classList.remove('active');
-});
-
-document.getElementById('quest-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        this.classList.remove('active');
-    }
-});
-  // Устанавливаем заголовок и описание
-  document.getElementById("modal-quest-title").textContent = quest.title;
-  document.getElementById("modal-quest-description").innerHTML = quest.description;
-
-  // Генерируем кнопки выбора
-  const container = document.getElementById("modal-quest-choices");
-  container.innerHTML = quest.choices
-    .map((c, i) =>
-      `<button onclick="startQuestScene('${c.nextScene}')">${c.text}</button>`
-    )
-    .join("");
-
-  // Открываем модалку
-  document.getElementById("quest-modal").style.display = "block";
-}
-
-function startQuestScene(scene) {
-  // Закрываем модалку
-  closeModal("quest-modal");
-  // Устанавливаем сцену и отрисовываем
-  gameState.currentScene = scene;
-  renderScene();
-  updateUI();
-}
-
         // Состояние игры
         const gameState = {
             resources: {
@@ -1472,8 +1485,8 @@ function startQuestScene(scene) {
                 risk: 0,
                 progress: 0,
                 time: 0,
-                harvestCount: 0,
-                maxHarvests: 2
+                harvestCount: 0, // Счетчик отправленных комбайнов
+                maxHarvests: 2   // Максимальное количество запусков
             },
             research: {
                 stealth: 7,
@@ -1592,7 +1605,7 @@ function startQuestScene(scene) {
                 elements.missionSector.textContent = gameState.missions.sector;
                 elements.missionBelt.textContent = gameState.missions.belt;
                 elements.missionProgress.style.width = gameState.missions.progress + '%';
-                elements.missionTime.textContent = Math.round(gameState.missions.progress) + '%';
+                elements.missionTime.textContent = formatTime(gameState.missions.time);
                 elements.missionRisk.textContent = `Риск: ${gameState.missions.risk}% ⚠️`;
                 elements.probeProgress.style.width = gameState.missions.progress + '%';
                 elements.missionHarvest.textContent = `Сборщик: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
@@ -1697,56 +1710,6 @@ function startQuestScene(scene) {
             return names[resource] || resource;
         }
         
-// Закрытие по кнопке
-document.querySelector('#quest-modal .close').addEventListener('click', function() {
-    document.getElementById('quest-modal').classList.remove('active');
-});
-
-// Закрытие по клику вне окна
-document.getElementById('quest-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        this.classList.remove('active');
-    }
-});
-function selectChoice(choiceIndex) {
-    const quest = quests[gameState.currentQuest];
-    const choice = quest.choices[choiceIndex];
-    
-    showNotification(`Вы выбрали: ${choice.text}`, true);
-    
-    // Закрываем модальное окно после выбора
-    document.getElementById('quest-modal').classList.remove('active');
-    
-    // Здесь можно добавить логику перехода к следующей сцене
-}
-<div id="quest-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title" id="modal-quest-title">Название квеста</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-description" id="modal-quest-description">
-            Описание квеста...
-        </div>
-        <div class="choices" id="modal-quest-choices">
-            <!-- Кнопки выбора будут вставлены сюда -->
-        </div>
-    </div>
-</div>
-const quests = {
-    wake_up: {
-        title: "ПРОБУЖДЕНИЕ",
-        description: `
-            <p>Вы медленно приходите в себя. Вокруг вас — металлическая капсула…</p>
-            <p>Голос из динамиков: "Добро пожаловать в Метавиль…"</p>
-        `,
-        choices: [
-            { text: "▶ Осмотреть капсулу", nextScene: "capsule_examine" },
-            { text: "▶ Попытаться открыть капсулу", nextScene: "capsule_open" }
-        ]
-    }
-};
-
         // Навигация по экранам
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -2024,22 +1987,20 @@ const quests = {
         });
         
         // Принятие квеста
-document.querySelectorAll('.quest-actions .btn-primary').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const questKey = this.getAttribute('data-quest');
-        if (questKey === "wake_up") {
-            const awakeningQuest = gameState.quests.find(q => q.id === 1);
-            if (awakeningQuest && !awakeningQuest.accepted) {
-                awakeningQuest.accepted = true;
-                awakeningQuest.status = "active";
-                gameState.currentQuest = "wake_up";
-                openQuest('wake_up');
-                showNotification("Квест 'Пробуждение' принят!", true);
-                updateUI();
-            }
-        }
-    });
-});
+        document.querySelectorAll('.quest-actions .btn-primary').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const questId = this.getAttribute('data-quest');
+                if (questId === "awakening") {
+                    const awakeningQuest = gameState.quests.find(q => q.id === 1);
+                    if (awakeningQuest && !awakeningQuest.accepted) {
+                        awakeningQuest.accepted = true;
+                        awakeningQuest.status = "active";
+                        showNotification("Квест 'Пробуждение' принят! Осмотрите капсулу для выполнения.", true);
+                        updateUI();
+                    }
+                }
+            });
+        });
         
         // Имитация случайных событий
         setInterval(() => {
@@ -2068,53 +2029,6 @@ document.querySelectorAll('.quest-actions .btn-primary').forEach(btn => {
         setTimeout(() => {
             showNotification("Добро пожаловать в METAVILLE на платформу V.01.D! ", true);
         }, 1000);
-    </script>
-    
-    <!-- Скрипт подключения TON кошелька -->
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const connectButton = document.getElementById('connect-wallet');
-            const addressSpan = document.getElementById('wallet-address');
-            
-            // Инициализация TonConnect
-            const ui = new TonConnectUI();
-            
-            connectButton.addEventListener('click', async () => {
-                try {
-                    const session = await ui.connect();
-                    console.log('Connected:', session.account.address);
-                    
-                    // Обрезаем адрес для отображения
-                    const fullAddress = session.account.address;
-                    const shortAddress = `${fullAddress.substring(0, 4)}...${fullAddress.substring(fullAddress.length - 4)}`;
-                    addressSpan.textContent = shortAddress;
-                    
-                    // Меняем кнопку на статус подключения
-                    connectButton.innerHTML = '<i class="fas fa-check"></i>';
-                    connectButton.classList.add('btn-primary');
-                    connectButton.classList.remove('btn-warning');
-                    
-                    showNotification("TON кошелек подключен!", true);
-                } catch (err) {
-                    console.error('Connection failed:', err);
-                    showNotification("Ошибка подключения кошелька", false);
-                }
-            });
-            
-            // Обработка изменения статуса кошелька
-            ui.onStatusChange(wallet => {
-                if (wallet) {
-                    const fullAddress = wallet.account.address;
-                    const shortAddress = `${fullAddress.substring(0, 4)}...${fullAddress.substring(fullAddress.length - 4)}`;
-                    addressSpan.textContent = shortAddress;
-                } else {
-                    addressSpan.textContent = '';
-                    connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
-                    connectButton.classList.add('btn-warning');
-                    connectButton.classList.remove('btn-primary');
-                }
-            });
-        });
     </script>
 </body>
 </html>
