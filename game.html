@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+       <title>METAVILLE: V.01.D / Genesis Platform</title>
     <!-- TON Connect UI Kit -->
     <script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
-    <title>METAVILLE: V.01.D / Genesis Platform</title>
+ 
     <link rel="tonconnect" href="/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -44,19 +45,18 @@
         }
         
         .container {
-    min-height: 100vh;
-    width: 100%;
-    /* max-width: 475px; */  /* удалено */
-    /* height: 680px; */     /* удалено */
-    background: #0a0a15;
-    border-radius: 25px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 30, 0.7);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    /* border: 1px solid #2a2a4a; */ /* удалено */
-}
+            width: 100%;
+            max-width: 475px;
+            height: 680px;
+            background: #0a0a15;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 30, 0.7);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid #2a2a4a;
+        }
         
         /* Верхняя панель ресурсов */
         .resource-bar {
@@ -435,7 +435,7 @@
             display: flex;
             background: rgba(10, 15, 30, 0.95);
             border-top: 1px solid #2a2a4a;
-            padding: 10px 0;
+            padding: 1px 0;
         }
         
         .nav-item {
@@ -481,6 +481,7 @@
             transition: all 0.3s ease;
         }
         
+
         .modal.active {
             opacity: 1;
             visibility: visible;
@@ -765,43 +766,23 @@
     </style>
 </head>
 <body>
-    <script>
-  // Сообщаем Telegram, что приложение готово
-  window.Telegram.WebApp.ready();
-
-  // Просим Telegram развернуть Web App на весь доступный экран
-  // (если этот метод не сработает, можно заменить на expand())
-  if (window.Telegram.WebApp.requestFullscreen) {
-    window.Telegram.WebApp.requestFullscreen();
-  } else {
-    window.Telegram.WebApp.expand();
-  }
-</script>
-     <script>
-    window.Telegram.WebApp.ready();
-    if (window.Telegram.WebApp.requestFullscreen) {
-      window.Telegram.WebApp.requestFullscreen();
-    } else {
-      window.Telegram.WebApp.expand();
-    }
-  </script>
     <div id="app" class="container">
         <!-- Верхняя панель ресурсов -->
         <div class="resource-bar">
             <div class="resource-item" id="oxygen-resource">
-                <span>O₂: <span id="oxygen-value">250</span></span>
+                <span>O₂: <span id="oxygen-value">100</span></span>
             </div>
             <div class="resource-item" id="energy-resource">
-                <span>⚡ <span id="energy-value">850</span></span>
+                <span>⚡ <span id="energy-value">500</span></span>
             </div>
             <div class="resource-item" id="mvc-resource">
-                <span>MVC: <span id="mvc-value">480</span></span>
+                <span>MVC: <span id="mvc-value">200</span></span>
             </div>
             <div class="resource-item" id="bio-resource">
-                <span>🧪 <span id="bio-value">42</span></span>
+                <span>🧪 <span id="bio-value">0</span></span>
             </div>
             <div class="resource-item" id="parts-resource">
-                <span>🛠️ <span id="parts-value">18</span></span>
+                <span>🛠️ <span id="parts-value">0</span></span>
             </div>
         </div>
         
@@ -809,35 +790,35 @@
         <div class="main-content">
             <!-- Экран Карта -->
             <div id="map-screen" class="screen active">
-                <h2 class="section-title">Сканирование поверхности</h2>
+                <h2 class="section-title">Scan within the radius of the platform</h2>
                 
                 <div class="map-container">
                     <div class="map-circle inner-ring">
-                        <span class="ring-label inner-label">Ближний пояс (0-50км)</span>
+                        <span class="ring-label inner-label">The radius of the abandoned lands (0-50 km)</span>
                     </div>
                     <div class="map-circle middle-ring">
-                        <span class="ring-label middle-label">Средний пояс (50-100км)</span>
+                        <span class="ring-label middle-label">The average level of intelligence (50-100 km)</span>
                     </div>
                     <div class="map-circle outer-ring">
-                        <span class="ring-label outer-label">Дальний пояс (100-150км)</span>
+                        <span class="ring-label outer-label">The far belt. An area that is dangerous (100-150 km)</span>
                     </div>
                 </div>
                 
                 <!-- Упрощенное меню действий -->
                 <div class="action-buttons">
                     <button class="btn btn-primary" id="scan-btn">
-                        <i class="fas fa-satellite"></i> Сканировать
+                        <i class="fas fa-satellite"></i> Scanning 
                     </button>
                     <button class="btn" id="harvest-btn" disabled>
-                        <i class="fas fa-tractor"></i> Отправить сборщик
+                        <i class="fas fa-tractor"></i> Send harvester
                     </button>
                 </div>
                 
-                <h3 class="section-title" style="margin-top: 20px;">Активные миссии</h3>
+                <h3 class="section-title" style="margin-top: 20px;">Active missions</h3>
                 <div class="mission-card" id="probe-mission">
                     <div class="mission-progress" id="probe-progress" style="width: 0%"></div>
                     <div class="status-title">
-                        <i class="fas fa-satellite-dish"></i> Зонд-1: Разведка
+                        <i class="fas fa-satellite-dish"></i> Drone : Terrain Survey
                     </div>
                     <div>Сектор <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
                     <div class="progress-bar">
@@ -845,20 +826,20 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 5px;">
                         <span id="mission-time"> 0% </span>
-                        <span id="mission-harvest">Комбайны: 0/2</span>
-                        <span id="mission-risk" style="color: #ffcc00;">Риск: 0% ⚠️</span>
+                        <span id="mission-harvest"Harvester: 0/2</span>
+                        <span id="mission-risk" style="color: #ffcc00;">Risk : 0% ⚠️</span>
                     </div>
                 </div>
             </div>
             
             <!-- Экран База -->
             <div id="base-screen" class="screen">
-                <h2 class="section-title">Состояние платформы</h2>
+                <h2 class="section-title">Platform status</h2>
                 
                 <div class="status-grid">
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-solar-panel"></i> Солнечные батареи
+                            <i class="fas fa-solar-panel"></i> Solar panels
                         </div>
                         <div class="status-value">87%</div>
                         <div class="progress-bar">
@@ -868,7 +849,7 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-tint"></i> Запас воды
+                            <i class="fas fa-tint"></i> Water supply
                         </div>
                         <div class="status-value">3,200L</div>
                         <div class="progress-bar">
@@ -878,9 +859,9 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-wind"></i> Генерация O₂
+                            <i class="fas fa-wind"></i> Generation O₂
                         </div>
-                        <div class="status-value">120/min</div>
+                        <div class="status-value">20/h</div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 75%"></div>
                         </div>
@@ -888,23 +869,23 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-hard-hat"></i> Механики
+                            <i class="fas fa-hard-hat"></i> Mechanics
                         </div>
                         <div class="status-value"><span id="drones-value">0</span> дрона</div>
-                        <div>В ремонте</div>
+                        <div>Under renovation</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-microchip"></i> Модули
+                            <i class="fas fa-microchip"></i> Modules
                         </div>
-                        <div class="status-value"><span id="slots-value">2</span> слота</div>
-                        <div>Свободно</div>
+                        <div class="status-value"><span id="slots-value">2</span> slots</div>
+                        <div>Free</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-bed"></i> Капсулы отдыха
+                            <i class="fas fa-bed"></i> 
                         </div>
                         <div class="status-value">84%</div>
                         <div>Занято</div>
@@ -1193,9 +1174,9 @@
                         <span>Принято: Нет</span>
                     </div>
                     <div class="quest-actions">
-                        <button class="btn btn-primary" data-quest="awakening">
-                            Принять квест
-                        </button>
+                        <button class="btn btn-primary" data-quest="wake_up">
+    Принять квест
+</button>
                     </div>
                 </div>
                 
@@ -1306,23 +1287,23 @@
         <div class="nav-menu">
             <div class="nav-item active" data-screen="map-screen">
                 <i class="fas fa-globe-americas"></i>
-                <span>MAP</span>
+                <span>Карта</span>
             </div>
             <div class="nav-item" data-screen="base-screen">
                 <i class="fas fa-hard-hat"></i>
-                <span>BASE</span>
+                <span>База</span>
             </div>
             <div class="nav-item" data-screen="research-screen">
                 <i class="fas fa-flask"></i>
-                <span>CRAFT</span>
+                <span>Исследования</span>
             </div>
             <div class="nav-item" data-screen="market-screen">
                 <i class="fas fa-shopping-cart"></i>
-                <span>MARKET</span>
+                <span>Маркет</span>
             </div>
             <div class="nav-item" data-screen="quest-screen">
                 <i class="fas fa-tasks"></i>
-                <span>QUESTS</span>
+                <span>Квесты</span>
             </div>
             <!-- Элемент кошелька -->
             <div id="wallet-container">
@@ -1377,7 +1358,19 @@
             </div>
         </div>
     </div>
-    
+    <!-- Модальное окно для квестов -->
+<div id="quest-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('quest-modal')">&times;</span>
+    <h3 class="modal-title" id="modal-quest-title">Название квеста</h3>
+    <div class="modal-description" id="modal-quest-description">
+      Описание квеста…
+    </div>
+    <div class="choices" id="modal-quest-choices">
+      <!-- сюда будем вставлять кнопки выбора -->
+    </div>
+  </div>
+</div>
     <!-- Уведомление -->
     <div class="notification" id="notification">
         <i class="fas fa-exclamation-triangle"></i>
@@ -1385,6 +1378,84 @@
     </div>
     
     <script>
+
+        // В начале скрипта
+
+
+        // Описание квестов (можно вынести в общий объект)
+const quests = {
+  wake_up: {
+    title: "ПРОБУЖДЕНИЕ",
+    // Здесь берём HTML из renderWakeUp() или просто текстовое описание:
+    description: `
+      <p>Вы медленно приходите в себя. Вокруг вас — металлическая капсула…</p>
+      <p>Голос из динамиков: "Добро пожаловать в Метавиль…"</p>
+    `,
+    // Соответствие кнопок тем же переходам, что и в renderWakeUp()
+    choices: [
+      { text: "▶ Осмотреть капсулу", nextScene: "capsule_examine" },
+      { text: "▶ Попытаться открыть капсулу", nextScene: "capsule_open" }
+    ]
+  },
+  // сюда можно добавить другие квесты…
+};
+    // открытие квеста //
+function selectChoice(choiceIndex) {
+    const quest = quests[gameState.currentQuest];
+    if (!quest) return;
+    
+    const choice = quest.choices[choiceIndex];
+    showNotification(`Вы выбрали: ${choice.text}`, true);
+    
+    // Закрываем модальное окно
+    document.getElementById('quest-modal').classList.remove('active'); 
+  document.getElementById("modal-quest-title").textContent = quest.title;
+    document.getElementById("modal-quest-description").innerHTML = quest.description;
+    
+    const container = document.getElementById("modal-quest-choices");
+    container.innerHTML = quest.choices
+        .map((choice, i) => 
+            `<button class="btn" onclick="selectChoice(${i})">${choice.text}</button>`
+        )
+        .join("");
+    
+    document.getElementById('quest-modal').classList.add('active');
+}
+// Закрытие модального окна квеста
+document.querySelector('#quest-modal .close').addEventListener('click', function() {
+    document.getElementById('quest-modal').classList.remove('active');
+});
+
+document.getElementById('quest-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.remove('active');
+    }
+});
+  // Устанавливаем заголовок и описание
+  document.getElementById("modal-quest-title").textContent = quest.title;
+  document.getElementById("modal-quest-description").innerHTML = quest.description;
+
+  // Генерируем кнопки выбора
+  const container = document.getElementById("modal-quest-choices");
+  container.innerHTML = quest.choices
+    .map((c, i) =>
+      `<button onclick="startQuestScene('${c.nextScene}')">${c.text}</button>`
+    )
+    .join("");
+
+  // Открываем модалку
+  document.getElementById("quest-modal").style.display = "block";
+}
+
+function startQuestScene(scene) {
+  // Закрываем модалку
+  closeModal("quest-modal");
+  // Устанавливаем сцену и отрисовываем
+  gameState.currentScene = scene;
+  renderScene();
+  updateUI();
+}
+
         // Состояние игры
         const gameState = {
             resources: {
@@ -1626,6 +1697,56 @@
             return names[resource] || resource;
         }
         
+// Закрытие по кнопке
+document.querySelector('#quest-modal .close').addEventListener('click', function() {
+    document.getElementById('quest-modal').classList.remove('active');
+});
+
+// Закрытие по клику вне окна
+document.getElementById('quest-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.remove('active');
+    }
+});
+function selectChoice(choiceIndex) {
+    const quest = quests[gameState.currentQuest];
+    const choice = quest.choices[choiceIndex];
+    
+    showNotification(`Вы выбрали: ${choice.text}`, true);
+    
+    // Закрываем модальное окно после выбора
+    document.getElementById('quest-modal').classList.remove('active');
+    
+    // Здесь можно добавить логику перехода к следующей сцене
+}
+<div id="quest-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modal-quest-title">Название квеста</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-description" id="modal-quest-description">
+            Описание квеста...
+        </div>
+        <div class="choices" id="modal-quest-choices">
+            <!-- Кнопки выбора будут вставлены сюда -->
+        </div>
+    </div>
+</div>
+const quests = {
+    wake_up: {
+        title: "ПРОБУЖДЕНИЕ",
+        description: `
+            <p>Вы медленно приходите в себя. Вокруг вас — металлическая капсула…</p>
+            <p>Голос из динамиков: "Добро пожаловать в Метавиль…"</p>
+        `,
+        choices: [
+            { text: "▶ Осмотреть капсулу", nextScene: "capsule_examine" },
+            { text: "▶ Попытаться открыть капсулу", nextScene: "capsule_open" }
+        ]
+    }
+};
+
         // Навигация по экранам
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -1903,20 +2024,22 @@
         });
         
         // Принятие квеста
-        document.querySelectorAll('.quest-actions .btn-primary').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const questId = this.getAttribute('data-quest');
-                if (questId === "awakening") {
-                    const awakeningQuest = gameState.quests.find(q => q.id === 1);
-                    if (awakeningQuest && !awakeningQuest.accepted) {
-                        awakeningQuest.accepted = true;
-                        awakeningQuest.status = "active";
-                        showNotification("Квест 'Пробуждение' принят! Осмотрите капсулу для выполнения.", true);
-                        updateUI();
-                    }
-                }
-            });
-        });
+document.querySelectorAll('.quest-actions .btn-primary').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const questKey = this.getAttribute('data-quest');
+        if (questKey === "wake_up") {
+            const awakeningQuest = gameState.quests.find(q => q.id === 1);
+            if (awakeningQuest && !awakeningQuest.accepted) {
+                awakeningQuest.accepted = true;
+                awakeningQuest.status = "active";
+                gameState.currentQuest = "wake_up";
+                openQuest('wake_up');
+                showNotification("Квест 'Пробуждение' принят!", true);
+                updateUI();
+            }
+        }
+    });
+});
         
         // Имитация случайных событий
         setInterval(() => {
