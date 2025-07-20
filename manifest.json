@@ -2,12 +2,12 @@
   "description": "WebApp Metaville: Игровой мир и квесты",
  "icons": [
   {
-    "src": "https://raw.githubusercontent.com/Metaville/v01d/main/icon-wallet.png",
+    "src": "https://raw.githubusercontent.com/Metaville/v01d/main/icon-wallet-128.png",
     "sizes": "192x192",
     "type": "image/png"
   },
   {
-    "src": "https://raw.githubusercontent.com/Metaville/v01d/main/icon-wallet.png",
+    "src": "https://raw.githubusercontent.com/Metaville/v01d/main/icon-wallet-512.png.png",
     "sizes": "512x512",
     "type": "image/png"
   }
