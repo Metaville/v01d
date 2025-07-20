@@ -1361,7 +1361,7 @@
             </div>
             
             <div class="modal-actions">
- <button class="btn btn-primary" id="break-btn">BREAK</button>
+  <button class="btn btn-danger" id="break-btn">BREAK</button>
   <button class="btn btn-primary" id="confirm-scan">SCAN</button>
 </div>
         </div>
@@ -1645,9 +1645,8 @@
                 document.getElementById('scan-modal').classList.remove('active');
             });
         });
-document.getElementById('break-btn')
-  .addEventListener('click', () => {
-    document.getElementById('scan-modal').classList.remove('active');
+document.getElementById('break-btn').addEventListener('click', () => {
+  document.getElementById('scan-modal').classList.remove('active');
 });
         // Выбор сектора для сканирования
         let selectedSector = null;
