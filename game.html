@@ -1361,9 +1361,9 @@
             </div>
             
             <div class="modal-actions">
-                <button class="btn btn-primary close-modal">BREAK</button>
-                <button class="btn btn-primary" id="confirm-scan">SCAN</button>
-            </div>
+ <button class="btn btn-primary" id="break-btn">BREAK</button>
+  <button class="btn btn-primary" id="confirm-scan">SCAN</button>
+</div>
         </div>
     </div>
     
@@ -1375,7 +1375,7 @@
     
     <script>
         // Состояние игры
-      const gameState = {
+        const gameState = {
             resources: {
                 oxygen: 250,
                 energy: 500,
@@ -1645,7 +1645,10 @@
                 document.getElementById('scan-modal').classList.remove('active');
             });
         });
-        
+document.getElementById('break-btn')
+  .addEventListener('click', () => {
+    document.getElementById('scan-modal').classList.remove('active');
+});
         // Выбор сектора для сканирования
         let selectedSector = null;
         document.querySelectorAll('.sector-item').forEach(sector => {
