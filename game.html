@@ -764,6 +764,18 @@
     </style>
 </head>
 <body>
+    <script>
+  // Сообщаем Telegram, что приложение готово
+  window.Telegram.WebApp.ready();
+
+  // Просим Telegram развернуть Web App на весь доступный экран
+  // (если этот метод не сработает, можно заменить на expand())
+  if (window.Telegram.WebApp.requestFullscreen) {
+    window.Telegram.WebApp.requestFullscreen();
+  } else {
+    window.Telegram.WebApp.expand();
+  }
+</script>
      <script>
     window.Telegram.WebApp.ready();
     if (window.Telegram.WebApp.requestFullscreen) {
