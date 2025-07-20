@@ -2,8 +2,14 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>METAVILLE: V.01.D / Genesis Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+       <title>METAVILLE: V.01.D / Genesis Platform</title>
+    <!-- TON Connect UI Kit -->
+    <script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
+ 
+    <link rel="tonconnect" href="/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -11,6 +17,21 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Полноэкранный режим на мобильных */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
         
         body {
@@ -25,8 +46,8 @@
         
         .container {
             width: 100%;
-            max-width: 375px;
-            height: 667px;
+            max-width: 475px;
+            height: 680px;
             background: #0a0a15;
             border-radius: 25px;
             overflow: hidden;
@@ -42,11 +63,12 @@
             background: rgba(10, 15, 30, 0.9);
             padding: 12px 15px;
             display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
+            justify-content: space-evenly;
+            flex-wrap: nowrap;
             border-bottom: 1px solid #2a2a4a;
             z-index: 10;
-            gap: 8px;
+            gap: 2px;
+            overflow-x: auto;
         }
         
         .resource-item {
@@ -55,7 +77,7 @@
             gap: 5px;
             font-size: 14px;
             font-weight: 600;
-            min-width: 30px;
+            min-width: 70px;
         }
         
         /* Основной контент */
@@ -413,7 +435,7 @@
             display: flex;
             background: rgba(10, 15, 30, 0.95);
             border-top: 1px solid #2a2a4a;
-            padding: 10px 0;
+            padding: 1px 0;
         }
         
         .nav-item {
@@ -459,6 +481,7 @@
             transition: all 0.3s ease;
         }
         
+
         .modal.active {
             opacity: 1;
             visibility: visible;
@@ -553,14 +576,13 @@
         /* Уведомления */
         .notification {
             position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(30, 10, 20, 0.9);
-            color: #ff99aa;
-            padding: 15px 20px;
-            border-radius: 10px;
-            border-left: 4px solid #ff5555;
+            top: 0;
+            left: 0;
+            width: 100%;
+            max-width: 100%;
+            border-radius: 0;
+            padding: 15px;
+            box-sizing: border-box;
             z-index: 100;
             display: flex;
             align-items: center;
@@ -568,7 +590,6 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
-            max-width: 90%;
         }
         
         .notification.show {
@@ -724,26 +745,44 @@
         .quest-card.completed {
             border-left: 4px solid #00cc99;
         }
+
+        /* Кошелек */
+        #wallet-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0;
+            flex: 1;
+        }
+        
+        #wallet-address {
+            font-size: 12px;
+            color: #00ffcc;
+            margin-left: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Верхняя панель ресурсов (без дублирующихся иконок) -->
+    <div id="app" class="container">
+        <!-- Верхняя панель ресурсов -->
         <div class="resource-bar">
             <div class="resource-item" id="oxygen-resource">
-                <span>O₂: <span id="oxygen-value">1,250</span></span>
+                <span>O₂: <span id="oxygen-value">100</span></span>
             </div>
             <div class="resource-item" id="energy-resource">
-                <span>⚡ <span id="energy-value">850</span></span>
+                <span>⚡ <span id="energy-value">500</span></span>
             </div>
             <div class="resource-item" id="mvc-resource">
-                <span>MVC: <span id="mvc-value">2,480</span></span>
+                <span>MVC: <span id="mvc-value">200</span></span>
             </div>
             <div class="resource-item" id="bio-resource">
-                <span>🧪 <span id="bio-value">42</span></span>
+                <span>🧪 <span id="bio-value">10</span></span>
             </div>
             <div class="resource-item" id="parts-resource">
-                <span>🛠️ <span id="parts-value">18</span></span>
+                <span>🛠️ <span id="parts-value">10</span></span>
             </div>
         </div>
         
@@ -751,56 +790,56 @@
         <div class="main-content">
             <!-- Экран Карта -->
             <div id="map-screen" class="screen active">
-                <h2 class="section-title">Сканирование поверхности</h2>
+                <h2 class="section-title">Scan within the radius of the platform</h2>
                 
                 <div class="map-container">
                     <div class="map-circle inner-ring">
-                        <span class="ring-label inner-label">Ближний пояс (0-50км)</span>
+                        <span class="ring-label inner-label">The radius of the abandoned lands (0-50 km)</span>
                     </div>
                     <div class="map-circle middle-ring">
-                        <span class="ring-label middle-label">Средний пояс (50-100км)</span>
+                        <span class="ring-label middle-label">The average level of intelligence (50-100 km)</span>
                     </div>
                     <div class="map-circle outer-ring">
-                        <span class="ring-label outer-label">Дальний пояс (100-150км)</span>
+                        <span class="ring-label outer-label">The far belt. An area that is dangerous (100-150 km)</span>
                     </div>
                 </div>
                 
-                <!-- Упрощенное меню действий (только сканирование и комбайны) -->
+                <!-- Упрощенное меню действий -->
                 <div class="action-buttons">
                     <button class="btn btn-primary" id="scan-btn">
-                        <i class="fas fa-satellite"></i> Сканировать
+                        <i class="fas fa-satellite"></i> Scanning 
                     </button>
                     <button class="btn" id="harvest-btn" disabled>
-                        <i class="fas fa-tractor"></i> Отправить сборщик
+                        <i class="fas fa-tractor"></i> Send harvester
                     </button>
                 </div>
                 
-                <h3 class="section-title" style="margin-top: 20px;">Активные миссии</h3>
+                <h3 class="section-title" style="margin-top: 20px;">Active missions</h3>
                 <div class="mission-card" id="probe-mission">
                     <div class="mission-progress" id="probe-progress" style="width: 0%"></div>
                     <div class="status-title">
-                        <i class="fas fa-satellite-dish"></i> Зонд-1: Разведка
+                        <i class="fas fa-satellite-dish"></i> Drone : Terrain Survey
                     </div>
                     <div>Сектор <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
                     <div class="progress-bar">
                         <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                        <span id="mission-time">-:-</span>
-                        <span id="mission-harvest">Комбайны: 0/2</span>
-                        <span id="mission-risk" style="color: #ffcc00;">Риск: 0% ⚠️</span>
+                        <span id="mission-time"> 0% </span>
+                        <span id="mission-harvest"Harvester: 0/2</span>
+                        <span id="mission-risk" style="color: #ffcc00;">Risk : 0% ⚠️</span>
                     </div>
                 </div>
             </div>
             
             <!-- Экран База -->
             <div id="base-screen" class="screen">
-                <h2 class="section-title">Состояние платформы</h2>
+                <h2 class="section-title">Platform status</h2>
                 
                 <div class="status-grid">
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-solar-panel"></i> Солнечные батареи
+                            <i class="fas fa-solar-panel"></i> Solar panels
                         </div>
                         <div class="status-value">87%</div>
                         <div class="progress-bar">
@@ -810,9 +849,9 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-tint"></i> Запас воды
+                            <i class="fas fa-tint"></i> Water supply
                         </div>
-                        <div class="status-value">3,200L</div>
+                        <div class="status-value">200L</div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 64%"></div>
                         </div>
@@ -820,9 +859,9 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-wind"></i> Генерация O₂
+                            <i class="fas fa-wind"></i> Generation O₂
                         </div>
-                        <div class="status-value">120/min</div>
+                        <div class="status-value">20/h</div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 75%"></div>
                         </div>
@@ -830,39 +869,39 @@
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-hard-hat"></i> Механики
+                            <i class="fas fa-hard-hat"></i> Mechanics
                         </div>
                         <div class="status-value"><span id="drones-value">0</span> дрона</div>
-                        <div>В ремонте</div>
+                        <div>Under renovation</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-microchip"></i> Модули
+                            <i class="fas fa-microchip"></i> Modules
                         </div>
-                        <div class="status-value"><span id="slots-value">2</span> слота</div>
-                        <div>Свободно</div>
+                        <div class="status-value"><span id="slots-value">2</span> slots</div>
+                        <div>Free</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-bed"></i> Капсулы отдыха
+                            <i class="fas fa-bed"></i> 
                         </div>
                         <div class="status-value">84%</div>
-                        <div>Занято</div>
+                        <div>Progress</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-seedling"></i> Теплица
+                            <i class="fas fa-seedling"></i> Greenhouse
                         </div>
                         <div class="status-value">+3%</div>
-                        <div>Восстановление</div>
+                        <div>Recovery</div>
                     </div>
                     
                     <div class="status-card">
                         <div class="status-title">
-                            <i class="fas fa-shield-alt"></i> Защита
+                            <i class="fas fa-shield-alt"></i> Defence
                         </div>
                         <div class="status-value">92%</div>
                         <div class="progress-bar">
@@ -873,14 +912,14 @@
                 
                 <div class="action-buttons" style="margin-top: 20px;">
                     <button class="btn btn-primary" id="upgrade-btn">
-                        <i class="fas fa-sync-alt"></i> Обновить системы
+                        <i class="fas fa-sync-alt"></i> Refresh systems
                     </button>
                     <button class="btn btn-warning" id="emergency-btn">
-                        <i class="fas fa-bolt"></i> Экстренное питание
+                        <i class="fas fa-bolt"></i> Emergency energy
                     </button>
                 </div>
             </div>
-            
+                      
             <!-- Экран Исследования -->
             <div id="research-screen" class="screen">
                 <h2 class="section-title">Дерево технологий</h2>
