@@ -6,10 +6,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
        <title>METAVILLE: V.01.D / Genesis Platform</title>
+
     <!-- TON Connect UI Kit -->
     <script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
  
-    <link rel="tonconnect" href="/manifest.json">
+    <link rel="tonconnect" href="https://metaville.github.io/v01d/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -335,7 +336,11 @@
             display: flex;
             gap: 5px;
             margin-bottom: 15px;
-        }
+           }  
+            .market-menu button {
+    margin-right: 10px;
+  }
+       
         
         .tab {
             flex: 1;
@@ -495,7 +500,8 @@
             visibility: visible;
         }
         
-        .modal-content {
+        .modal-content > p {
+            
             background: #0f0f1a;
             width: 90%;
             max-width: 400px;
@@ -505,7 +511,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             transform: translateY(20px);
             transition: transform 0.3s ease;
-              margin-bottom: 40px;  /* любое желаемое значение */
+            margin-bottom: 40px;  /* любое желаемое значение */
         }
         
         .modal.active .modal-content {
@@ -1034,7 +1040,7 @@
             <!-- Экран Маркет -->
             <div id="market-screen" class="screen">
                 <h2 class="section-title">Рынок V-01-d</h2>
-                
+
                 <div class="market-tabs">
                     <div class="tab active">Resources</div>
                     <div class="tab">Equipment</div>
@@ -1050,6 +1056,7 @@
                     <div class="offer-details">
                         <div class="offer-price">12 MVC/ед.</div>
                         <button class="btn buy-btn" data-resource="polymers" data-price="12" data-amount="85" style="padding: 8px 12px;">BUY</button>
+                        <button id="sell-btn" class="btn btn-secondary">SELL</button>
                     </div>
                 </div>
                 
@@ -1062,6 +1069,7 @@
                     <div class="offer-details">
                         <div class="offer-price">28 MVC/ед.</div>
                         <button class="btn buy-btn" data-resource="rare" data-price="28" data-amount="12" style="padding: 8px 12px;">Купить</button>
+                        <button id="sell-btn" class="btn btn-secondary">SELL</button>
                     </div>
                 </div>
                 
@@ -1074,6 +1082,7 @@
                     <div class="offer-details">
                         <div class="offer-price">10 MVC/ед.</div>
                         <button class="btn buy-btn" data-resource="oxygen" data-price="10" data-amount="150" style="padding: 8px 12px;">Купить</button>
+
                     </div>
                 </div>
                 
@@ -1941,49 +1950,66 @@ document.getElementById('break-btn').addEventListener('click', () => {
     
     <!-- Скрипт подключения TON кошелька -->
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const connectButton = document.getElementById('connect-wallet');
-            const addressSpan = document.getElementById('wallet-address');
-            
-            // Инициализация TonConnect
-            const ui = new TonConnectUI();
-            
-            connectButton.addEventListener('click', async () => {
-                try {
-                    const session = await ui.connect();
-                    console.log('Connected:', session.account.address);
-                    
-                    // Обрезаем адрес для отображения
-                    const fullAddress = session.account.address;
-                    const shortAddress = `${fullAddress.substring(0, 4)}...${fullAddress.substring(fullAddress.length - 4)}`;
-                    addressSpan.textContent = shortAddress;
-                    
-                    // Меняем кнопку на статус подключения
-                    connectButton.innerHTML = '<i class="fas fa-check"></i>';
-                    connectButton.classList.add('btn-primary');
-                    connectButton.classList.remove('btn-warning');
-                    
-                    showNotification("TON кошелек подключен!", true);
-                } catch (err) {
-                    console.error('Connection failed:', err);
-                    showNotification("Ошибка подключения кошелька", false);
-                }
-            });
-            
-            // Обработка изменения статуса кошелька
-            ui.onStatusChange(wallet => {
-                if (wallet) {
-                    const fullAddress = wallet.account.address;
-                    const shortAddress = `${fullAddress.substring(0, 4)}...${fullAddress.substring(fullAddress.length - 4)}`;
-                    addressSpan.textContent = shortAddress;
-                } else {
-                    addressSpan.textContent = '';
-                    connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
-                    connectButton.classList.add('btn-warning');
-                    connectButton.classList.remove('btn-primary');
-                }
-            });
-        });
+   document.addEventListener('DOMContentLoaded', async () => {
+    // Получаем элементы DOM
+    const connectButton = document.getElementById('connect-wallet');
+    const addressSpan = document.getElementById('wallet-address');
+    
+    // Правильно получаем TonConnectUI из глобальной области
+    const { TonConnectUI } = window;
+    
+    // URL манифеста
+    const manifestUrl = 'https://metaville.github.io/v01d/manifest.json';
+    
+    // Инициализация TonConnectUI
+    const ui = new TonConnectUI({
+        manifestUrl: manifestUrl
+    });
+
+    // Функция обновления UI кошелька
+    function updateWalletUI(wallet) {
+        if (wallet) {
+            const fullAddress = wallet.account.address;
+            const shortAddress = `${fullAddress.substring(0,4)}...${fullAddress.slice(-4)}`;
+            addressSpan.textContent = shortAddress;
+            connectButton.innerHTML = '<i class="fas fa-check"></i>';
+            connectButton.classList.add('btn-primary');
+            connectButton.classList.remove('btn-warning');
+        } else {
+            addressSpan.textContent = '';
+            connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
+            connectButton.classList.add('btn-warning');
+            connectButton.classList.remove('btn-primary');
+        }
+    }
+
+    // Обработчик подключения
+    connectButton.addEventListener('click', async () => {
+        try {
+            const wallet = await ui.connect();
+            updateWalletUI(wallet);
+            showNotification("TON кошелек подключен!", true);
+        } catch (err) {
+            console.error('Connection failed:', err);
+            showNotification("Ошибка подключения: " + err.message, false);
+        }
+    });
+
+    // Обработчик изменений статуса
+    ui.onStatusChange(wallet => {
+        updateWalletUI(wallet);
+        if (!wallet) {
+            showNotification("TON кошелек отключен", false);
+        }
+    });
+
+    // Проверка существующего подключения
+    ui.connectionRestored.then(() => {
+        if (ui.connected) {
+            updateWalletUI(ui.wallet);
+        }
+    });
+});
     </script>
 </body>
 </html>
