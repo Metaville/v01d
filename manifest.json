@@ -1,9 +1,7 @@
 {
   "url": "https://metaville.github.io/v01d/game.html",
   "name": "METAVILLE",
-  "iconUrl": "https://raw.githubusercontent.com/Metaville/v01d/main/icon-wallet-128.png"
-
-  "name": "Metaville Game",
+  "iconUrl": "https://raw.githubusercontent.com/Metaville/v01d/main/icon-wallet-128.png",
   "permissions": ["transfer"],
   "version": "1.0.0",
   "author": "Metaville Team",
