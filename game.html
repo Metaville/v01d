@@ -1529,7 +1529,7 @@
                 elements.missionTime.textContent = Math.round(gameState.missions.progress) + '%';
                 elements.missionRisk.textContent = `Риск: ${gameState.missions.risk}% ⚠️`;
                 elements.probeProgress.style.width = gameState.missions.progress + '%';
-                elements.missionHarvest.textContent = `Сборщик: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
+                elements.missionHarvest.textContent = `Harvester: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
                 
                 // Блокировка кнопки комбайнов
                 document.getElementById('harvest-btn').disabled = 
