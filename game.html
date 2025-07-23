@@ -1427,7 +1427,7 @@
             quests: [
                 {
                     id: 1,
-                    title: "Пробуждение",
+                    title: "The Awakening",
                     description: "Explore your capsule and find a way to get out. Inspect all compartments of the capsule for key items..",
                     reward: "100 MVC, Map of Metaville",
                     status: "new",
@@ -1437,9 +1437,9 @@
                 },
                 {
                     id: 2,
-                    title: "Сканирование поверхности",
-                    description: "Выберите сектор для сканирования и запустите зонды для сбора данных. Используйте полученные данные для дальнейшего исследования.",
-                    reward: "250 MVC, 5 биоматериалов",
+                    title: "Surface scanning",
+                    description: "Select the sector you want to scan and launch the probes to collect data. Use the collected data for further research..",
+                    reward: "250 MVC, 5 biomaterials",
                     status: "active",
                     progress: 45,
                     accepted: true,
@@ -1447,9 +1447,9 @@
                 },
                 {
                     id: 3,
-                    title: "Первая доставка",
-                    description: "Доставьте посылку Борису в центральный хаб. Избегайте опасных зон и следите за уровнем энергии.",
-                    reward: "150 MVC, Инструкция по выживанию",
+                    title: "First job",
+                    description: "Please deliver the package to Boris at the central hub, avoiding dangerous areas and keeping an eye on your energy level..",
+                    reward: "150 MVC, Survival Instructions",
                     status: "completed",
                     progress: 100,
                     accepted: true,
@@ -1457,9 +1457,10 @@
                 },
                 {
                     id: 4,
-                    title: "Поиск фрагментов чипа",
-                    description: "Найти 5 фрагментов чипа Начала по всей территории Метавиля. Каждый фрагмент открывает новые возможности платформы.",
-                    reward: "500 MVC, Улучшенный сканер",
+                    title: "Searching for chip fragments",
+                    description: "Find 5 pieces of the Origin chip scattered throughout the Metaville area. Each piece unlocks new features of the platform.
+",
+                    reward: "500 MVC, Improved scanner",
                     status: "available",
                     progress: 20,
                     accepted: false,
@@ -1467,9 +1468,10 @@
                 },
                 {
                     id: 5,
-                    title: "Активация Машины Начала",
-                    description: "Собрав все фрагменты чипа, активируйте Машину Начала в центральной лаборатории. Это откроет доступ к новым технологиям.",
-                    reward: "1000 MVC, Доступ к V-01-d",
+                    title: "Activation of the Genesis Machine",
+                    description: "After collecting all the pieces of the chip, activate the start machine in the central laboratory. This will unlock access to new technologies.
+",
+                    reward: "1000 MVC, Access к V.01.D",
                     status: "locked",
                     progress: 0,
                     accepted: false,
@@ -1523,9 +1525,9 @@
                 elements.missionBelt.textContent = gameState.missions.belt;
                 elements.missionProgress.style.width = gameState.missions.progress + '%';
                 elements.missionTime.textContent = Math.round(gameState.missions.progress) + '%';
-                elements.missionRisk.textContent = `Риск: ${gameState.missions.risk}% ⚠️`;
+                elements.missionRisk.textContent = `Risk: ${gameState.missions.risk}% ⚠️`;
                 elements.probeProgress.style.width = gameState.missions.progress + '%';
-                elements.missionHarvest.textContent = `Сборщик: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
+                elements.missionHarvest.textContent = `Importer: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
                 
                 // Блокировка кнопки комбайнов
                 document.getElementById('harvest-btn').disabled = 
@@ -1540,11 +1542,11 @@
             updateResearchDots('radiation', gameState.research.radiation);
             
             if (gameState.research.engines) {
-                elements.engineStatus.textContent = "Активно • 3:45 ⏳";
-                document.getElementById('engine-btn').textContent = "Ускорить";
+                elements.engineStatus.textContent = "Actively • 3:45 ⏳";
+                document.getElementById('engine-btn').textContent = "Speed up";
             } else {
-                elements.engineStatus.textContent = "Не начато";
-                document.getElementById('engine-btn').textContent = "Начать исследование";
+                elements.engineStatus.textContent = "Not started";
+                document.getElementById('engine-btn').textContent = "Start the research";
             }
             
             // База
@@ -1677,7 +1679,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
         // Начать сканирование
         document.getElementById('confirm-scan').addEventListener('click', function() {
             if (!selectedSector) {
-                showNotification("Выберите сектор для сканирования!", false);
+                showNotification("Select the sector to scan!", false);
                 return;
             }
             
@@ -1704,9 +1706,9 @@ document.getElementById('break-btn').addEventListener('click', () => {
                     // Случайные события
                     if (Math.random() < 0.02) {
                         const events = [
-                            "Обнаружены редкие ресурсы! +15 🧪",
-                            "Сканирование прервано радиационной бурей!",
-                            "Обнаружен заброшенный склад! +25 🛠️"
+                            "Rare resources have been discovered! +15 🧪",
+                            "The scan has been interrupted by a radiation storm!",
+                            "An abandoned warehouse has been discovered! +25 🛠️"
                         ];
                         const event = events[Math.floor(Math.random() * events.length)];
                         
@@ -1716,13 +1718,13 @@ document.getElementById('break-btn').addEventListener('click', () => {
                             updateResource(resource, amount);
                         }
                         
-                        showNotification(event, !event.includes("прервано"));
+                        showNotification(event, !event.includes("interrupted"));
                     }
                     
                     updateUI();
                 } else {
                     clearInterval(scanInterval);
-                    showNotification("Сканирование сектора завершено!", true);
+                    showNotification("Sector scan is complete!", true);
                     updateResource('oxygen', -5);
                     updateResource('bio', 1);
                     
@@ -1732,7 +1734,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                         scanQuest.progress = 100;
                         scanQuest.completed = true;
                         scanQuest.status = "completed";
-                        showNotification("Квест 'Сканирование поверхности' завершен!", true);
+                        showNotification("The 'Surface Scanning' quest is completed!", true);
                     }
                 }
             }, 200);
@@ -1742,7 +1744,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
         document.getElementById('harvest-btn').addEventListener('click', function() {
             // Проверка лимита отправок
             if (gameState.missions.harvestCount >= gameState.missions.maxHarvests) {
-                showNotification("Достигнут лимит отправок комбайнов!", false);
+                showNotification("The limit of harvesters shipments has been reached!", false);
                 return;
             }
             
@@ -1754,7 +1756,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 updateResource('mvc', 60);
                 updateResource('parts', 2);
                 
-                showNotification(`Комбайны отправлены на добычу (${gameState.missions.harvestCount}/${gameState.missions.maxHarvests})`, true);
+                showNotification(`Harvesters have been sent for production (${gameState.missions.harvestCount}/${gameState.missions.maxHarvests})`, true);
                 updateUI();
             }
         });
@@ -1765,10 +1767,10 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 if (updateResource('mvc', -120) && updateResource('parts', -40)) {
                     gameState.research.stealth++;
                     updateUI();
-                    showNotification("Исследование стелс-модулей продвинуто!", true);
+                    showNotification("The exploration of stealth modules is advanced!", true);
                 }
             } else {
-                showNotification("Исследование стелс-модулей завершено!", true);
+                showNotification("The exploration of the stealth modules is complete!", true);
             }
         });
         
@@ -1778,10 +1780,10 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 if (updateResource('mvc', -85) && updateResource('bio', -5)) {
                     gameState.research.radiation++;
                     updateUI();
-                    showNotification("Исследование радиационной адаптации продвинуто!", true);
+                    showNotification("Radiation adaptation research is advanced!", true);
                 }
             } else {
-                showNotification("Исследование радиационной адаптации завершено!", true);
+                showNotification("The radiation adaptation study is completed!", true);
             }
         });
         
@@ -1791,18 +1793,19 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 if (updateResource('mvc', -200) && updateResource('parts', -25)) {
                     gameState.research.engines = true;
                     updateUI();
-                    showNotification("Исследование двигателей начато!", true);
+                    showNotification("Engine research has begun!", true);
                     
                     // Имитация исследования
                     setTimeout(() => {
                         gameState.research.engines = false;
-                        showNotification("Исследование двигателей завершено! +15% к скорости транспорта", true);
+                        showNotification("Engine research is complete! +15% of the transport speed", true);
                         updateUI();
                     }, 5000);
                 }
             } else {
                 if (updateResource('mvc', -100)) {
-                    showNotification("Исследование двигателей ускорено!", true);
+                    showNotification("Engine research is accelerated!
+", true);
                 }
             }
         });
@@ -1812,7 +1815,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
             if (updateResource('mvc', -200) && updateResource('parts', -15)) {
                 gameState.drones = Math.min(3, gameState.drones + 1);
                 updateUI();
-                showNotification("Системы обновлены! Дроны в ремонте: " + gameState.drones, true);
+                showNotification("The systems have been updated! Drones under repair: " + gameState.drones, true);
             }
         });
         
@@ -1820,7 +1823,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
         document.getElementById('emergency-btn').addEventListener('click', function() {
             if (updateResource('mvc', -80)) {
                 updateResource('energy', 100);
-                showNotification("Экстренное питание активировано! +100 ⚡", true);
+                showNotification("Emergency power is activated! +100 ⚡", true);
             }
         });
         
@@ -1839,7 +1842,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                         case "polymers":
                         case "rare":
                             // Эти ресурсы не добавляем, просто показываем сообщение
-                            resourceName = resource === "polymers" ? "полимеров" : "редкоземельных материалов";
+                            resourceName = resource === "polymers" ? "polymers" : "rare earth materials";
                             break;
                         case "oxygen":
                             updateResource('oxygen', amount);
@@ -1853,7 +1856,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                             break;
                     }
                     
-                    showNotification(`Куплено: ${resourceAmount > 0 ? resourceAmount + ' ' : ''}${resourceName}`, true);
+                    showNotification(`Purchased: ${resourceAmount > 0 ? resourceAmount + ' ' : ''}${resourceName}`, true);
                     updateUI();
                 }
             });
@@ -1867,17 +1870,17 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 let votes = parseInt(voteInput.value);
                 
                 if (isNaN(votes)) {
-                    showNotification("Введите количество голосов!", false);
+                    showNotification("Please enter the number of votes.!", false);
                     return;
                 }
                 
                 if (votes <= 0) {
-                    showNotification("Количество голосов должно быть положительным!", false);
+                    showNotification("The number of votes must be positive!", false);
                     return;
                 }
                 
                 if (gameState.userVotes < votes) {
-                    showNotification("Недостаточно голосов для поддержки проекта!", false);
+                    showNotification("There are not enough votes to support the project!", false);
                     return;
                 }
                 
@@ -1896,13 +1899,13 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 }
                 
                 updateUI();
-                showNotification(`Ваши ${votes} голосов учтены для проекта!`, true);
+                showNotification(`Your ${votes} votes are counted for the project!`, true);
             });
         });
         
         // Создание нового предложения
         document.getElementById('create-proposal-btn').addEventListener('click', function() {
-            showNotification("Новое предложение отправлено на модерацию", true);
+            showNotification("New proposal submitted for moderation", true);
         });
         
         // Принятие квеста
@@ -1914,7 +1917,8 @@ document.getElementById('break-btn').addEventListener('click', () => {
                     if (awakeningQuest && !awakeningQuest.accepted) {
                         awakeningQuest.accepted = true;
                         awakeningQuest.status = "active";
-                        showNotification("Квест 'Пробуждение' принят! Осмотрите капсулу для выполнения.", true);
+                        showNotification("The 'Awakening' quest has been accepted!Inspect the capsule to perform
+.", true);
                         updateUI();
                     }
                 }
@@ -1925,15 +1929,15 @@ document.getElementById('break-btn').addEventListener('click', () => {
         setInterval(() => {
             if (Math.random() < 0.1 && gameState.missions.scanning) {
                 const events = [
-                    "Радиационная буря! Сканирование замедлено",
-                    "Обнаружены редкие ресурсы! +10 🧪",
-                    "Атака рейдеров! Потери ресурсов"
+                    "Radiation storm! Scanning is slowed down",
+                    "Rare resources have been discovered! +10 🧪",
+                    "Attack of the raiders! Loss of resources"
                 ];
                 const event = events[Math.floor(Math.random() * events.length)];
                 
                 if (event.includes("+")) {
                     updateResource('bio', 10);
-                } else if (event.includes("Потери")) {
+                } else if (event.includes("Losses")) {
                     updateResource('oxygen', -20);
                 }
                 
@@ -1946,7 +1950,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
         
         // Стартовое уведомление
         setTimeout(() => {
-            showNotification("Добро пожаловать в METAVILLE на платформу V.01.D! ", true);
+            showNotification("Welcome to METAVILLE on the Genesis Platform V.01.D! ", true);
         }, 1000);
     </script>
     
