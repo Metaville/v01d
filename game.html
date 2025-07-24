@@ -1816,7 +1816,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
             if (updateResource('mvc', -200) && updateResource('parts', -15)) {
                 gameState.drones = Math.min(3, gameState.drones + 1);
                 updateUI();
-                showNotification("Системы обновлены! Дроны в ремонте: " + gameState.drones, true);
+                showNotification("The systems have been updated! Drones under repair: " + gameState.drones, true);
             }
         });
         
@@ -1824,7 +1824,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
         document.getElementById('emergency-btn').addEventListener('click', function() {
             if (updateResource('mvc', -80)) {
                 updateResource('energy', 100);
-                showNotification("Экстренное питание активировано! +100 ⚡", true);
+                showNotification("Emergency power is activated! +100 ⚡", true);
             }
         });
         
@@ -1871,17 +1871,17 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 let votes = parseInt(voteInput.value);
                 
                 if (isNaN(votes)) {
-                    showNotification("Введите количество голосов!", false);
+                    showNotification("Enter the number of votes!", false);
                     return;
                 }
                 
                 if (votes <= 0) {
-                    showNotification("Количество голосов должно быть положительным!", false);
+                    showNotification("The number of votes must be positive.!", false);
                     return;
                 }
                 
                 if (gameState.userVotes < votes) {
-                    showNotification("Недостаточно голосов для поддержки проекта!", false);
+                    showNotification("Not enough votes to support the proposal.!", false);
                     return;
                 }
                 
@@ -1929,9 +1929,9 @@ document.getElementById('break-btn').addEventListener('click', () => {
         setInterval(() => {
             if (Math.random() < 0.1 && gameState.missions.scanning) {
                 const events = [
-                    "Радиационная буря! Сканирование замедлено",
-                    "Обнаружены редкие ресурсы! +10 🧪",
-                    "Атака рейдеров! Потери ресурсов"
+                    "Radiation storm! Scanning has slowed down.",
+                    "Rare resources have been discovered! +10 🧪",
+                    "Attack of the raiders! Loss of resources"
                 ];
                 const event = events[Math.floor(Math.random() * events.length)];
                 
