@@ -778,6 +778,67 @@
             text-overflow: ellipsis;
             max-width: 100px;
         }
+
+/* Стили для обучения */
+.tutorial-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(30, 35, 60, 0.5);
+    border-radius: 10px;
+}
+
+.tutorial-item i {
+    font-size: 24px;
+    color: #00ffcc;
+    margin-top: 3px;
+}
+
+.tutorial-item strong {
+    color: #ffcc00;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.tutorial-warning {
+    background: rgba(255, 85, 85, 0.15);
+    border-left: 3px solid #ff5555;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.tutorial-warning i {
+    color: #ff5555;
+    font-size: 20px;
+}
+
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 10px;
+    margin-bottom: 20px;
+}
+
+/* Полоса прокрутки */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: rgba(10, 15, 30, 0.5);
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #00cc99;
+    border-radius: 3px;
+}
+
     </style>
 </head>
 <body>
@@ -801,6 +862,78 @@
             </div>
         </div>
         
+<!-- Модальное окно обучения -->
+<div class="modal active" id="tutorial-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Добро пожаловать в METAVILLE!</h3>
+        </div>
+        
+        <div class="modal-body">
+            <p>Вы - оператор платформы V.01.D в постапокалиптическом мире. Основные механики:</p>
+            
+            <div class="tutorial-item">
+                <i class="fas fa-globe-americas"></i>
+                <div>
+                    <strong>Карта</strong>
+                    <p>Сканируйте сектора для поиска ресурсов и миссий</p>
+                </div>
+            </div>
+            
+            <div class="tutorial-item">
+                <i class="fas fa-hard-hat"></i>
+                <div>
+                    <strong>База</strong>
+                    <p>Управляйте системами выживания и улучшайте платформу</p>
+                </div>
+            </div>
+            
+            <div class="tutorial-item">
+                <i class="fas fa-flask"></i>
+                <div>
+                    <strong>Исследования</strong>
+                    <p>Разрабатывайте новые технологии для преимущества</p>
+                </div>
+            </div>
+            
+            <div class="tutorial-item">
+                <i class="fas fa-shopping-cart"></i>
+                <div>
+                    <strong>Рынок</strong>
+                    <p>Торгуйте ресурсами с другими выжившими</p>
+                </div>
+            </div>
+            
+            <div class="tutorial-item">
+                <i class="fas fa-vote-yea"></i>
+                <div>
+                    <strong>Голосования</strong>
+                    <p>Участвуйте в управлении платформой через DAO</p>
+                </div>
+            </div>
+            
+            <div class="tutorial-item">
+                <i class="fas fa-tasks"></i>
+                <div>
+                    <strong>Квесты</strong>
+                    <p>Выполняйте задания для получения ресурсов и доступа</p>
+                </div>
+            </div>
+            
+            <div class="tutorial-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                Следите за уровнем кислорода и энергии - от них зависит ваше выживание!
+            </div>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="start-game-btn">
+                Начать игру
+            </button>
+        </div>
+    </div>
+</div>
+
         <!-- Основной контент -->
         <div class="main-content">
             <!-- Экран Карта -->
@@ -835,7 +968,7 @@
                     <div class="status-title">
                         <i class="fas fa-satellite-dish"></i> Drone 1: Terrain Survey
                     </div>
-                    <div>Sector <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
+                    <div>Сектор <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
                     <div class="progress-bar">
                         <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
                     </div>
@@ -894,7 +1027,7 @@
                         <div class="status-title">
                             <i class="fas fa-microchip"></i> Modules
                         </div>
-                        <div class="status-value"><span id="slots-value">2</span> slots</div>
+                        <div class="status-value"><span id="slots-value">2</span> слота</div>
                         <div>Free</div>
                     </div>
                     
@@ -1017,8 +1150,8 @@
                         <span>Transport</span>
                     </div>
                     <div class="node-progress">
-                        <span>Progress:</span>
-                        <div id="engine-status" style="color: #00ffcc;">Not started</div>
+                        <span>Прогресс:</span>
+                        <div id="engine-status" style="color: #00ffcc;">Не начато</div>
                     </div>
                     <p>Increases the speed of transport by 15%</p>
                     <div class="node-cost">
@@ -1529,7 +1662,7 @@
                 elements.missionTime.textContent = Math.round(gameState.missions.progress) + '%';
                 elements.missionRisk.textContent = `Риск: ${gameState.missions.risk}% ⚠️`;
                 elements.probeProgress.style.width = gameState.missions.progress + '%';
-                elements.missionHarvest.textContent = `Harvester: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
+                elements.missionHarvest.textContent = `Сборщик: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
                 
                 // Блокировка кнопки комбайнов
                 document.getElementById('harvest-btn').disabled = 
@@ -1548,7 +1681,7 @@
                 document.getElementById('engine-btn').textContent = "Ускорить";
             } else {
                 elements.engineStatus.textContent = "Не начато";
-                document.getElementById('engine-btn').textContent = "Research";
+                document.getElementById('engine-btn').textContent = "Начать исследование";
             }
             
             // База
@@ -1816,7 +1949,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
             if (updateResource('mvc', -200) && updateResource('parts', -15)) {
                 gameState.drones = Math.min(3, gameState.drones + 1);
                 updateUI();
-                showNotification("The systems have been updated! Drones under repair: " + gameState.drones, true);
+                showNotification("Системы обновлены! Дроны в ремонте: " + gameState.drones, true);
             }
         });
         
@@ -1824,7 +1957,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
         document.getElementById('emergency-btn').addEventListener('click', function() {
             if (updateResource('mvc', -80)) {
                 updateResource('energy', 100);
-                showNotification("Emergency power is activated! +100 ⚡", true);
+                showNotification("Экстренное питание активировано! +100 ⚡", true);
             }
         });
         
@@ -1871,17 +2004,17 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 let votes = parseInt(voteInput.value);
                 
                 if (isNaN(votes)) {
-                    showNotification("Enter the number of votes!", false);
+                    showNotification("Введите количество голосов!", false);
                     return;
                 }
                 
                 if (votes <= 0) {
-                    showNotification("The number of votes must be positive.!", false);
+                    showNotification("Количество голосов должно быть положительным!", false);
                     return;
                 }
                 
                 if (gameState.userVotes < votes) {
-                    showNotification("Not enough votes to support the proposal.!", false);
+                    showNotification("Недостаточно голосов для поддержки проекта!", false);
                     return;
                 }
                 
@@ -1929,9 +2062,9 @@ document.getElementById('break-btn').addEventListener('click', () => {
         setInterval(() => {
             if (Math.random() < 0.1 && gameState.missions.scanning) {
                 const events = [
-                    "Radiation storm! Scanning has slowed down.",
-                    "Rare resources have been discovered! +10 🧪",
-                    "Attack of the raiders! Loss of resources"
+                    "Радиационная буря! Сканирование замедлено",
+                    "Обнаружены редкие ресурсы! +10 🧪",
+                    "Атака рейдеров! Потери ресурсов"
                 ];
                 const event = events[Math.floor(Math.random() * events.length)];
                 
@@ -1950,8 +2083,33 @@ document.getElementById('break-btn').addEventListener('click', () => {
         
         // Стартовое уведомление
         setTimeout(() => {
-            showNotification("Welcome to METAVILLE on the platform V.01.D! ", true);
+            showNotification("Добро пожаловать в METAVILLE на платформу V.01.D! ", true);
         }, 1000);
+
+
+        // Показать обучение при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('tutorial-modal').classList.add('active');
+    
+    // Заблокировать основной интерфейс
+    document.querySelectorAll('.nav-item, #scan-btn, #harvest-btn').forEach(el => {
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0.5';
+    });
+});
+
+// Кнопка начала игры
+document.getElementById('start-game-btn').addEventListener('click', function() {
+    document.getElementById('tutorial-modal').classList.remove('active');
+    
+    // Разблокировать интерфейс
+    document.querySelectorAll('.nav-item, #scan-btn, #harvest-btn').forEach(el => {
+        el.style.pointerEvents = 'auto';
+        el.style.opacity = '1';
+    });
+    
+    showNotification("Платформа V.01.D активирована! Удачи в освоении METAVILLE", true);
+});
     </script>
     
     <!-- Скрипт подключения TON кошелька -->
