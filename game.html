@@ -839,7 +839,334 @@
     border-radius: 3px;
 }
 
+/* Стили для майнера кислорода */
+.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clickable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 243, 255, 0.3);
+}
+
+#o2-miner-content .container {
+    max-width: 100%;
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #00171f, #003049, #022b3a);
+    color: #00f3ff;
+    position: relative;
+}
+
+#o2-miner-content .header {
+    text-align: center;
+    padding: 15px 0;
+    border-bottom: 2px solid rgba(0, 243, 255, 0.3);
+    position: relative;
+}
+
+#o2-miner-content .header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00f3ff, transparent);
+}
+
+#o2-miner-content h1 {
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.7);
+    margin-bottom: 8px;
+    background: linear-gradient(to right, #00f3ff, #00ffcc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ... и так далее, добавить все стили из файла майнер.html ... */
+
+
+        
+       #o2-miner-content .subtitle {
+            font-size: 0.9rem;
+            color: rgba(0, 243, 255, 0.7);
+            letter-spacing: 1px;
+        }
+        
+       #o2-miner-content .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            gap: 15px;
+        }
+        
+       #o2-miner-content .stat-box {
+            background: rgba(0, 20, 30, 0.6);
+            border: 1px solid rgba(0, 195, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 195, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+       #o2-miner-content .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00f3ff, transparent);
+        }
+        
+       #o2-miner-content .stat-label {
+            font-size: 0.8rem;
+            color: rgba(0, 243, 255, 0.7);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+       #o2-miner-content .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+        }
+        
+       #o2-miner-content .mining-container {
+            background: rgba(0, 10, 20, 0.7);
+            border: 1px solid rgba(0, 195, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 0 20px rgba(0, 195, 255, 0.2);
+            position: relative;
+        }
+        
+       #o2-miner-content .mining-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+       #o2-miner-content .mining-title {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #00ffcc;
+        }
+        
+       #o2-miner-content .timer {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #00f3ff;
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.7);
+            background: rgba(0, 30, 40, 0.6);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 195, 255, 0.3);
+        }
+        
+       #o2-miner-content .progress-container {
+            margin: 25px 0;
+        }
+        
+        #o2-miner-content .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: rgba(0, 243, 255, 0.7);
+        }
+        
+       #o2-miner-content .progress-bar {
+            height: 25px;
+            background: rgba(0, 30, 40, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 195, 255, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        
+       #o2-miner-content .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0066cc, #00ccff, #00ffff);
+            width: 75%;
+            border-radius: 12px;
+            position: relative;
+            transition: width 0.5s ease;
+        }
+        
+       #o2-miner-content .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(90deg, rgba(255,255,255,0.3), transparent);
+        }
+        
+       #o2-miner-content .o2-production {
+            text-align: center;
+            margin-top: 25px;
+        }
+        
+       #o2-miner-content .o2-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            background: linear-gradient(to right, #00ffcc, #00f3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+            margin: 10px 0;
+        }
+        
+        #o2-miner-content .o2-label {
+            color: rgba(0, 243, 255, 0.7);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+       #o2-miner-content .status-container {
+            background: rgba(0, 20, 30, 0.6);
+            border: 1px solid rgba(0, 195, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+       #o2-miner-content .status-label {
+            color: rgba(0, 243, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+       #o2-miner-content .status-value {
+            color: #00ff99;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 255, 153, 0.5);
+        }
+        
+       #o2-miner-content .footer {
+            text-align: center;
+            padding: 15px 0;
+            font-size: 0.8rem;
+            color: rgba(0, 243, 255, 0.5);
+            border-top: 1px solid rgba(0, 243, 255, 0.2);
+            letter-spacing: 1px;
+        }
+        
+        /* Анимации */
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+       #o2-miner-content .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+       #o2-miner-content .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00f3ff, transparent);
+            animation: scan 8s linear infinite;
+            z-index: 10;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        
+        /* Эффекты для Sci-Fi */
+       #o2-miner-content .glow {
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.7);
+        }
+        
+        /* Адаптация под телефон */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+           #o2-miner-content .stats-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+           #o2-miner-content .stat-value {
+                font-size: 1.3rem;
+            }
+            
+           #o2-miner-content .timer {
+                font-size: 1.1rem;
+                padding: 6px 12px;
+            }
+            
+            #o2-miner-content .o2-value {
+                font-size: 1.8rem;
+            }
+        }
+
+
+/* Добавляем новые стили для подсветки */
+#o2-generation-card {
+    position: relative;
+    border: 1px solid rgba(0, 243, 255, 0.5);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+    animation: pulse-o2 2s infinite;
+}
+
+@keyframes pulse-o2 {
+    0% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(0, 243, 255, 0.7); }
+    100% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); }
+}
+
+#o2-generation-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.9);
+    animation: none;
+}
+
+/* Иконка генератора */
+.status-title i.fa-wind {
+    color: #00f3ff;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.7);
+}
+
+/* Добавляем иконку "кликабельно" */
+.click-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #00ffcc;
+    font-size: 12px;
+}
+
     </style>
+
 </head>
 <body>
     <div id="app" class="container">
@@ -1005,15 +1332,17 @@
                         </div>
                     </div>
                     
-                    <div class="status-card">
-                        <div class="status-title">
-                            <i class="fas fa-wind"></i> Generation O₂
-                        </div>
-                        <div class="status-value">120/h</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 75%"></div>
-                        </div>
-                    </div>
+                <!-- карточка генерации O₂ в разделе База -->
+<div class="status-card clickable" id="o2-generation-card">
+    <div class="status-title">
+        <i class="fas fa-wind"></i> Generation O₂
+        <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
+    </div>
+    <div class="status-value" id="o2-generation-value">0/h</div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="o2-progress" style="width: 0%"></div>
+    </div>
+</div>
                     
                     <div class="status-card">
                         <div class="status-title">
@@ -1472,6 +1801,14 @@
         </div>
     </div>
     
+    <!-- Модальное окно майнера кислорода -->
+<div class="modal" id="o2-miner-modal">
+    <div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: transparent;">
+        <button class="close-modal" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #00f3ff; font-size: 24px; z-index: 100;">&times;</button>
+        <div id="o2-miner-content"></div>
+    </div>
+</div>
+
     <!-- Модальное окно сканирования -->
     <div class="modal" id="scan-modal">
         <div class="modal-content">
@@ -1532,6 +1869,11 @@
                 bio: 10,
                 parts: 10
             },
+            o2Generation: {
+        rate: 0,        // текущая скорость генерации
+        progress: 0,    // прогресс текущего цикла
+        maxRate: 120    // максимальная возможная скорость
+    },
             missions: {
                 scanning: false,
                 sector: null,
@@ -1612,6 +1954,8 @@
                     accepted: false,
                     completed: false
                 }
+
+
             ]
         };
 
@@ -1653,7 +1997,32 @@
             elements.mvc.textContent = gameState.resources.mvc.toLocaleString();
             elements.bio.textContent = gameState.resources.bio.toLocaleString();
             elements.parts.textContent = gameState.resources.parts.toLocaleString();
+
+            // Обновляем данные генератора O₂
+            document.getElementById('o2-generation-value').textContent = 
+        `${gameState.o2Generation.rate}/h`;
+        
+    document.getElementById('o2-progress').style.width = 
+        `${(gameState.o2Generation.progress / 100) * 100}%`;
+}
+
+// Запускаем генерацию кислорода
+    setInterval(() => {
+        if (gameState.o2Generation.rate > 0) {
+            // Обновляем прогресс
+            gameState.o2Generation.progress += 2;
             
+            // Если цикл завершен
+            if (gameState.o2Generation.progress >= 100) {
+                gameState.o2Generation.progress = 0;
+                updateResource('oxygen', Math.floor(gameState.o2Generation.rate / 10));
+            }
+            
+            updateUI();
+        }
+    }, 1000);
+
+
             // Миссии
             if (gameState.missions.scanning) {
                 elements.missionSector.textContent = gameState.missions.sector;
@@ -1681,7 +2050,7 @@
                 document.getElementById('engine-btn').textContent = "Ускорить";
             } else {
                 elements.engineStatus.textContent = "Не начато";
-                document.getElementById('engine-btn').textContent = "Начать исследование";
+                document.getElementById('engine-btn').textContent = "Research";
             }
             
             // База
@@ -1696,7 +2065,7 @@
             elements.securityPercent.textContent = gameState.votes.security;
             elements.moonProgress.style.width = gameState.votes.moon + '%';
             elements.moonPercent.textContent = gameState.votes.moon;
-        }
+        
         
         // Форматирование времени
         function formatTime(seconds) {
@@ -2110,7 +2479,203 @@ document.getElementById('start-game-btn').addEventListener('click', function() {
     
     showNotification("Платформа V.01.D активирована! Удачи в освоении METAVILLE", true);
 });
+
+
+// Получаем элементы
+const o2MinerModal = document.getElementById('o2-miner-modal');
+const o2GenerationCard = document.getElementById('o2-generation-card');
+const o2MinerContent = document.getElementById('o2-miner-content');
+
+// При клике на карточку генерации O2
+o2GenerationCard.addEventListener('click', function() {
+    // Вставляем содержимое майнера
+
+    // Получаем элементы
+const o2MinerModal = document.getElementById('o2-miner-modal');
+const o2GenerationCard = document.getElementById('o2-generation-card');
+const o2MinerContent = document.getElementById('o2-miner-content');
+
+// При клике на карточку генерации O2
+o2GenerationCard.addEventListener('click', function() {
+    // Вставляем содержимое майнера
+    o2MinerContent.innerHTML = `
+        <div class="scan-line"></div>
+        <div class="container">
+            <div class="header">
+                <h1>Кислородный Майнер O2</h1>
+                <div class="subtitle">СИСТЕМА ДОБЫЧИ КИСЛОРОДА | СЕКТОР 7G</div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-label">Активные Майнеры</div>
+                    <div class="stat-value" id="activeMiners">1,427</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Ваша Доля</div>
+                    <div class="stat-value" id="yourShare">0.07%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Следующий Клейм</div>
+                    <div class="stat-value" id="nextClaim">04:00:00</div>
+                </div>
+            </div>
+            
+            <div class="mining-container">
+                <div class="mining-header">
+                    <div class="mining-title">Добыча O2</div>
+                    <div class="timer" id="timer">03:59:45</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-labels">
+                        <div>Начало цикла</div>
+                        <div id="progressPercentage">75%</div>
+                        <div>Клейм O2</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+                
+                <div class="o2-production">
+                    <div class="o2-label">Текущая Добыча</div>
+                    <div class="o2-value" id="o2Value">8.73 O2</div>
+                    <div class="o2-label">за цикл</div>
+                </div>
+            </div>
+            
+            <div class="status-container">
+                <div class="status-label">Статус системы</div>
+                <div class="status-value pulse" id="status">Добыча активна</div>
+            </div>
+            
+            <div class="footer">
+                СИСТЕМА O2-MINER v2.7 | © 2175 Metaville V.01.D
+            </div>
+        </div>
+    `;
+
+    // Показываем модальное окно
+    o2MinerModal.classList.add('active');
+
+    // Запускаем скрипт майнера
+    initO2Miner();
+});
+
+// Функция инициализации майнера
+function initO2Miner() {
+     // Инициализация данных
+        let timeLeft = 4 * 60 * 60; // 4 часа в секундах
+        let activeMiners = 1427;
+        let o2PerCycle = 125; // Базовое значение O2 за цикл
+        
+        // Обновление таймера каждую секунду
+        const timerElement = document.getElementById('timer');
+        const progressFill = document.getElementById('progressFill');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const o2Value = document.getElementById('o2Value');
+        const activeMinersElement = document.getElementById('activeMiners');
+        const yourShareElement = document.getElementById('yourShare');
+        const nextClaimElement = document.getElementById('nextClaim');
+        const statusElement = document.getElementById('status');
+
+
+        function updateO2Generation(amount) {
+    gameState.o2Generation.rate = Math.min(
+        gameState.o2Generation.maxRate, 
+        gameState.o2Generation.rate + amount
+    );
+    updateUI();
+}
+
+document.getElementById('some-upgrade-btn').addEventListener('click', function() {
+    updateO2Generation(15); // Увеличиваем генерацию на 15/h
+});
+        
+        // Функция форматирования времени
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Функция обновления данных
+        function updateMinerData() {
+            // Обновление таймера
+            timeLeft--;
+            
+            // Если время вышло, сбрасываем таймер
+            if (timeLeft <= 0) {
+                timeLeft = 4 * 60 * 60; // Сброс до 4 часов
+                statusElement.textContent = "Клейм O2 завершен!";
+                statusElement.style.color = "#00ff99";
+                
+                // Анимация завершения
+                setTimeout(() => {
+                    statusElement.textContent = "Добыча активна";
+                    statusElement.style.color = "#00ff99";
+                }, 5000);
+            }
+            
+            // Обновление количества майнеров (случайное изменение)
+            const minerChange = Math.floor(Math.random() * 21) - 10;
+            activeMiners = Math.max(1000, activeMiners + minerChange);
+            
+            // Расчет доли пользователя
+            const yourShare = (1 / activeMiners * 100).toFixed(2);
+            
+            // Расчет прогресса
+            const progressPercent = ((4 * 60 * 60 - timeLeft) / (4 * 60 * 60)) * 100;
+            
+            // Расчет текущей добычи O2 (уменьшается с количеством майнеров)
+            const currentO2 = (o2PerCycle / activeMiners * 100).toFixed(2);
+            
+            // Обновление элементов интерфейса
+            timerElement.textContent = formatTime(timeLeft);
+            nextClaimElement.textContent = formatTime(timeLeft);
+            progressFill.style.width = `${progressPercent}%`;
+            progressPercentage.textContent = `${Math.round(progressPercent)}%`;
+            o2Value.textContent = `${currentO2} O2`;
+            activeMinersElement.textContent = activeMiners.toLocaleString();
+            yourShareElement.textContent = `${yourShare}%`;
+        }
+        
+        // Инициализация данных при загрузке
+        updateMinerData();
+        
+        // Обновление данных каждую секунду
+        setInterval(updateMinerData, 1000);
+        
+        // Случайное изменение статуса
+        setInterval(() => {
+            const statuses = [
+                "Добыча активна", 
+                "Оптимизация потока O2", 
+                "Калибровка фильтров",
+                "Стабильная работа"
+            ];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            statusElement.textContent = randomStatus;
+        }, 8000);
+}
+
+// Закрытие модального окна майнера
+document.querySelector('#o2-miner-modal .close-modal').addEventListener('click', function() {
+    o2MinerModal.classList.remove('active');
+});
+
+// Также закрываем при клике вне окна
+o2MinerModal.addEventListener('click', function(e) {
+    if (e.target === o2MinerModal) {
+        o2MinerModal.classList.remove('active');
+    }
+});
+});
     </script>
+
+
     
     <!-- Скрипт подключения TON кошелька -->
     <script>
@@ -2176,6 +2741,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   ui.onStatusChange(wallet => {
     updateWalletUI(wallet);
   });
+
+
 </script>
 
 </body>
