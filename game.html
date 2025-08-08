@@ -8,7 +8,7 @@
     <title>METAVILLE: V.01.D / Genesis Platform</title>
 
     <!-- TON Connect UI Kit -->
-    <script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui-kit@0.0.13/dist/tonconnect-ui-kit.umd.js"></script>
     <link rel="tonconnect" href="https://metaville.github.io/v01d/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -92,10 +92,68 @@
         .sector-risk.medium { color: #ffcc00; }
         .modal-actions { display: flex; gap: 10px; }
         .modal-actions .btn { flex: 1; }
-        .notification { position: fixed; top: 0; left: 0; width: 100%; max-width: 100%; border-radius: 0; padding: 15px; box-sizing: border-box; z-index: 100; display: flex; align-items: center; gap: 10px; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .notification.show { opacity: 1; visibility: visible; top: 30px; }
-        .notification i { font-size: 20px; }
-        .notification.success { background: rgba(10, 30, 15, 0.9); color: #99ffaa; border-left: 4px solid #00cc99; }
+
+.notification {
+    /* Базовые стили */
+    background: rgba(30, 10, 10, 0.9);
+    color: #ffaaaa;
+    border-left: 4px solid #ff5555;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    padding: 15px;
+    box-sizing: border-box;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Переопределение для других типов */
+.notification.success {
+    background: rgba(10, 30, 15, 0.9);
+    color: #99ffaa;
+    border-left: 4px solid #00cc99;
+}
+
+.notification.show {
+    opacity: 1;
+    visibility: visible;
+    top: 30px;
+}
+
+/* Предупреждения (красные) */
+.notification.warning {
+    background: rgba(30, 10, 10, 0.9); /* Темно-красный фон */
+    color: #ffaaaa; /* Светло-красный текст */
+    border-left: 4px solid #ff5555; /* Ярко-красная граница */
+}
+
+/* Иконки для разных типов */
+.notification.success i {
+    color: #00cc99;
+}
+
+.notification.warning i {
+    color: #ff5555;
+}
+.notification.info {
+    background: rgba(10, 15, 30, 0.9);
+    color: #a0a0d0;
+    border-left: 4px solid #0099ff;
+}
+
+.notification {
+    z-index: 1000; /* Увеличьте значение */
+}
+
+
         .mission-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; position: relative; }
         .mission-progress { position: absolute; top: 0; left: 0; height: 4px; background: #00ffcc; border-radius: 0 0 4px 0; }
         .quest-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; position: relative; overflow: hidden; }
@@ -174,6 +232,110 @@
         .status-title i.fa-wind { color: #00f3ff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); }
         .click-indicator { position: absolute; top: 10px; right: 10px; color: #00ffcc; font-size: 12px; }
 
+#tutorial-modal .modal-content {
+    width: 90%;
+    max-width: 500px; /* Увеличим максимальную ширину */
+    padding: 25px 20px; /* Отступы: 25px сверху/снизу, 20px по бокам */
+    margin: 0 auto; /* Центрирование */
+    box-sizing: border-box; /* Учитываем padding в ширине */
+}
+
+#tutorial-modal .modal-body {
+    padding: 0 15px; /* Дополнительные отступы внутри контента */
+}
+
+#rest-modal .modal-content {
+    width: 90%;
+    max-width: 500px;
+    padding: 25px 20px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+#rest-modal .modal-body {
+    padding: 0 15px;
+}
+
+/* Адаптивные отступы для внутренних блоков */
+#rest-modal .status-grid {
+    gap: 10px;
+    padding: 0 10px;
+}
+
+#rest-modal .reputation-item {
+    padding: 8px 5px;
+}
+
+/* Базовые стили для всех модалок */
+.modal-content {
+    width: 90% !important;
+    max-width: 500px !important;
+    padding: 25px 20px !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+    .modal-content {
+        padding: 20px 15px !important;
+        width: 95% !important;
+    }
+    
+    #tutorial-modal .tutorial-item,
+    #rest-modal .status-grid {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+
+        /* стили для капсулы отдыха */
+#rest-capsule-card {
+    position: relative;
+    border: 1px solid rgba(204, 102, 255, 0.5); /* Фиолетовый цвет */
+    box-shadow: 0 0 15px rgba(204, 102, 255, 0.3);
+    animation: pulse-rest 2s infinite;
+}
+
+@keyframes pulse-rest {
+    0% { box-shadow: 0 0 5px rgba(204, 102, 255, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(204, 102, 255, 0.7); }
+    100% { box-shadow: 0 0 5px rgba(204, 102, 255, 0.3); }
+}
+
+#rest-capsule-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 25px rgba(204, 102, 255, 0.9);
+    animation: none;
+}
+
+/* Общий стиль для индикатора клика */
+.click-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #00ffcc; /* Для кислорода */
+    font-size: 12px;
+}
+
+/* Фиолетовый цвет для капсулы */
+#rest-capsule-card .click-indicator {
+    color: #cc66ff;
+}
+
+/* репутация*/
+.reputation-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #2a2a4a;
+}
+
+.reputation-item:last-child {
+    border-bottom: none;
+}       
+
 /* Карточки и элементы интерфейса */
 .status-card, 
 .research-node, 
@@ -229,16 +391,26 @@
         color: #ffffff !important;
         text-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
     }
-    
-    /* Общий цвет текста */
-    body {
-        color: #f0f0ff !important;
-    }
-    
     /* Светлые точки прогресса */
     .progress-dots .dot.filled {
         background: #a0ffea !important;
     }
+/* Контейнер для контента каюты */
+#rest-modal .modal-body-container {
+    padding: 0 10px;
+    margin: 0 -5px; /* Компенсируем внешние отступы */
+}
+
+/* Адаптивные отступы для аватара */
+#rest-modal .avatar {
+    margin-right: 10px;
+}
+
+/* Увеличим боковые отступы для прогресс-бара */
+#rest-modal .progress-container {
+    padding: 0 10px;
+}
+    
 
 #o2-miner-modal .modal-content {
     overflow-y: auto; /* Добавляем вертикальную прокрутку */
@@ -250,9 +422,27 @@
     min-height: 100%; /* Минимальная высота на весь контейнер */
 }
 
+#o2-miner-content .container {
+    overflow-y: auto;
+    max-height: 80vh;
+    padding-bottom: 20px;
+}
 
+/* Стилизация скроллбара */
+#o2-miner-content .container::-webkit-scrollbar {
+    width: 6px;
+}
 
-    </style>
+#o2-miner-content .container::-webkit-scrollbar-track {
+    background: rgba(0, 30, 40, 0.3);
+}
+
+#o2-miner-content .container::-webkit-scrollbar-thumb {
+    background: #00ccff;
+    border-radius: 3px;
+}
+
+ </style>
 </head>
 <body>
     <div id="app" class="container">
@@ -423,7 +613,9 @@
                     <div class="status-card clickable" id="o2-generation-card">
                         <div class="status-title">
                             <i class="fas fa-wind"></i> Generation O₂
+                             <!-- иконка пальца -->
                             <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
+
                         </div>
                         <div class="status-value" id="o2-generation-value">0/h</div>
                         <div class="progress-bar">
@@ -447,13 +639,14 @@
                         <div>Free</div>
                     </div>
                     
-                    <div class="status-card">
-                        <div class="status-title">
-                            <i class="fas fa-bed"></i> Rest capsules
-                        </div>
-                        <div class="status-value">30%</div>
-                        <div>Occupied</div>
-                    </div>
+                   <div class="status-card clickable" id="rest-capsule-card">
+    <div class="status-title">
+        <i class="fas fa-bed"></i> Rest capsules
+        <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
+    </div>
+    <div class="status-value" id="capsule-status">To recuperate.</div>
+    <div>Visit the capsule</div>
+</div>
                     
                     <div class="status-card">
                         <div class="status-title">
@@ -936,13 +1129,103 @@
             </div>
         </div>
     </div>
+
+    <!-- Модальное окно капсулы отдыха -->
+<div class="modal" id="rest-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Капсула отдыха</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        
+        <!-- Добавьте эту обертку -->
+        <div class="modal-body-container">
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 20px;">
+     
+            <!-- Аватар и характеристики -->
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="avatar" style="width: 100px; height: 100px; border-radius: 50%; 
+                        background: linear-gradient(135deg, #1a1a2f, #2a2a4a); 
+                        border: 3px solid #00ffcc; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user-astronaut" style="font-size: 40px; color: #00ffcc;"></i>
+                </div>
+                
+                <div>
+                    <h4 style="color: #00ffcc; margin-bottom: 10px;">Оператор #7</h4>
+                    <div class="status-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        <div class="status-card">
+                            <div class="status-title">
+                                <i class="fas fa-bolt"></i> Уровень энергии
+                            </div>
+                            <div class="status-value" id="current-energy">500</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-title">
+                                <i class="fas fa-heart"></i> Здоровье
+                            </div>
+                            <div class="status-value">87%</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-title">
+                                <i class="fas fa-shield-alt"></i> Уровень
+                            </div>
+                            <div class="status-value">5</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-title">
+                                <i class="fas fa-star"></i> Опыт
+                            </div>
+                            <div class="status-value">1200/2000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Репутация -->
+            <div>
+                <h4 class="section-title">Репутация</h4>
+                <div class="reputation-list">
+                    <div class="reputation-item">
+                        <span>Синдикат "Глория"</span>
+                        <span style="color: #ffcc00;">+25 (Друг)</span>
+                    </div>
+                    <div class="reputation-item">
+                        <span>Братство Стали</span>
+                        <span style="color: #a0a0d0;">0 (Нейтрал)</span>
+                    </div>
+                    <div class="reputation-item">
+                        <span>Рейдеры "Черное солнце"</span>
+                        <span style="color: #ff5555;">-15 (Враг)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Прогресс отдыха -->
+            <div class="progress-container" style="margin-top: 15px;">
+    <div id="rest-progress">
+        <div id="rest-progress-fill"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+        <span id="rest-time">0%</span>
+        <span id="rest-status">Готов к отдыху</span>
+    </div>
+</div>
+        
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="rest-button" style="width: 100%;">
+                <i class="fas fa-bed"></i> Отдохнуть (8 часов)
+            </button>
+        </div>
+    </div>
+</div>
     
     <!-- Уведомление -->
     <div class="notification" id="notification">
-        <i class="fas fa-exclamation-triangle"></i>
-        <div id="notification-text">Транспорт-7 атакован рейдерами! Потери: 35 ресурсов</div>
-    </div>
-    
+    <i id="notification-icon" class="fas fa-exclamation-triangle"></i>
+    <div id="notification-text">Транспорт-7 атакован рейдерами! Потери: 35 ресурсов</div>
+</div>
+
+
     <script>
         // Состояние игры (исправленное)
         const gameState = {
@@ -953,6 +1236,20 @@
                 bio: 100,
                 parts: 100
             },
+
+            player: {
+        health: 87,
+        level: 5,
+        exp: 1200,
+        maxExp: 2000,
+        reputation: {
+            glory: 25,
+            brotherhood: 0,
+            raiders: -15
+        },
+        isResting: false,
+        restProgress: 0
+    },
             o2Generation: {
                 rate: 5,
                 progress: 0,
@@ -1127,20 +1424,54 @@
         }
 
         // Показать уведомление
-        function showNotification(message, isSuccess = false) {
-            elements.notificationText.textContent = message;
-            elements.notification.classList.remove('success');
-            
-            if (isSuccess) {
-                elements.notification.classList.add('success');
-            }
-            
-            elements.notification.classList.add('show');
-            
-            setTimeout(() => {
-                elements.notification.classList.remove('show');
-            }, 3000);
-        }
+      function showNotification(message, type = 'warning') {
+    // Получаем элементы (надёжно, в функции)
+    const notification = document.getElementById('notification');
+    const icon = document.getElementById('notification-icon');
+    const text = document.getElementById('notification-text');
+
+    // Преобразование булевых значений (позволяет вызывать showNotification(msg, true/false))
+    if (typeof type === 'boolean') {
+        type = type ? 'success' : 'warning';
+    }
+
+    // Разрешённые типы и иконки (однократное объявление)
+    const icons = {
+        success: 'fa-check-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    const allowed = Object.keys(icons); // ['success','warning','info']
+
+    if (!allowed.includes(type)) type = 'warning';
+
+    // Снимаем все возможные классы типов и добавляем нужный
+    notification.classList.remove(...allowed);
+    notification.classList.add(type);
+
+    // Обновляем иконку и текст
+    icon.className = `fas ${icons[type]}`;
+    text.textContent = message;
+
+    // Показать уведомление
+    notification.classList.add('show');
+
+    // Авто-скрытие через 3 секунды
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+/* Анимация для красных уведомлений */
+@keyframes pulse-warning {
+    0% { box-shadow: 0 0 0 0 rgba(255, 85, 85, 0.5); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 85, 85, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 85, 85, 0); }
+}
+
+.notification.warning.show {
+    animation: pulse-warning 2s infinite;
+}
 
         // Изменить ресурсы
         function updateResource(resource, amount) {
@@ -1411,6 +1742,103 @@
             });
         });
 
+// Открытие модального окна капсулы
+document.getElementById('rest-capsule-card').addEventListener('click', () => {
+    document.getElementById('rest-modal').classList.add('active');
+    document.getElementById('current-energy').textContent = gameState.resources.energy;
+    
+    // Добавим анимацию открытия
+    const modal = document.getElementById('rest-modal');
+    modal.style.opacity = 0;
+    modal.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        modal.style.opacity = 1;
+        modal.style.transform = 'translateY(0)';
+        modal.style.transition = 'all 0.3s ease';
+    }, 10);
+});
+
+// Закрытие модального окна
+document.querySelector('#rest-modal .close-modal').addEventListener('click', () => {
+    document.getElementById('rest-modal').classList.remove('active');
+});
+
+// Кнопка отдыха
+document.getElementById('rest-button').addEventListener('click', startRest);
+
+function startRest() {
+    if (gameState.player.isResting) {
+        showNotification("Вы уже отдыхаете!", false);
+        return;
+    }
+    
+    if (gameState.resources.energy >= 1000) {
+        showNotification("Ваша энергия уже полна!", false);
+        return;
+    }
+    
+    gameState.player.isResting = true;
+    const restButton = document.getElementById('rest-button');
+    restButton.disabled = true;
+    restButton.innerHTML = '<i class="fas fa-hourglass-half"></i> Отдых...';
+    
+    // Установим время отдыха: 8 секунд для демо
+    const restTime = 8;
+    let timeLeft = restTime;
+    
+    const restInterval = setInterval(() => {
+        timeLeft--;
+        const progress = ((restTime - timeLeft) / restTime) * 100;
+        gameState.player.restProgress = progress;
+        
+        // Плавная анимация прогресса
+        document.getElementById('rest-progress-fill').style.width = `${progress}%`;
+        document.getElementById('rest-time').textContent = `${Math.round(progress)}%`;
+        document.getElementById('rest-status').textContent = `Отдых: ${restTime - timeLeft}/${restTime} сек`;
+        
+        // Пульсирующая анимация при завершении
+        if (progress > 90) {
+            document.getElementById('rest-progress-fill').style.background = 
+                'linear-gradient(90deg, #ffcc00, #ff9900)';
+        }
+        
+        if (timeLeft <= 0) {
+            clearInterval(restInterval);
+            completeRest();
+        }
+    }, 1000);
+}
+
+function completeRest() {
+    gameState.resources.energy = 1000;
+    gameState.player.health = 100;
+    gameState.player.isResting = false;
+    
+    document.getElementById('rest-button').disabled = false;
+    document.getElementById('rest-button').innerHTML = '<i class="fas fa-bed"></i> Отдохнуть (8 часов)';
+    document.getElementById('rest-status').textContent = "Отдых завершен!";
+    
+    showNotification("Вы полностью отдохнули! Энергия восстановлена до 1000", true);
+    updateUI();
+    
+    // Закрываем модальное окно через 3 секунды
+    setTimeout(() => {
+        document.getElementById('rest-modal').classList.remove('active');
+    }, 3000);
+}
+// Потребление энергии с течением времени
+setInterval(() => {
+    if (!gameState.player.isResting) {
+        updateResource('energy', -1);
+        
+        // Если энергия ниже 20%, показываем предупреждение
+        if (gameState.resources.energy < 200 && Math.random() > 0.8) {
+            showNotification("⚠️ Низкий уровень энергии! Отдохните в капсуле", false);
+        }
+    }
+}, 1000);
+
         // Голосование
         document.querySelectorAll('.vote-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1507,62 +1935,62 @@
         }
         
         // Майнер кислорода
-        function initO2Miner() {
-            // Очистка контента
-            const o2MinerContent = document.getElementById('o2-miner-content');
-            o2MinerContent.innerHTML = `
-                <div class="scan-line"></div>
-                <div class="container">
-                    <div class="header">
-                        <h1> Майнер O2</h1>
-                        <div class="subtitle">СИСТЕМА ДОБЫЧИ КИСЛОРОДА | СЕКТОР 7G</div>
-                    </div>
-                    
-                    <div class="stats-container">
-                        <div class="stat-box">
-                            <div class="stat-label">Активные Майнеры</div>
-                            <div class="stat-value" id="activeMiners">1,427</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Ваша Доля</div>
-                            <div class="stat-value" id="yourShare">0.07%</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Следующий Клейм</div>
-                            <div class="stat-value" id="nextClaim">04:00:00</div>
-                        </div>
-                    </div>
-                    
-                    <div class="mining-container">
-                        <div class="mining-header">
-                            <div class="mining-title">Добыча O2</div>
-                            <div class="timer" id="timer">03:59:45</div>
-                        </div>
-                        
-                        <div class="progress-container">
-                            <div class="progress-labels">
-                                <div>Начало цикла</div>
-                                <div id="progressPercentage">75%</div>
-                                <div>Клейм O2</div>
-                            </div>
-                            <div class="o2-progress-bar">
-                                <div class="progress-fill" id="progressFill"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="o2-production">
-                            <div class="o2-label">Текущая Добыча</div>
-                            <div class="o2-value" id="o2Value">8.73 O2</div>
-                            <div class="o2-label">за цикл</div>
-                        </div>
-                    </div>
-                    
-                    <div class="status-container">
-                        <div class="status-label">Статус системы</div>
-                        <div class="status-value pulse" id="status">Добыча активна</div>
-                    </div>
-                    
+       function initO2Miner() {
+    const o2MinerContent = document.getElementById('o2-miner-content');
+    o2MinerContent.innerHTML = `
+        <div class="scan-line"></div>
+        <div class="container">
+            
+            <div class="header">
+                <h1>Майнер O2</h1>
+                <div class="subtitle">СЕКТОР 7G</div>
+            </div>
+            
+            <div class="mining-container">
+                <div class="mining-header">
+                    <div class="mining-title">Добыча O₂</div>
+                    <div class="timer" id="timer">03:59:45</div>
                 </div>
+                
+                <div class="progress-container">
+                    <div class="progress-labels">
+                        <div>Начало</div>
+                        <div id="progressPercentage">75%</div>
+                        <div>Клейм</div>
+                    </div>
+                    <div class="o2-progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+                
+                <div class="o2-production">
+                    <div class="o2-label">Текущая Добыча</div>
+                    <div class="o2-value" id="o2Value">8.73 O₂</div>
+                    <div class="o2-label">за цикл</div>
+                </div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-label">Активные Майнеры</div>
+                    <div class="stat-value" id="activeMiners">1,427</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Ваша Доля</div>
+                    <div class="stat-value" id="yourShare">2.7%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Следующий Клейм</div>
+                    <div class="stat-value" id="nextClaim">04:00:00</div>
+                </div>
+            </div>
+            
+            <div class="status-container">
+                <div class="status-label">Статус системы</div>
+                <div class="status-value pulse" id="status">Добыча активна</div>
+            </div>
+            
+        </div>
             `;
             
             // Инициализация данных майнера
@@ -1673,62 +2101,77 @@
         }, 1000);
 
         // TON Connect
-        document.addEventListener('DOMContentLoaded', async () => {
-            const connectButton = document.getElementById('connect-wallet');
-            const addressSpan = document.getElementById('wallet-address');
-            const manifestUrl = 'https://metaville.github.io/v01d/manifest.json';
-
-            if (!window.TON_CONNECT_UI) {
-                console.error('TON Connect UI not loaded');
-                showNotification("Ошибка: Библиотека TON Connect не загружена", false);
-                return;
-            }
-
-            const { TonConnectUI } = window.TON_CONNECT_UI;
-            const ui = new TonConnectUI({
-                manifestUrl,
-                buttonRootId: 'wallet-container'
-            });
-
-            const updateWalletUI = (wallet) => {
-                if (wallet) {
-                    const fullAddr = wallet.account.address;
-                    addressSpan.textContent = `${fullAddr.slice(0,4)}…${fullAddr.slice(-4)}`;
-                    connectButton.innerHTML = '<i class="fas fa-check"></i>';
-                    connectButton.classList.replace('btn-warning', 'btn-primary');
-                } else {
-                    addressSpan.textContent = '';
-                    connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
-                    connectButton.classList.replace('btn-primary', 'btn-warning');
-                }
-            };
-
-            const wallet = ui.wallet;
-            if (wallet) {
-                updateWalletUI(wallet);
-            }
-
-            connectButton.addEventListener('click', async () => {
-                try {
-                    if (ui.connected) {
-                        await ui.disconnect();
-                        updateWalletUI(null);
-                        showNotification("TON кошелек отключен", true);
-                    } else {
-                        const wallet = await ui.connect();
-                        updateWalletUI(wallet);
-                        showNotification("TON кошелек подключен!", true);
-                    }
-                } catch (err) {
-                    console.error('Connection failed:', err);
-                    showNotification("Ошибка подключения: " + err.message, false);
-                }
-            });
-
-            ui.onStatusChange(wallet => {
-                updateWalletUI(wallet);
-            });
-        });
+       document.addEventListener('DOMContentLoaded', async () => {
+  const connectButton = document.getElementById('connect-wallet');
+  const addressSpan = document.getElementById('wallet-address');
+  
+  // Используем демо-манифест для теста
+  const manifestUrl = 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json';
+  
+  // Проверка загрузки библиотеки
+  if (!window.TonConnectUI) {
+    console.error('TON Connect UI not loaded');
+    showNotification("Ошибка: Библиотека TON Connect не загружена", false);
+    return;
+  }
+  
+  try {
+    // Создаем экземпляр UI
+    const ui = window.TonConnectUI.create({
+      manifestUrl,
+      buttonRootId: 'wallet-container',
+      language: 'ru'
+    });
+    
+    // Функция обновления интерфейса кошелька
+    const updateWalletUI = (wallet) => {
+      if (wallet) {
+        const fullAddr = wallet.account.address;
+        const shortAddr = `${fullAddr.slice(0, 4)}…${fullAddr.slice(-4)}`;
+        addressSpan.textContent = shortAddr;
+        connectButton.innerHTML = '<i class="fas fa-check"></i>';
+        connectButton.classList.replace('btn-warning', 'btn-primary');
+        showNotification("TON кошелек подключен!", true);
+      } else {
+        addressSpan.textContent = '';
+        connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
+        connectButton.classList.replace('btn-primary', 'btn-warning');
+      }
+    };
+    
+    // Проверка существующего подключения
+    const connectedWallet = ui.connected;
+    if (connectedWallet) {
+      updateWalletUI(connectedWallet);
+    }
+    
+    // Обработчик подключения
+    connectButton.addEventListener('click', async () => {
+      try {
+        if (ui.connected) {
+          await ui.disconnect();
+          updateWalletUI(null);
+          showNotification("TON кошелек отключен", true);
+        } else {
+          const wallet = await ui.connect();
+          updateWalletUI(wallet);
+        }
+      } catch (err) {
+        console.error('Connection failed:', err);
+        showNotification("Ошибка подключения: " + err.message, false);
+      }
+    });
+    
+    // Слушатель изменений состояния
+    ui.onStatusChange(wallet => {
+      updateWalletUI(wallet);
+    });
+    
+  } catch (error) {
+    console.error('TON Connect initialization error:', error);
+    showNotification("Ошибка инициализации TON Connect", false);
+  }
+});
     </script>
 </body>
 </html>
