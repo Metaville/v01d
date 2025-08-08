@@ -5,839 +5,252 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-       <title>METAVILLE: V.01.D / Genesis Platform</title>
+    <title>METAVILLE: V.01.D / Genesis Platform</title>
 
     <!-- TON Connect UI Kit -->
     <script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
- 
     <link rel="tonconnect" href="https://metaville.github.io/v01d/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* Все стили остаются без изменений */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        html, body, #app { margin: 0; padding: 0; width: 100%; height: 100%; }
+        .container { min-height: 100vh; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); background: #0a0a15; position: relative; }
+        .resource-bar { background: rgba(10, 15, 30, 0.9); padding: 12px 15px; display: flex; justify-content: space-evenly; flex-wrap: nowrap; border-bottom: 2px solid #2a2a4a; z-index: 10; gap: 4px; overflow-x: auto; }
+        .resource-item { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600; min-width: 70px; }
+        .main-content { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { color: #00ffcc; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid #2a2a4a; font-size: 18px; font-weight: 600; }
+        .map-container { position: relative; height: 300px; background: #0d0d1a; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 1px solid #2a2a4a; display: flex; justify-content: center; align-items: center; }
+        .map-circle { position: absolute; border-radius: 50%; border: 1px solid; display: flex; justify-content: center; align-items: center; }
+        .inner-ring { width: 120px; height: 120px; border-color: #00cc99; z-index: 3; }
+        .middle-ring { width: 200px; height: 200px; border-color: #ffcc00; z-index: 2; }
+        .outer-ring { width: 280px; height: 280px; border-color: #ff5555; z-index: 1; }
+        .ring-label { position: absolute; color: #fff; font-size: 12px; font-weight: 500; background: rgba(10, 15, 30, 0.8); padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .inner-label { top: calc(50% - 70px); }
+        .middle-label { top: calc(50% - 110px); }
+        .outer-label { top: calc(50% - 150px); }
+        .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn { background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2f 100%); color: #e0e0ff; border: none; padding: 12px 15px; border-radius: 10px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; border: 1px solid #3a3a5a; }
+        .btn:hover { background: linear-gradient(135deg, #3a3a5a 0%, #2a2a4a 100%); transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-primary {    color: #ffffff !important; /* Было #001a14 */}
+        .btn-warning { color: #ffffff !important; /* Было #332900 */}
+        .btn-danger {color: #ffffff !important; /* Было #1a0000 */}
+        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .status-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; border: 1px solid #3a3a5a; }
+        .status-title { font-size: 14px; color: #a0a0d0; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .status-value { font-size: 18px; font-weight: 600; color: #00ffcc; }
+        .progress-bar { height: 8px; background: #1a1a2f; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #00cc99, #00ffcc); }
+        .research-node { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; }
+        .node-title { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .node-progress { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .progress-dots { display: flex; gap: 5px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; background: #2a2a4a; }
+        .dot.filled { background: #00ffcc; }
+        .node-cost { display: flex; gap: 10px; margin-top: 10px; font-size: 14px; }
+        .cost-item { display: flex; align-items: center; gap: 4px; }
+        .market-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .market-menu button { margin-right: 10px; }
+        .tab { flex: 1; text-align: center; padding: 10px; background: #1a1a2f; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .tab.active { background: #2a2a4a; color: #00ffcc; }
+        .offer-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; }
+        .offer-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .offer-vendor { color: #ffcc00; font-weight: 500; }
+        .offer-rating { color: #ffcc00; }
+        .offer-details { display: flex; justify-content: space-between; align-items: center; }
+        .offer-price { font-weight: 600; color: #00ffcc; }
+        .vote-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; }
+        .vote-title { font-size: 16px; margin-bottom: 10px; color: #00ffcc; }
+        .vote-progress { height: 10px; background: #1a1a2f; border-radius: 5px; margin-bottom: 10px; overflow: hidden; }
+        .vote-fill { height: 100%; background: linear-gradient(90deg, #0099ff, #00ccff); border-radius: 5px; }
+        .vote-info { display: flex; justify-content: space-between; font-size: 14px; color: #a0a0d0; margin-bottom: 10px; }
+        .vote-controls { display: flex; gap: 10px; margin-top: 10px; }
+        .vote-input { flex: 1; background: #1a1a2f; border: 1px solid #3a3a5a; border-radius: 8px; color: #fff; padding: 8px 12px; text-align: center; }
+        .nav-menu { display: flex; background: rgba(10, 15, 30, 0.95); border-top: 1px solid #2a2a4a; padding: 1px 0; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 8px 0; cursor: pointer; transition: all 0.3s ease; color: #a0a0d0; font-size: 12px; }
+        .nav-item.active { color: #00ffcc; }
+        .nav-item i { font-size: 20px; }
+        .nav-item:hover { background: rgba(30, 35, 60, 0.5); }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 10, 0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .modal.active { display: flex; opacity: 1; visibility: visible; }
+        .modal:not(.active) { display: none; opacity: 0; visibility: hidden; }
+        .modal-content > p { background: #0f0f1a; width: 90%; max-width: 400px; border-radius: 15px; padding: 25px; border: 1px solid #2a2a4a; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transform: translateY(20px); transition: transform 0.3s ease; margin-bottom: 40px; }
+        .modal.active .modal-content { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { color: #00ffcc; font-size: 20px; font-weight: 600; }
+        .close-modal { background: none; border: none; color: #a0a0d0; font-size: 24px; cursor: pointer; }
+        .sectors-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .sector-item { background: #1a1a2f; border-radius: 10px; padding: 15px 10px; text-align: center; cursor: pointer; border: 1px solid #3a3a5a; transition: all 0.3s ease; }
+        .sector-item:hover { background: #2a2a4a; border-color: #00ffcc; }
+        .sector-name { font-size: 14px; margin-bottom: 5px; }
+        .sector-risk { font-size: 12px; color: #ff5555; }
+        .sector-risk.low { color: #00cc99; }
+        .sector-risk.medium { color: #ffcc00; }
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-actions .btn { flex: 1; }
+        .notification { position: fixed; top: 0; left: 0; width: 100%; max-width: 100%; border-radius: 0; padding: 15px; box-sizing: border-box; z-index: 100; display: flex; align-items: center; gap: 10px; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .notification.show { opacity: 1; visibility: visible; top: 30px; }
+        .notification i { font-size: 20px; }
+        .notification.success { background: rgba(10, 30, 15, 0.9); color: #99ffaa; border-left: 4px solid #00cc99; }
+        .mission-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; position: relative; }
+        .mission-progress { position: absolute; top: 0; left: 0; height: 4px; background: #00ffcc; border-radius: 0 0 4px 0; }
+        .quest-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; position: relative; overflow: hidden; }
+        .quest-title { font-size: 16px; color: #00ffcc; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .quest-description { font-size: 14px; margin-bottom: 12px; color: #a0a0d0; }
+        .quest-reward { display: flex; align-items: center; gap: 5px; font-size: 14px; color: #ffcc00; margin-bottom: 12px; }
+        .quest-progress { height: 6px; background: #1a1a2f; border-radius: 3px; margin-bottom: 10px; overflow: hidden; }
+        .quest-progress-fill { height: 100%; background: linear-gradient(90deg, #0099ff, #00ccff); border-radius: 3px; }
+        .quest-status { display: flex; justify-content: space-between; font-size: 12px; color: #a0a0d0; }
+        .quest-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .quest-badge { position: absolute; top: 15px; right: 15px; padding: 3px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+        .new-badge { background: linear-gradient(135deg, #ffcc00, #cc9900); color: #332900; }
+        .active-badge { background: linear-gradient(135deg, #0099ff, #0066cc); color: #fff; }
+        .completed-badge { background: linear-gradient(135deg, #00cc99, #009973); color: #001a14; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .pulse { animation: pulse 1.5s infinite; }
+        .resource-item.changed { animation: highlight 1s; }
+        @keyframes highlight { 0% { background-color: rgba(0, 255, 204, 0.3); } 100% { background-color: transparent; } }
+        .quest-card.new { border-left: 4px solid #ffcc00; }
+        .quest-card.active { border-left: 4px solid #0099ff; }
+        .quest-card.completed { border-left: 4px solid #00cc99; }
+        #wallet-container { display: flex; align-items: center; justify-content: center; padding: 8px 0; flex: 1; }
+        #wallet-address { font-size: 12px; color: #00ffcc; margin-left: 8px; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+        .tutorial-item { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 15px; padding: 10px; background: rgba(30, 35, 60, 0.5); border-radius: 10px; }
+        .tutorial-item i { font-size: 24px; color: #00ffcc; margin-top: 3px; }
+        .tutorial-item strong { color: #ffcc00; display: block; margin-bottom: 5px; }
+        .tutorial-warning { background: rgba(255, 85, 85, 0.15); border-left: 3px solid #ff5555; padding: 10px 15px; border-radius: 5px; margin-top: 20px; display: flex; gap: 10px; align-items: center; }
+        .tutorial-warning i { color: #ff5555; font-size: 20px; }
+        .modal-body { max-height: 60vh; overflow-y: auto; padding-right: 10px; margin-bottom: 20px; }
+        .modal-body::-webkit-scrollbar { width: 6px; }
+        .modal-body::-webkit-scrollbar-track { background: rgba(10, 15, 30, 0.5); }
+        .modal-body::-webkit-scrollbar-thumb { background: #00cc99; border-radius: 3px; }
+        .clickable { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .clickable:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 243, 255, 0.3); }
+        #o2-miner-content .container { max-width: 100%; padding: 20px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, #00171f, #003049, #022b3a); color: #00f3ff; position: relative; }
+        #o2-miner-content .header { text-align: center; padding: 15px 0; border-bottom: 2px solid rgba(0, 243, 255, 0.3); position: relative; }
+        #o2-miner-content .header::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00f3ff, transparent); }
+        #o2-miner-content h1 { font-size: 1.8rem; text-transform: uppercase; letter-spacing: 3px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); margin-bottom: 8px; background: linear-gradient(to right, #00f3ff, #00ffcc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #o2-miner-content .subtitle { font-size: 0.9rem; color: rgba(0, 243, 255, 0.7); letter-spacing: 1px; }
+        #o2-miner-content .stats-container { display: flex; justify-content: space-between; margin: 20px 0; gap: 15px; }
+        #o2-miner-content .stat-box { background: rgba(0, 20, 30, 0.6); border: 1px solid rgba(0, 195, 255, 0.3); border-radius: 8px; padding: 15px; flex: 1; text-align: center; box-shadow: 0 0 15px rgba(0, 195, 255, 0.1); position: relative; overflow: hidden; }
+        #o2-miner-content .stat-box::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #00f3ff, transparent); }
+        #o2-miner-content .stat-label { font-size: 0.8rem; color: rgba(0, 243, 255, 0.7); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        #o2-miner-content .stat-value { font-size: 1.5rem; font-weight: bold; color: #00ffcc; text-shadow: 0 0 8px rgba(0, 255, 204, 0.5); }
+        #o2-miner-content .mining-container { background: rgba(0, 10, 20, 0.7); border: 1px solid rgba(0, 195, 255, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: 0 0 20px rgba(0, 195, 255, 0.2); position: relative; }
+        #o2-miner-content .mining-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        #o2-miner-content .mining-title { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; color: #00ffcc; }
+        #o2-miner-content .timer { font-size: 1.3rem; font-weight: bold; color: #00f3ff; text-shadow: 0 0 8px rgba(0, 243, 255, 0.7); background: rgba(0, 30, 40, 0.6); padding: 8px 15px; border-radius: 6px; border: 1px solid rgba(0, 195, 255, 0.3); }
+        #o2-miner-content .progress-container { margin: 25px 0; }
+        #o2-miner-content .progress-labels { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; color: rgba(0, 243, 255, 0.7); }
+        #o2-miner-content .o2-progress-bar { height: 25px; background: rgba(0, 30, 40, 0.6); border-radius: 12px; border: 1px solid rgba(0, 195, 255, 0.3); overflow: hidden; position: relative; }
+        #o2-miner-content .progress-fill { height: 100%; background: linear-gradient(90deg, #0066cc, #00ccff, #00ffff); width: 75%; border-radius: 12px; position: relative; transition: width 0.5s ease; }
+        #o2-miner-content .progress-fill::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(90deg, rgba(255,255,255,0.3), transparent); }
+        #o2-miner-content .o2-production { text-align: center; margin-top: 25px; }
+        #o2-miner-content .o2-value { font-size: 2.2rem; font-weight: bold; background: linear-gradient(to right, #00ffcc, #00f3ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px rgba(0, 243, 255, 0.5); margin: 10px 0; }
+        #o2-miner-content .o2-label { color: rgba(0, 243, 255, 0.7); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; }
+        #o2-miner-content .status-container { background: rgba(0, 20, 30, 0.6); border: 1px solid rgba(0, 195, 255, 0.3); border-radius: 8px; padding: 15px; margin-top: 20px; text-align: center; }
+        #o2-miner-content .status-label { color: rgba(0, 243, 255, 0.7); font-size: 0.9rem; margin-bottom: 10px; }
+        #o2-miner-content .status-value { color: #00ff99; font-size: 1.1rem; font-weight: bold; text-shadow: 0 0 8px rgba(0, 255, 153, 0.5); }
+        #o2-miner-content .footer { text-align: center; padding: 15px 0; font-size: 0.8rem; color: rgba(0, 243, 255, 0.5); border-top: 1px solid rgba(0, 243, 255, 0.2); letter-spacing: 1px; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        #o2-miner-content .pulse { animation: pulse 2s infinite; }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        #o2-miner-content .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00f3ff, transparent); animation: scan 8s linear infinite; z-index: 10; }
+        #o2-miner-content .glow { text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); }
+        @media (max-width: 480px) {
+            h1 { font-size: 1.5rem; }
+            #o2-miner-content .stats-container { flex-direction: column; gap: 10px; }
+            #o2-miner-content .stat-value { font-size: 1.3rem; }
+            #o2-miner-content .timer { font-size: 1.1rem; padding: 6px 12px; }
+            #o2-miner-content .o2-value { font-size: 1.8rem; }
         }
-        /* Полноэкранный режим на мобильных */
-        html, body, #app {
-  margin: 0; 
-  padding: 0;
-  width: 100%;
-  height: 100%;
-}
-        .container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-        }
-        
-        body {
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2f 100%);;
-    color: #e0e0ff;
-    margin: 0;
-    padding: 0;
-    /* убираем flex-центрирование */
-    display: block;
-}
-       .container {
-    /* Занимаем всю ширину и высоту экрана */
-    width: 100%;
-    height: 100vh;
-    max-width: none;
+        #o2-generation-card { position: relative; border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); animation: pulse-o2 2s infinite; }
+        @keyframes pulse-o2 { 0% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); } 50% { box-shadow: 0 0 20px rgba(0, 243, 255, 0.7); } 100% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); } }
+        #o2-generation-card:hover { transform: scale(1.03); box-shadow: 0 0 25px rgba(0, 243, 255, 0.9); animation: none; }
+        .status-title i.fa-wind { color: #00f3ff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); }
+        .click-indicator { position: absolute; top: 10px; right: 10px; color: #00ffcc; font-size: 12px; }
 
-    /* Убираем рамку, скругления и тень (если хочется «без полей») */
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-
-    background: #0a0a15;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-
-    /* Поддержка «чёлки» на iPhone */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-}
-
-        
-        /* Верхняя панель ресурсов */
-        .resource-bar {
-            background: rgba(10, 15, 30, 0.9);
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-evenly;
-            flex-wrap: nowrap;
-            border-bottom: 2px solid #2a2a4a;
-            z-index: 10;
-            gap: 4px;
-            overflow-x: auto;
-        }
-        
-        .resource-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-            font-weight: 600;
-            min-width: 70px;
-        }
-        
-        /* Основной контент */
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            position: relative;
-        }
-        
-        .screen {
-            display: none;
-        }
-        
-        .screen.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .section-title {
-            color: #00ffcc;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #2a2a4a;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        /* Карта */
-        .map-container {
-            position: relative;
-            height: 300px;
-            background: #0d0d1a;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            border: 1px solid #2a2a4a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .map-circle {
-            position: absolute;
-            border-radius: 50%;
-            border: 1px solid;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .inner-ring {
-            width: 120px;
-            height: 120px;
-            border-color: #00cc99;
-            z-index: 3;
-        }
-        
-        .middle-ring {
-            width: 200px;
-            height: 200px;
-            border-color: #ffcc00;
-            z-index: 2;
-        }
-        
-        .outer-ring {
-            width: 280px;
-            height: 280px;
-            border-color: #ff5555;
-            z-index: 1;
-        }
-        
-        .ring-label {
-            position: absolute;
-            color: #fff;
-            font-size: 12px;
-            font-weight: 500;
-            background: rgba(10, 15, 30, 0.8);
-            padding: 2px 8px;
-            border-radius: 10px;
-            white-space: nowrap;
-        }
-        
-        .inner-label {
-            top: calc(50% - 70px);
-        }
-        
-        .middle-label {
-            top: calc(50% - 110px);
-        }
-        
-        .outer-label {
-            top: calc(50% - 150px);
-        }
-        
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2f 100%);
-            color: #e0e0ff;
-            border: none;
-            padding: 12px 15px;
-            border-radius: 10px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            border: 1px solid #3a3a5a;
-        }
-        
-        .btn:hover {
-            background: linear-gradient(135deg, #3a3a5a 0%, #2a2a4a 100%);
-            transform: translateY(-2px);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #00cc99 0%, #009973 100%);
-            color: #001a14;
-        }
-        
-        .btn-warning {
-            background: linear-gradient(135deg, #ffcc00 0%, #cc9900 100%);
-            color: #332900;
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #ff5555 0%, #cc0000 100%);
-            color: #1a0000;
-        }
-        
-        /* База */
-        .status-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .status-card {
-            background: rgba(20, 25, 40, 0.7);
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid #3a3a5a;
-        }
-        
-        .status-title {
-            font-size: 14px;
-            color: #a0a0d0;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .status-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #00ffcc;
-        }
-        
-        .progress-bar {
-            height: 8px;
-            background: #1a1a2f;
-            border-radius: 4px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            background: linear-gradient(90deg, #00cc99, #00ffcc);
-        }
-        
-        /* Исследования */
-        .research-node {
-            background: rgba(20, 25, 40, 0.7);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #3a3a5a;
-        }
-        
-        .node-title {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        
-        .node-progress {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .progress-dots {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #2a2a4a;
-        }
-        
-        .dot.filled {
-            background: #00ffcc;
-        }
-        
-        .node-cost {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        
-        .cost-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        /* Маркет */
-        .market-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 15px;
-           }  
-            .market-menu button {
-    margin-right: 10px;
-  }
-       
-        
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            background: #1a1a2f;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .tab.active {
-            background: #2a2a4a;
-            color: #00ffcc;
-        }
-        
-        .offer-card {
-            background: rgba(20, 25, 40, 0.7);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #3a3a5a;
-        }
-        
-        .offer-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        
-        .offer-vendor {
-            color: #ffcc00;
-            font-weight: 500;
-        }
-        
-        .offer-rating {
-            color: #ffcc00;
-        }
-        
-        .offer-details {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .offer-price {
-            font-weight: 600;
-            color: #00ffcc;
-        }
-        
-        /* Голосования */
-        .vote-card {
-            background: rgba(20, 25, 40, 0.7);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #3a3a5a;
-        }
-        
-        .vote-title {
-            font-size: 16px;
-            margin-bottom: 10px;
-            color: #00ffcc;
-        }
-        
-        .vote-progress {
-            height: 10px;
-            background: #1a1a2f;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-        
-        .vote-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #0099ff, #00ccff);
-            border-radius: 5px;
-        }
-        
-        .vote-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            color: #a0a0d0;
-            margin-bottom: 10px;
-        }
-        
-        .vote-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .vote-input {
-            flex: 1;
-            background: #1a1a2f;
-            border: 1px solid #3a3a5a;
-            border-radius: 8px;
-            color: #fff;
-            padding: 8px 12px;
-            text-align: center;
-        }
-        
-        /* Навигация */
-        .nav-menu {
-            display: flex;
-            background: rgba(10, 15, 30, 0.95);
-            border-top: 1px solid #2a2a4a;
-            padding: 1px 0;
-        }
-        
-        .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            padding: 8px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #a0a0d0;
-            font-size: 12px;
-        }
-        
-        .nav-item.active {
-            color: #00ffcc;
-        }
-        
-        .nav-item i {
-            font-size: 20px;
-        }
-        
-        .nav-item:hover {
-            background: rgba(30, 35, 60, 0.5);
-        }
-        
-        /* Модальные окна */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 10, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal-content > p {
-            
-            background: #0f0f1a;
-            width: 90%;
-            max-width: 400px;
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid #2a2a4a;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
-            margin-bottom: 40px;  /* любое желаемое значение */
-        }
-        
-        .modal.active .modal-content {
-            transform: translateY(0);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .modal-title {
-            color: #00ffcc;
-            font-size: 20px;
-            font-weight: 600;
-        }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            color: #a0a0d0;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        
-        .sectors-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .sector-item {
-            background: #1a1a2f;
-            border-radius: 10px;
-            padding: 15px 10px;
-            text-align: center;
-            cursor: pointer;
-            border: 1px solid #3a3a5a;
-            transition: all 0.3s ease;
-        }
-        
-        .sector-item:hover {
-            background: #2a2a4a;
-            border-color: #00ffcc;
-        }
-        
-        .sector-name {
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        
-        .sector-risk {
-            font-size: 12px;
-            color: #ff5555;
-        }
-        
-        .sector-risk.low {
-            color: #00cc99;
-        }
-        
-        .sector-risk.medium {
-            color: #ffcc00;
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .modal-actions .btn {
-            flex: 1;
-        }
-        
-        /* Уведомления */
-        .notification {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            max-width: 100%;
-            border-radius: 0;
-            padding: 15px;
-            box-sizing: border-box;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .notification.show {
-            opacity: 1;
-            visibility: visible;
-            top: 30px;
-        }
-        
-        .notification i {
-            font-size: 20px;
-        }
-        
-        .notification.success {
-            background: rgba(10, 30, 15, 0.9);
-            color: #99ffaa;
-            border-left: 4px solid #00cc99;
-        }
-        
-        /* Миссии */
-        .mission-card {
-            background: rgba(20, 25, 40, 0.7);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #3a3a5a;
-            position: relative;
-        }
-        
-        .mission-progress {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 4px;
-            background: #00ffcc;
-            border-radius: 0 0 4px 0;
-        }
-        
-        /* Квесты */
-        .quest-card {
-            background: rgba(20, 25, 40, 0.7);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #3a3a5a;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .quest-title {
-            font-size: 16px;
-            color: #00ffcc;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .quest-description {
-            font-size: 14px;
-            margin-bottom: 12px;
-            color: #a0a0d0;
-        }
-        
-        .quest-reward {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-            color: #ffcc00;
-            margin-bottom: 12px;
-        }
-        
-        .quest-progress {
-            height: 6px;
-            background: #1a1a2f;
-            border-radius: 3px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-        
-        .quest-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #0099ff, #00ccff);
-            border-radius: 3px;
-        }
-        
-        .quest-status {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #a0a0d0;
-        }
-        
-        .quest-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .quest-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .new-badge {
-            background: linear-gradient(135deg, #ffcc00, #cc9900);
-            color: #332900;
-        }
-        
-        .active-badge {
-            background: linear-gradient(135deg, #0099ff, #0066cc);
-            color: #fff;
-        }
-        
-        .completed-badge {
-            background: linear-gradient(135deg, #00cc99, #009973);
-            color: #001a14;
-        }
-        
-        /* Анимации */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .pulse {
-            animation: pulse 1.5s infinite;
-        }
-        
-        .resource-item.changed {
-            animation: highlight 1s;
-        }
-        
-        @keyframes highlight {
-            0% { background-color: rgba(0, 255, 204, 0.3); }
-            100% { background-color: transparent; }
-        }
-        
-        .quest-card.new {
-            border-left: 4px solid #ffcc00;
-        }
-        
-        .quest-card.active {
-            border-left: 4px solid #0099ff;
-        }
-        
-        .quest-card.completed {
-            border-left: 4px solid #00cc99;
-        }
-
-        /* Кошелек */
-        #wallet-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 0;
-            flex: 1;
-        }
-        
-        #wallet-address {
-            font-size: 12px;
-            color: #00ffcc;
-            margin-left: 8px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100px;
-        }
-
-/* Стили для обучения */
-.tutorial-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    margin-bottom: 15px;
-    padding: 10px;
-    background: rgba(30, 35, 60, 0.5);
-    border-radius: 10px;
+/* Карточки и элементы интерфейса */
+.status-card, 
+.research-node, 
+.offer-card, 
+.vote-card, 
+.quest-card,
+.sector-item {
+    color: #e0e0ff !important;
 }
 
-.tutorial-item i {
-    font-size: 24px;
-    color: #00ffcc;
-    margin-top: 3px;
+.status-title, 
+.node-title, 
+.offer-vendor, 
+.vote-title, 
+.quest-title {
+    color: #a0a0d0 !important;
 }
 
-.tutorial-item strong {
-    color: #ffcc00;
-    display: block;
-    margin-bottom: 5px;
+.status-value, 
+.offer-price, 
+.quest-reward {
+    color: #00ffcc !important;
 }
 
-.tutorial-warning {
-    background: rgba(255, 85, 85, 0.15);
-    border-left: 3px solid #ff5555;
-    padding: 10px 15px;
-    border-radius: 5px;
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
+ /* Светлый текст на кнопках */
+    .btn-primary, .btn-warning, .btn-danger {
+        color: #ffffff !important;
+    }
+    
+    /* Светлый текст в карточках */
+    .status-card, .research-node, .offer-card, 
+    .vote-card, .quest-card, .sector-item {
+        color: #e0e0ff !important;
+    }
+    
+    /* Светлые заголовки */
+    .status-title, .node-title, .offer-vendor, 
+    .vote-title, .quest-title {
+        color: #a0a0d0 !important;
+    }
+    
+    /* Яркие акцентные значения */
+    .status-value, .offer-price, .quest-reward {
+        color: #00ffcc !important;
+    }
+    
+    /* Майнер кислорода */
+    #o2-miner-content .stat-value,
+    #o2-miner-content .mining-title,
+    #o2-miner-content .timer,
+    #o2-miner-content .o2-value,
+    #o2-miner-content .status-value {
+        color: #ffffff !important;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    /* Общий цвет текста */
+    body {
+        color: #f0f0ff !important;
+    }
+    
+    /* Светлые точки прогресса */
+    .progress-dots .dot.filled {
+        background: #a0ffea !important;
+    }
+
+#o2-miner-modal .modal-content {
+    overflow-y: auto; /* Добавляем вертикальную прокрутку */
+    max-height: 90vh; /* Ограничиваем высоту */
 }
 
-.tutorial-warning i {
-    color: #ff5555;
-    font-size: 20px;
+#o2-miner-content .container {
+    height: auto; /* Отменяем фиксированную высоту */
+    min-height: 100%; /* Минимальная высота на весь контейнер */
 }
 
-.modal-body {
-    max-height: 60vh;
-    overflow-y: auto;
-    padding-right: 10px;
-    margin-bottom: 20px;
-}
 
-/* Полоса прокрутки */
-.modal-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.modal-body::-webkit-scrollbar-track {
-    background: rgba(10, 15, 30, 0.5);
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-    background: #00cc99;
-    border-radius: 3px;
-}
 
     </style>
 </head>
@@ -862,77 +275,77 @@
             </div>
         </div>
         
-<!-- Модальное окно обучения -->
-<div class="modal active" id="tutorial-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">Добро пожаловать в METAVILLE!</h3>
+        <!-- Модальное окно обучения -->
+        <div class="modal active" id="tutorial-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Добро пожаловать в METAVILLE!</h3>
+                </div>
+                
+                <div class="modal-body">
+                    <p>Вы - оператор платформы V.01.D в постапокалиптическом мире. Основные механики:</p>
+                    
+                    <div class="tutorial-item">
+                        <i class="fas fa-globe-americas"></i>
+                        <div>
+                            <strong>Карта</strong>
+                            <p>Сканируйте сектора для поиска ресурсов и миссий</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-item">
+                        <i class="fas fa-hard-hat"></i>
+                        <div>
+                            <strong>База</strong>
+                            <p>Управляйте системами выживания и улучшайте платформу</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-item">
+                        <i class="fas fa-flask"></i>
+                        <div>
+                            <strong>Исследования</strong>
+                            <p>Разрабатывайте новые технологии для преимущества</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-item">
+                        <i class="fas fa-shopping-cart"></i>
+                        <div>
+                            <strong>Рынок</strong>
+                            <p>Торгуйте ресурсами с другими выжившими</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-item">
+                        <i class="fas fa-vote-yea"></i>
+                        <div>
+                            <strong>Голосования</strong>
+                            <p>Участвуйте в управлении платформой через DAO</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-item">
+                        <i class="fas fa-tasks"></i>
+                        <div>
+                            <strong>Квесты</strong>
+                            <p>Выполняйте задания для получения ресурсов и доступа</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Следите за уровнем кислорода и энергии - от них зависит ваше выживание!
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn btn-primary" id="start-game-btn">
+                        Начать игру
+                    </button>
+                </div>
+            </div>
         </div>
-        
-        <div class="modal-body">
-            <p>Вы - оператор платформы V.01.D в постапокалиптическом мире. Основные механики:</p>
-            
-            <div class="tutorial-item">
-                <i class="fas fa-globe-americas"></i>
-                <div>
-                    <strong>Карта</strong>
-                    <p>Сканируйте сектора для поиска ресурсов и миссий</p>
-                </div>
-            </div>
-            
-            <div class="tutorial-item">
-                <i class="fas fa-hard-hat"></i>
-                <div>
-                    <strong>База</strong>
-                    <p>Управляйте системами выживания и улучшайте платформу</p>
-                </div>
-            </div>
-            
-            <div class="tutorial-item">
-                <i class="fas fa-flask"></i>
-                <div>
-                    <strong>Исследования</strong>
-                    <p>Разрабатывайте новые технологии для преимущества</p>
-                </div>
-            </div>
-            
-            <div class="tutorial-item">
-                <i class="fas fa-shopping-cart"></i>
-                <div>
-                    <strong>Рынок</strong>
-                    <p>Торгуйте ресурсами с другими выжившими</p>
-                </div>
-            </div>
-            
-            <div class="tutorial-item">
-                <i class="fas fa-vote-yea"></i>
-                <div>
-                    <strong>Голосования</strong>
-                    <p>Участвуйте в управлении платформой через DAO</p>
-                </div>
-            </div>
-            
-            <div class="tutorial-item">
-                <i class="fas fa-tasks"></i>
-                <div>
-                    <strong>Квесты</strong>
-                    <p>Выполняйте задания для получения ресурсов и доступа</p>
-                </div>
-            </div>
-            
-            <div class="tutorial-warning">
-                <i class="fas fa-exclamation-triangle"></i>
-                Следите за уровнем кислорода и энергии - от них зависит ваше выживание!
-            </div>
-        </div>
-        
-        <div class="modal-actions">
-            <button class="btn btn-primary" id="start-game-btn">
-                Начать игру
-            </button>
-        </div>
-    </div>
-</div>
 
         <!-- Основной контент -->
         <div class="main-content">
@@ -973,8 +386,9 @@
                         <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                        <span id="mission-time"> 0% </span>
+                        <span id="mission-time">0%</span>
                         <span id="mission-harvest">HARVESTER: 0/2</span>
+                        <span id="scanned-resources">Ресурсы: -</span>
                         <span id="mission-risk" style="color: #ffcc00;">RISK: 0% ⚠️</span>
                     </div>
                 </div>
@@ -1005,13 +419,15 @@
                         </div>
                     </div>
                     
-                    <div class="status-card">
+                    <!-- карточка генерации O₂ -->
+                    <div class="status-card clickable" id="o2-generation-card">
                         <div class="status-title">
                             <i class="fas fa-wind"></i> Generation O₂
+                            <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
                         </div>
-                        <div class="status-value">120/h</div>
+                        <div class="status-value" id="o2-generation-value">0/h</div>
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: 75%"></div>
+                            <div class="progress-fill" id="o2-progress" style="width: 0%"></div>
                         </div>
                     </div>
                     
@@ -1215,7 +631,7 @@
                     <div class="offer-details">
                         <div class="offer-price">10 MVC/unit</div>
                         <button class="btn buy-btn" data-resource="oxygen" data-price="10" data-amount="150" style="padding: 8px 12px;">BUY</button>
-<button id="sell-btn" class="btn btn-secondary">SELL</button>
+                        <button id="sell-btn" class="btn btn-secondary">SELL</button>
                     </div>
                 </div>
                 
@@ -1233,7 +649,6 @@
             </div>
             
             <!-- Экран Голосования -->
-
             <div id="vote-screen" class="screen">
                 <h2 class="section-title">DAO voting</h2>
                 
@@ -1453,16 +868,14 @@
                 <i class="fas fa-shopping-cart"></i>
                 <span>MARKET</span>
             </div>
-
             <div class="nav-item" data-screen="vote-screen">
-        <i class="fas fa-vote-yea"></i>
-        <span>VOTE</span>
-    </div>
+                <i class="fas fa-vote-yea"></i>
+                <span>VOTE</span>
+            </div>
             <div class="nav-item" data-screen="quest-screen">
                 <i class="fas fa-tasks"></i>
                 <span>QUESTS</span>
             </div>
-            <!-- Элемент кошелька -->
             <div id="wallet-container">
                 <button id="connect-wallet" class="btn btn-warning">
                     <i class="fas fa-wallet"></i>
@@ -1472,6 +885,14 @@
         </div>
     </div>
     
+    <!-- Модальное окно майнера кислорода -->
+    <div class="modal" id="o2-miner-modal">
+        <div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: transparent;">
+            <button class="close-modal" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #00f3ff; font-size: 24px; z-index: 100;">&times;</button>
+            <div id="o2-miner-content"></div>
+        </div>
+    </div>
+
     <!-- Модальное окно сканирования -->
     <div class="modal" id="scan-modal">
         <div class="modal-content">
@@ -1510,9 +931,9 @@
             </div>
             
             <div class="modal-actions">
-  <button class="btn btn-danger" id="break-btn">BREAK</button>
-  <button class="btn btn-primary" id="confirm-scan">SCAN</button>
-</div>
+                <button class="btn btn-danger" id="break-btn">BREAK</button>
+                <button class="btn btn-primary" id="confirm-scan">SCAN</button>
+            </div>
         </div>
     </div>
     
@@ -1523,14 +944,19 @@
     </div>
     
     <script>
-        // Состояние игры
+        // Состояние игры (исправленное)
         const gameState = {
             resources: {
                 oxygen: 250,
                 energy: 500,
-                mvc: 80,
-                bio: 10,
-                parts: 10
+                mvc: 500,
+                bio: 100,
+                parts: 100
+            },
+            o2Generation: {
+                rate: 5,
+                progress: 0,
+                maxRate: 100
             },
             missions: {
                 scanning: false,
@@ -1540,7 +966,9 @@
                 progress: 0,
                 time: 0,
                 harvestCount: 0,
-                maxHarvests: 2
+                maxHarvests: 2,
+                scannedResources: null,
+                harvested: false
             },
             research: {
                 stealth: 7,
@@ -1562,56 +990,11 @@
             drones: 0,
             slots: 2,
             quests: [
-                {
-                    id: 1,
-                    title: "Пробуждение",
-                    description: "Исследуйте свою капсулу и найдите способ выбраться наружу. Осмотрите все отсеки капсулы для получения ключевых предметов.",
-                    reward: "100 MVC, Карта Метавиля",
-                    status: "new",
-                    progress: 0,
-                    accepted: false,
-                    completed: false
-                },
-                {
-                    id: 2,
-                    title: "Сканирование поверхности",
-                    description: "Выберите сектор для сканирования и запустите зонды для сбора данных. Используйте полученные данные для дальнейшего исследования.",
-                    reward: "250 MVC, 5 биоматериалов",
-                    status: "active",
-                    progress: 45,
-                    accepted: true,
-                    completed: false
-                },
-                {
-                    id: 3,
-                    title: "Первая доставка",
-                    description: "Доставьте посылку Борису в центральный хаб. Избегайте опасных зон и следите за уровнем энергии.",
-                    reward: "150 MVC, Инструкция по выживанию",
-                    status: "completed",
-                    progress: 100,
-                    accepted: true,
-                    completed: true
-                },
-                {
-                    id: 4,
-                    title: "Поиск фрагментов чипа",
-                    description: "Найти 5 фрагментов чипа Начала по всей территории Метавиля. Каждый фрагмент открывает новые возможности платформы.",
-                    reward: "500 MVC, Улучшенный сканер",
-                    status: "available",
-                    progress: 20,
-                    accepted: false,
-                    completed: false
-                },
-                {
-                    id: 5,
-                    title: "Активация Машины Начала",
-                    description: "Собрав все фрагменты чипа, активируйте Машину Начала в центральной лаборатории. Это откроет доступ к новым технологиям.",
-                    reward: "1000 MVC, Доступ к V-01-d",
-                    status: "locked",
-                    progress: 0,
-                    accepted: false,
-                    completed: false
-                }
+                { id: 1, title: "Пробуждение", description: "Исследуйте свою капсулу и найдите способ выбраться наружу. Осмотрите все отсеки капсулы для получения ключевых предметов.", reward: "100 MVC, Карта Метавиля", status: "new", progress: 0, accepted: false, completed: false },
+                { id: 2, title: "Сканирование поверхности", description: "Выберите сектор для сканирования и запустите зонды для сбора данных. Используйте полученные данные для дальнейшего исследования.", reward: "250 MVC, 5 биоматериалов", status: "active", progress: 45, accepted: true, completed: false },
+                { id: 3, title: "Первая доставка", description: "Доставьте посылку Борису в центральный хаб. Избегайте опасных зон и следите за уровнем энергии.", reward: "150 MVC, Инструкция по выживанию", status: "completed", progress: 100, accepted: true, completed: true },
+                { id: 4, title: "Поиск фрагментов чипа", description: "Найти 5 фрагментов чипа Начала по всей территории Метавиля. Каждый фрагмент открывает новые возможности платформы.", reward: "500 MVC, Улучшенный сканер", status: "available", progress: 20, accepted: false, completed: false },
+                { id: 5, title: "Активация Машины Начала", description: "Собрав все фрагменты чипа, активируйте Машину Начала в центральной лаборатории. Это откроет доступ к новым технологиям.", reward: "1000 MVC, Доступ к V-01-d", status: "locked", progress: 0, accepted: false, completed: false }
             ]
         };
 
@@ -1642,8 +1025,27 @@
             moonProgress: document.getElementById('moon-progress'),
             moonPercent: document.getElementById('moon-percent'),
             notification: document.getElementById('notification'),
-            notificationText: document.getElementById('notification-text')
+            notificationText: document.getElementById('notification-text'),
+            o2GenerationValue: document.getElementById('o2-generation-value'),
+            o2Progress: document.getElementById('o2-progress')
         };
+
+        // Глобальные интервалы
+        let scanInterval = null;
+        let o2Interval = null;
+        let minerInterval = null;
+
+        // Получение имени ресурса
+        function getResourceName(resource) {
+            const names = {
+                oxygen: "O₂",
+                energy: "энергии",
+                mvc: "MVC",
+                bio: "биоматериалов",
+                parts: "запчастей"
+            };
+            return names[resource] || resource;
+        }
 
         // Обновление интерфейса
         function updateUI() {
@@ -1653,6 +1055,10 @@
             elements.mvc.textContent = gameState.resources.mvc.toLocaleString();
             elements.bio.textContent = gameState.resources.bio.toLocaleString();
             elements.parts.textContent = gameState.resources.parts.toLocaleString();
+            
+            // Генератор O2
+            elements.o2GenerationValue.textContent = `${gameState.o2Generation.rate}/h`;
+            elements.o2Progress.style.width = `${gameState.o2Generation.progress}%`;
             
             // Миссии
             if (gameState.missions.scanning) {
@@ -1664,12 +1070,22 @@
                 elements.probeProgress.style.width = gameState.missions.progress + '%';
                 elements.missionHarvest.textContent = `Сборщик: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
                 
-                // Блокировка кнопки комбайнов
+                // Отображение ресурсов
+                if (gameState.missions.scannedResources) {
+                    const res = gameState.missions.scannedResources;
+                    document.getElementById('scanned-resources').textContent = 
+                        `Ресурсы: ${res.amount} ${getResourceName(res.type)}`;
+                } else {
+                    document.getElementById('scanned-resources').textContent = 'Ресурсы: -';
+                }
+                
+                // Блокировка кнопки комбайна
                 document.getElementById('harvest-btn').disabled = 
                     gameState.missions.progress < 100 || 
                     gameState.missions.harvestCount >= gameState.missions.maxHarvests;
             } else {
                 document.getElementById('harvest-btn').disabled = true;
+                document.getElementById('scanned-resources').textContent = 'Ресурсы: -';
             }
             
             // Исследования
@@ -1681,7 +1097,7 @@
                 document.getElementById('engine-btn').textContent = "Ускорить";
             } else {
                 elements.engineStatus.textContent = "Не начато";
-                document.getElementById('engine-btn').textContent = "Начать исследование";
+                document.getElementById('engine-btn').textContent = "Research";
             }
             
             // База
@@ -1697,14 +1113,7 @@
             elements.moonProgress.style.width = gameState.votes.moon + '%';
             elements.moonPercent.textContent = gameState.votes.moon;
         }
-        
-        // Форматирование времени
-        function formatTime(seconds) {
-            const min = Math.floor(seconds / 60);
-            const sec = seconds % 60;
-            return `${min}:${sec.toString().padStart(2, '0')}`;
-        }
-        
+
         // Обновление точек прогресса исследований
         function updateResearchDots(type, progress) {
             const dots = elements[`${type}Dots`].querySelectorAll('.dot');
@@ -1716,7 +1125,7 @@
                 }
             });
         }
-        
+
         // Показать уведомление
         function showNotification(message, isSuccess = false) {
             elements.notificationText.textContent = message;
@@ -1732,38 +1141,27 @@
                 elements.notification.classList.remove('show');
             }, 3000);
         }
-        
+
         // Изменить ресурсы
         function updateResource(resource, amount) {
-            if (gameState.resources[resource] + amount >= 0) {
-                gameState.resources[resource] += amount;
-                updateUI();
-                
-                // Анимация изменения
-                const element = document.getElementById(`${resource}-resource`);
-                element.classList.add('changed');
-                setTimeout(() => {
-                    element.classList.remove('changed');
-                }, 1000);
-                
-                return true;
+            if (gameState.resources[resource] + amount < 0) {
+                showNotification(`Недостаточно ${getResourceName(resource)}!`, false);
+                return false;
             }
-            showNotification(`Недостаточно ${getResourceName(resource)}`, false);
-            return false;
+            
+            gameState.resources[resource] += amount;
+            updateUI();
+            
+            // Анимация изменения
+            const element = document.getElementById(`${resource}-resource`);
+            element.classList.add('changed');
+            setTimeout(() => {
+                element.classList.remove('changed');
+            }, 1000);
+            
+            return true;
         }
-        
-        // Получение имени ресурса
-        function getResourceName(resource) {
-            const names = {
-                oxygen: "O₂",
-                energy: "энергии",
-                mvc: "MVC",
-                bio: "биоматериалов",
-                parts: "запчастей"
-            };
-            return names[resource] || resource;
-        }
-        
+
         // Навигация по экранам
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -1780,23 +1178,26 @@
                 document.getElementById(screenId).classList.add('active');
             });
         });
-        
-        // Открытие модального окна сканирования
-        document.getElementById('scan-btn').addEventListener('click', function() {
+
+        // Запуск сканирования
+        document.getElementById('scan-btn').addEventListener('click', () => {
             if (updateResource('energy', -50)) {
                 document.getElementById('scan-modal').classList.add('active');
             }
         });
-        
+
         // Закрытие модальных окон
         document.querySelectorAll('.close-modal').forEach(button => {
             button.addEventListener('click', function() {
                 document.getElementById('scan-modal').classList.remove('active');
+                document.getElementById('o2-miner-modal').classList.remove('active');
             });
         });
-document.getElementById('break-btn').addEventListener('click', () => {
-  document.getElementById('scan-modal').classList.remove('active');
-});
+        
+        document.getElementById('break-btn').addEventListener('click', () => {
+            document.getElementById('scan-modal').classList.remove('active');
+        });
+
         // Выбор сектора для сканирования
         let selectedSector = null;
         document.querySelectorAll('.sector-item').forEach(sector => {
@@ -1810,7 +1211,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 selectedSector = this;
             });
         });
-        
+
         // Начать сканирование
         document.getElementById('confirm-scan').addEventListener('click', function() {
             if (!selectedSector) {
@@ -1821,22 +1222,42 @@ document.getElementById('break-btn').addEventListener('click', () => {
             document.getElementById('scan-modal').classList.remove('active');
             
             // Начало миссии сканирования
+            const sectorData = {
+                sector: selectedSector.dataset.sector,
+                belt: selectedSector.dataset.belt,
+                risk: selectedSector.dataset.risk === 'low' ? 10 : 
+                      selectedSector.dataset.risk === 'medium' ? 30 : 60
+            };
+            
+            startScanning(sectorData);
+        });
+
+        // Функция сканирования сектора
+        function startScanning(sectorData) {
+            // Генерация случайных ресурсов
+            const resourceTypes = ['bio', 'parts', 'mvc', 'oxygen'];
+            const randomResource = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
+            const amount = Math.floor(Math.random() * 30) + 10;
+            
+            // Запуск процесса сканирования
             gameState.missions.scanning = true;
-            gameState.missions.sector = selectedSector.dataset.sector;
-            gameState.missions.belt = selectedSector.dataset.belt;
-            gameState.missions.risk = selectedSector.dataset.risk === 'low' ? 5 : 
-                                     selectedSector.dataset.risk === 'medium' ? 15 : 30;
+            gameState.missions.sector = sectorData.sector;
+            gameState.missions.belt = sectorData.belt;
+            gameState.missions.risk = sectorData.risk;
             gameState.missions.progress = 0;
-            gameState.missions.time = 135; // 2:15 в секундах
-            gameState.missions.harvestCount = 0; // Сброс счетчика комбайнов
+            gameState.missions.scannedResources = {
+                type: randomResource,
+                amount: amount
+            };
+            gameState.missions.harvested = false;
             
-            updateUI();
+            // Остановка предыдущего интервала
+            if (scanInterval) clearInterval(scanInterval);
             
-            // Запуск таймера сканирования
-            const scanInterval = setInterval(() => {
+            scanInterval = setInterval(() => {
                 if (gameState.missions.progress < 100) {
                     gameState.missions.progress += 2;
-                    gameState.missions.time -= 2.7;
+                    updateUI();
                     
                     // Случайные события
                     if (Math.random() < 0.02) {
@@ -1855,47 +1276,42 @@ document.getElementById('break-btn').addEventListener('click', () => {
                         
                         showNotification(event, !event.includes("прервано"));
                     }
-                    
-                    updateUI();
                 } else {
                     clearInterval(scanInterval);
                     showNotification("Сканирование сектора завершено!", true);
                     updateResource('oxygen', -5);
                     updateResource('bio', 1);
-                    
-                    // Обновляем прогресс квеста
-                    const scanQuest = gameState.quests.find(q => q.id === 2);
-                    if (scanQuest && scanQuest.accepted && !scanQuest.completed) {
-                        scanQuest.progress = 100;
-                        scanQuest.completed = true;
-                        scanQuest.status = "completed";
-                        showNotification("Квест 'Сканирование поверхности' завершен!", true);
-                    }
                 }
+                updateUI();
             }, 200);
-        });
-        
-        // Отправка комбайнов (новая логика)
-        document.getElementById('harvest-btn').addEventListener('click', function() {
-            // Проверка лимита отправок
-            if (gameState.missions.harvestCount >= gameState.missions.maxHarvests) {
-                showNotification("Достигнут лимит отправок комбайнов!", false);
+        }
+
+        // Отправка харвестера
+        function sendHarvester() {
+            if (!gameState.missions.scannedResources || gameState.missions.harvested) {
+                showNotification("Нет ресурсов для добычи!", false);
                 return;
             }
             
-            // Расход ресурсов
+            if (gameState.missions.harvestCount >= gameState.missions.maxHarvests) {
+                showNotification("Достигнут лимит отправок харвестеров!", false);
+                return;
+            }
+            
+            // Расход ресурсов на отправку
             if (updateResource('oxygen', -15) && updateResource('energy', -70)) {
+                const res = gameState.missions.scannedResources;
+                updateResource(res.type, res.amount);
+                
                 gameState.missions.harvestCount++;
+                gameState.missions.harvested = true;
                 
-                // Начисление ресурсов за добычу
-                updateResource('mvc', 60);
-                updateResource('parts', 2);
-                
-                showNotification(`Комбайны отправлены на добычу (${gameState.missions.harvestCount}/${gameState.missions.maxHarvests})`, true);
+                showNotification(`Харвестер добыл ${res.amount} ${getResourceName(res.type)}!`, true);
                 updateUI();
             }
-        });
-        
+        }
+        document.getElementById('harvest-btn').addEventListener('click', sendHarvester);
+
         // Исследование стелс-модулей
         document.getElementById('stealth-btn').addEventListener('click', function() {
             if (gameState.research.stealth < 10) {
@@ -1908,7 +1324,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 showNotification("Исследование стелс-модулей завершено!", true);
             }
         });
-        
+
         // Исследование радиационной адаптации
         document.getElementById('radiation-btn').addEventListener('click', function() {
             if (gameState.research.radiation < 10) {
@@ -1921,7 +1337,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 showNotification("Исследование радиационной адаптации завершено!", true);
             }
         });
-        
+
         // Исследование двигателей
         document.getElementById('engine-btn').addEventListener('click', function() {
             if (!gameState.research.engines) {
@@ -1943,7 +1359,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 }
             }
         });
-        
+
         // Обновление систем
         document.getElementById('upgrade-btn').addEventListener('click', function() {
             if (updateResource('mvc', -200) && updateResource('parts', -15)) {
@@ -1952,7 +1368,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 showNotification("Системы обновлены! Дроны в ремонте: " + gameState.drones, true);
             }
         });
-        
+
         // Экстренное питание
         document.getElementById('emergency-btn').addEventListener('click', function() {
             if (updateResource('mvc', -80)) {
@@ -1960,7 +1376,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 showNotification("Экстренное питание активировано! +100 ⚡", true);
             }
         });
-        
+
         // Покупка на рынке
         document.querySelectorAll('.buy-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1975,7 +1391,6 @@ document.getElementById('break-btn').addEventListener('click', () => {
                     switch(resource) {
                         case "polymers":
                         case "rare":
-                            // Эти ресурсы не добавляем, просто показываем сообщение
                             resourceName = resource === "polymers" ? "полимеров" : "редкоземельных материалов";
                             break;
                         case "oxygen":
@@ -1995,7 +1410,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 }
             });
         });
-        
+
         // Голосование
         document.querySelectorAll('.vote-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -2036,12 +1451,12 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 showNotification(`Ваши ${votes} голосов учтены для проекта!`, true);
             });
         });
-        
+
         // Создание нового предложения
         document.getElementById('create-proposal-btn').addEventListener('click', function() {
             showNotification("Новое предложение отправлено на модерацию", true);
         });
-        
+
         // Принятие квеста
         document.querySelectorAll('.quest-actions .btn-primary').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -2057,7 +1472,7 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 }
             });
         });
-        
+
         // Имитация случайных событий
         setInterval(() => {
             if (Math.random() < 0.1 && gameState.missions.scanning) {
@@ -2077,7 +1492,178 @@ document.getElementById('break-btn').addEventListener('click', () => {
                 showNotification(event, event.includes("+"));
             }
         }, 10000);
+
+        // Генерация кислорода
+        function updateO2Generation() {
+            if (gameState.o2Generation.rate > 0) {
+                gameState.o2Generation.progress += 2;
+                
+                if (gameState.o2Generation.progress >= 100) {
+                    gameState.o2Generation.progress = 0;
+                    gameState.resources.oxygen += Math.floor(gameState.o2Generation.rate / 10);
+                    updateUI();
+                }
+            }
+        }
         
+        // Майнер кислорода
+        function initO2Miner() {
+            // Очистка контента
+            const o2MinerContent = document.getElementById('o2-miner-content');
+            o2MinerContent.innerHTML = `
+                <div class="scan-line"></div>
+                <div class="container">
+                    <div class="header">
+                        <h1> Майнер O2</h1>
+                        <div class="subtitle">СИСТЕМА ДОБЫЧИ КИСЛОРОДА | СЕКТОР 7G</div>
+                    </div>
+                    
+                    <div class="stats-container">
+                        <div class="stat-box">
+                            <div class="stat-label">Активные Майнеры</div>
+                            <div class="stat-value" id="activeMiners">1,427</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Ваша Доля</div>
+                            <div class="stat-value" id="yourShare">0.07%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Следующий Клейм</div>
+                            <div class="stat-value" id="nextClaim">04:00:00</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mining-container">
+                        <div class="mining-header">
+                            <div class="mining-title">Добыча O2</div>
+                            <div class="timer" id="timer">03:59:45</div>
+                        </div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-labels">
+                                <div>Начало цикла</div>
+                                <div id="progressPercentage">75%</div>
+                                <div>Клейм O2</div>
+                            </div>
+                            <div class="o2-progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="o2-production">
+                            <div class="o2-label">Текущая Добыча</div>
+                            <div class="o2-value" id="o2Value">8.73 O2</div>
+                            <div class="o2-label">за цикл</div>
+                        </div>
+                    </div>
+                    
+                    <div class="status-container">
+                        <div class="status-label">Статус системы</div>
+                        <div class="status-value pulse" id="status">Добыча активна</div>
+                    </div>
+                    
+                </div>
+            `;
+            
+            // Инициализация данных майнера
+            let timeLeft = 4 * 60 * 60;
+            let activeMiners = 1427;
+            
+            function updateMinerData() {
+                // Обновление таймера
+                timeLeft--;
+                
+                // Если время вышло, сбрасываем таймер
+                if (timeLeft <= 0) {
+                    timeLeft = 4 * 60 * 60;
+                    document.getElementById('status').textContent = "Клейм O2 завершен!";
+                    document.getElementById('status').style.color = "#00ff99";
+                    
+                    // Добавляем кислород игроку
+                    updateResource('oxygen', 10);
+                    
+                    setTimeout(() => {
+                        document.getElementById('status').textContent = "Добыча активна";
+                        document.getElementById('status').style.color = "#00ff99";
+                    }, 5000);
+                }
+                
+                // Обновление количества майнеров
+                const minerChange = Math.floor(Math.random() * 21) - 10;
+                activeMiners = Math.max(1000, activeMiners + minerChange);
+                
+                // Расчет доли пользователя
+                const yourShare = (1 / activeMiners * 100).toFixed(2);
+                
+                // Расчет прогресса
+                const progressPercent = ((4 * 60 * 60 - timeLeft) / (4 * 60 * 60)) * 100;
+                
+                // Обновление элементов
+                document.getElementById('timer').textContent = formatTime(timeLeft);
+                document.getElementById('nextClaim').textContent = formatTime(timeLeft);
+                document.getElementById('progressFill').style.width = `${progressPercent}%`;
+                document.getElementById('progressPercentage').textContent = `${Math.round(progressPercent)}%`;
+                document.getElementById('activeMiners').textContent = activeMiners.toLocaleString();
+                document.getElementById('yourShare').textContent = `${yourShare}%`;
+                document.getElementById('o2Value').textContent = `${(gameState.o2Generation.rate / 10).toFixed(2)} O2`;
+            }
+            
+            // Форматирование времени
+            function formatTime(seconds) {
+                const hrs = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            // Инициализация данных
+            updateMinerData();
+            
+            // Запуск обновления
+            minerInterval = setInterval(updateMinerData, 1000);
+        }
+        
+        // Открытие майнера кислорода
+        document.getElementById('o2-generation-card').addEventListener('click', function() {
+            initO2Miner();
+            document.getElementById('o2-miner-modal').classList.add('active');
+        });
+        
+        // Закрытие майнера кислорода
+        document.querySelector('#o2-miner-modal .close-modal').addEventListener('click', function() {
+            clearInterval(minerInterval);
+            document.getElementById('o2-miner-modal').classList.remove('active');
+        });
+
+        // Старт игры
+        document.getElementById('start-game-btn').addEventListener('click', function() {
+            document.getElementById('tutorial-modal').classList.remove('active');
+            
+            // Разблокируем интерфейс
+            const elementsToUnblock = [
+                '.nav-item', 
+                '#scan-btn', 
+                '#harvest-btn',
+                '#upgrade-btn',
+                '#emergency-btn',
+                '.buy-btn',
+                '.vote-btn',
+                '.quest-actions button'
+            ];
+            
+            elementsToUnblock.forEach(selector => {
+                document.querySelectorAll(selector).forEach(el => {
+                    el.style.pointerEvents = 'auto';
+                    el.style.opacity = '1';
+                });
+            });
+            
+            // Запуск генерации кислорода
+            o2Interval = setInterval(updateO2Generation, 1000);
+            
+            showNotification("Платформа V.01.D активирована! Удачи в освоении METAVILLE", true);
+        });
+
         // Инициализация интерфейса
         updateUI();
         
@@ -2086,97 +1672,63 @@ document.getElementById('break-btn').addEventListener('click', () => {
             showNotification("Добро пожаловать в METAVILLE на платформу V.01.D! ", true);
         }, 1000);
 
+        // TON Connect
+        document.addEventListener('DOMContentLoaded', async () => {
+            const connectButton = document.getElementById('connect-wallet');
+            const addressSpan = document.getElementById('wallet-address');
+            const manifestUrl = 'https://metaville.github.io/v01d/manifest.json';
 
-        // Показать обучение при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('tutorial-modal').classList.add('active');
-    
-    // Заблокировать основной интерфейс
-    document.querySelectorAll('.nav-item, #scan-btn, #harvest-btn').forEach(el => {
-        el.style.pointerEvents = 'none';
-        el.style.opacity = '0.5';
-    });
-});
+            if (!window.TON_CONNECT_UI) {
+                console.error('TON Connect UI not loaded');
+                showNotification("Ошибка: Библиотека TON Connect не загружена", false);
+                return;
+            }
 
-// Кнопка начала игры
-document.getElementById('start-game-btn').addEventListener('click', function() {
-    document.getElementById('tutorial-modal').classList.remove('active');
-    
-    // Разблокировать интерфейс
-    document.querySelectorAll('.nav-item, #scan-btn, #harvest-btn').forEach(el => {
-        el.style.pointerEvents = 'auto';
-        el.style.opacity = '1';
-    });
-    
-    showNotification("Платформа V.01.D активирована! Удачи в освоении METAVILLE", true);
-});
+            const { TonConnectUI } = window.TON_CONNECT_UI;
+            const ui = new TonConnectUI({
+                manifestUrl,
+                buttonRootId: 'wallet-container'
+            });
+
+            const updateWalletUI = (wallet) => {
+                if (wallet) {
+                    const fullAddr = wallet.account.address;
+                    addressSpan.textContent = `${fullAddr.slice(0,4)}…${fullAddr.slice(-4)}`;
+                    connectButton.innerHTML = '<i class="fas fa-check"></i>';
+                    connectButton.classList.replace('btn-warning', 'btn-primary');
+                } else {
+                    addressSpan.textContent = '';
+                    connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
+                    connectButton.classList.replace('btn-primary', 'btn-warning');
+                }
+            };
+
+            const wallet = ui.wallet;
+            if (wallet) {
+                updateWalletUI(wallet);
+            }
+
+            connectButton.addEventListener('click', async () => {
+                try {
+                    if (ui.connected) {
+                        await ui.disconnect();
+                        updateWalletUI(null);
+                        showNotification("TON кошелек отключен", true);
+                    } else {
+                        const wallet = await ui.connect();
+                        updateWalletUI(wallet);
+                        showNotification("TON кошелек подключен!", true);
+                    }
+                } catch (err) {
+                    console.error('Connection failed:', err);
+                    showNotification("Ошибка подключения: " + err.message, false);
+                }
+            });
+
+            ui.onStatusChange(wallet => {
+                updateWalletUI(wallet);
+            });
+        });
     </script>
-    
-    <!-- Скрипт подключения TON кошелька -->
-    <script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const connectButton = document.getElementById('connect-wallet'); // Исправлены кавычки
-  const addressSpan = document.getElementById('wallet-address');
-  const manifestUrl = 'https://metaville.github.io/v01d/manifest.json';
-
-  // Проверка загрузки библиотеки
-  if (!window.TON_CONNECT_UI) {
-    console.error('TON Connect UI not loaded');
-    showNotification("Ошибка: Библиотека TON Connect не загружена", false);
-    return;
-  }
-
-  const { TonConnectUI } = window.TON_CONNECT_UI;
-  
-  // Инициализация с правильным container ID
-  const ui = new TonConnectUI({
-    manifestUrl,
-    buttonRootId: 'wallet-container' // ID контейнера, а не кнопки
-  });
-
-  // Функция обновления интерфейса
-  const updateWalletUI = (wallet) => {
-    if (wallet) {
-      const fullAddr = wallet.account.address;
-      addressSpan.textContent = `${fullAddr.slice(0,4)}…${fullAddr.slice(-4)}`;
-      connectButton.innerHTML = '<i class="fas fa-check"></i>';
-      connectButton.classList.replace('btn-warning', 'btn-primary');
-    } else {
-      addressSpan.textContent = '';
-      connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
-      connectButton.classList.replace('btn-primary', 'btn-warning');
-    }
-  };
-
-  // Проверка существующего подключения
-  const wallet = ui.wallet;
-  if (wallet) {
-    updateWalletUI(wallet);
-  }
-
-  // Обработчик подключения
-  connectButton.addEventListener('click', async () => {
-    try {
-      if (ui.connected) {
-        await ui.disconnect();
-        updateWalletUI(null);
-        showNotification("TON кошелек отключен", true);
-      } else {
-        const wallet = await ui.connect();
-        updateWalletUI(wallet);
-        showNotification("TON кошелек подключен!", true);
-      }
-    } catch (err) {
-      console.error('Connection failed:', err);
-      showNotification("Ошибка подключения: " + err.message, false);
-    }
-  });
-
-  // Обработчик изменений состояния
-  ui.onStatusChange(wallet => {
-    updateWalletUI(wallet);
-  });
-</script>
-
 </body>
 </html>
