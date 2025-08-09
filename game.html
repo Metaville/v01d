@@ -130,6 +130,15 @@
         .modal-body::-webkit-scrollbar-thumb { background: #00cc99; border-radius: 3px; }
         .clickable { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .clickable:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 243, 255, 0.3); }
+        /* Анимация кругов*/
+.map-circle {animation: pulse-combined 4s infinite ease-in-out;transform-origin: center;}
+@keyframes pulse-combined { 0% {transform: scale(0.98);box-shadow: 0 0 0 0 rgba(var(--ring-color), 0.5);}
+    50% { transform: scale(1.01); box-shadow: 0 0 0 15px rgba(var(--ring-color), 0);  
+    100% {transform: scale(0.98);box-shadow: 0 0 0 0 rgba(var(--ring-color), 0);}}
+.inner-ring { --ring-color: 0, 204, 153; }
+.middle-ring { --ring-color: 255, 204, 0; }
+.outer-ring { --ring-color: 255, 85, 85; }
+         /* кислород*/
         #o2-miner-content .container { max-width: 100%; padding: 20px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, #00171f, #003049, #022b3a); color: #00f3ff; position: relative; }
         #o2-miner-content .header { text-align: center; padding: 15px 0; border-bottom: 2px solid rgba(0, 243, 255, 0.3); position: relative; }
         #o2-miner-content .header::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00f3ff, transparent); }
@@ -166,8 +175,7 @@
             #o2-miner-content .stats-container { flex-direction: column; gap: 10px; }
             #o2-miner-content .stat-value { font-size: 1.3rem; }
             #o2-miner-content .timer { font-size: 1.1rem; padding: 6px 12px; }
-            #o2-miner-content .o2-value { font-size: 1.8rem; }
-        }
+            #o2-miner-content .o2-value { font-size: 1.8rem; }}
         #o2-generation-card { position: relative; border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); animation: pulse-o2 2s infinite; }
         @keyframes pulse-o2 { 0% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); } 50% { box-shadow: 0 0 20px rgba(0, 243, 255, 0.7); } 100% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); } }
         #o2-generation-card:hover { transform: scale(1.03); box-shadow: 0 0 25px rgba(0, 243, 255, 0.9); animation: none; }
@@ -239,7 +247,7 @@
 
 /* Адаптивные отступы для аватара */
 #rest-modal .avatar {
-    margin-right: 10px;
+    margin-right: 3px;
 }
 
 /* Увеличим боковые отступы для прогресс-бара */
@@ -265,7 +273,7 @@
     box-shadow: 0 0 25px rgba(204, 102, 255, 0.9);
     animation: none;
 }
-
+        
 /* Общий стиль для индикатора клика */
 .click-indicator {
     position: absolute;
@@ -336,8 +344,7 @@
     /* Яркие акцентные значения */
     .status-value, .offer-price, .quest-reward {
         color: #00ffcc !important;
-    }
-    
+    }      
     /* Майнер кислорода */
     #o2-miner-content .stat-value,
     #o2-miner-content .mining-title,
@@ -398,16 +405,16 @@
                 <span>O₂: <span id="oxygen-value">100</span></span>
             </div>
             <div class="resource-item" id="energy-resource">
-                <span>⚡ <span id="energy-value">500</span></span>
+                <span>⚡ <span id="energy-value">1000</span></span>
             </div>
             <div class="resource-item" id="mvc-resource">
                 <span>MVC: <span id="mvc-value">200</span></span>
             </div>
             <div class="resource-item" id="bio-resource">
-                <span>🧪 <span id="bio-value">10</span></span>
+                <span>🧪 <span id="bio-value">100</span></span>
             </div>
             <div class="resource-item" id="parts-resource">
-                <span>🛠️ <span id="parts-value">10</span></span>
+                <span>🛠️ <span id="parts-value">100</span></span>
             </div>
         </div>
         
@@ -415,69 +422,69 @@
         <div class="modal active" id="tutorial-modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title">Добро пожаловать в METAVILLE!</h3>
+                    <h3 class="modal-title">Welcome to METAVILLE!</h3>
                 </div>
                 
                 <div class="modal-body">
-                    <p>Вы - оператор платформы V.01.D в постапокалиптическом мире. Основные механики:</p>
+                    <p>You are a resident of the V.01.D platform in a post-apocalyptic world. Basic Mechanics:</p>
                     
                     <div class="tutorial-item">
                         <i class="fas fa-globe-americas"></i>
                         <div>
-                            <strong>Карта</strong>
-                            <p>Сканируйте сектора для поиска ресурсов и миссий</p>
+                            <strong>MAP</strong>
+                            <p>Scan sectors to find resources and missions.</p>
                         </div>
                     </div>
                     
                     <div class="tutorial-item">
                         <i class="fas fa-hard-hat"></i>
                         <div>
-                            <strong>База</strong>
-                            <p>Управляйте системами выживания и улучшайте платформу</p>
+                            <strong>BASE</strong>
+                            <p>Manage survival systems and upgrade the platform</p>
                         </div>
                     </div>
                     
                     <div class="tutorial-item">
                         <i class="fas fa-flask"></i>
                         <div>
-                            <strong>Исследования</strong>
-                            <p>Разрабатывайте новые технологии для преимущества</p>
+                            <strong>Technology research</strong>
+                            <p>Develop new technologies to take advantage</p>
                         </div>
                     </div>
                     
                     <div class="tutorial-item">
                         <i class="fas fa-shopping-cart"></i>
                         <div>
-                            <strong>Рынок</strong>
-                            <p>Торгуйте ресурсами с другими выжившими</p>
+                            <strong>MARKET</strong>
+                            <p>Trade resources with other survivors</p>
                         </div>
                     </div>
                     
                     <div class="tutorial-item">
                         <i class="fas fa-vote-yea"></i>
                         <div>
-                            <strong>Голосования</strong>
-                            <p>Участвуйте в управлении платформой через DAO</p>
+                            <strong>DAO VOTE</strong>
+                            <p>Participate in the management of the platform through the DAO</p>
                         </div>
                     </div>
                     
                     <div class="tutorial-item">
                         <i class="fas fa-tasks"></i>
                         <div>
-                            <strong>Квесты</strong>
-                            <p>Выполняйте задания для получения ресурсов и доступа</p>
+                            <strong>QUESTS</strong>
+                            <p>Complete tasks to get resources and access</p>
                         </div>
                     </div>
                     
                     <div class="tutorial-warning">
                         <i class="fas fa-exclamation-triangle"></i>
-                        Следите за уровнем кислорода и энергии - от них зависит ваше выживание!
+                        Keep an eye on your oxygen and energy levels - your survival depends on them!
                     </div>
                 </div>
                 
                 <div class="modal-actions">
                     <button class="btn btn-primary" id="start-game-btn">
-                        Начать игру
+                        Start the game
                     </button>
                 </div>
             </div>
@@ -1080,11 +1087,11 @@
 <div class="modal" id="rest-modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Капсула отдыха</h3>
+            <h3 class="modal-title">The Rest capsule</h3>
             <button class="close-modal">&times;</button>
         </div>
         
-        <!-- оберткf -->
+        <!-- оберткa -->
         <div class="modal-body-container">
             <div class="modal-body" style="display: flex; flex-direction: column; gap: 20px;">
 
@@ -1097,29 +1104,29 @@
                 </div>
                 
                 <div>
-                    <h4 style="color: #00ffcc; margin-bottom: 10px;">Оператор #7</h4>
+                    <h4 style="color: #00ffcc; margin-bottom: 10px;">Operator</h4>
                     <div class="status-grid" style="grid-template-columns: repeat(2, 1fr);">
                         <div class="status-card">
                             <div class="status-title">
-                                <i class="fas fa-bolt"></i> Уровень энергии
+                                <i class="fas fa-bolt"></i> Energy level
                             </div>
                             <div class="status-value" id="current-energy">500</div>
                         </div>
                         <div class="status-card">
                             <div class="status-title">
-                                <i class="fas fa-heart"></i> Здоровье
+                                <i class="fas fa-heart"></i> Health
                             </div>
                             <div class="status-value">87%</div>
                         </div>
                         <div class="status-card">
                             <div class="status-title">
-                                <i class="fas fa-shield-alt"></i> Уровень
+                                <i class="fas fa-shield-alt"></i> Level
                             </div>
                             <div class="status-value">5</div>
                         </div>
                         <div class="status-card">
                             <div class="status-title">
-                                <i class="fas fa-star"></i> Опыт
+                                <i class="fas fa-star"></i> XP
                             </div>
                             <div class="status-value">1200/2000</div>
                         </div>
@@ -1129,18 +1136,18 @@
             
             <!-- Репутация -->
             <div>
-                <h4 class="section-title">Репутация</h4>
+                <h4 class="section-title">Reputation</h4>
                 <div class="reputation-list">
                     <div class="reputation-item">
-                        <span>Синдикат "Глория"</span>
+                        <span>Syndicate "Gloria"</span>
                         <span style="color: #ffcc00;">+25 (Друг)</span>
                     </div>
                     <div class="reputation-item">
-                        <span>Братство Стали</span>
+                        <span>The Brotherhood of Steel</span>
                         <span style="color: #a0a0d0;">0 (Нейтрал)</span>
                     </div>
                     <div class="reputation-item">
-                        <span>Рейдеры "Черное солнце"</span>
+                        <span>The Black Sun Raiders</span>
                         <span style="color: #ff5555;">-15 (Враг)</span>
                     </div>
                 </div>
@@ -1153,14 +1160,14 @@
     </div>
     <div style="display: flex; justify-content: space-between; margin-top: 5px;">
         <span id="rest-time">0%</span>
-        <span id="rest-status">Готов к отдыху</span>
+        <span id="rest-status">Ready to rest</span>
     </div>
 </div>
         </div>
         
         <div class="modal-actions">
             <button class="btn btn-primary" id="rest-button" style="width: 100%;">
-                <i class="fas fa-bed"></i> Отдохнуть (8 часов)
+                <i class="fas fa-bed"></i> Rest (8 hours)
             </button>
         </div>
     </div>
@@ -1169,99 +1176,9 @@
     <!-- Уведомление -->
     <div class="notification" id="notification">
         <i class="fas fa-exclamation-triangle"></i>
-        <div id="notification-text">Транспорт-7 атакован рейдерами! Потери: 35 ресурсов</div>
+        <div id="notification-text">Transport-7 is under attack by raiders! Losses: 35 resources</div>
     </div>
     
-
-    <!-- Модальное окно капсулы отдыха -->
-<div class="modal" id="rest-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">Капсула отдыха</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        
-        <div class="modal-body" style="display: flex; flex-direction: column; gap: 20px;">
-            <!-- Аватар и характеристики -->
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <div class="avatar" style="width: 100px; height: 100px; border-radius: 50%; 
-                        background: linear-gradient(135deg, #1a1a2f, #2a2a4a); 
-                        border: 3px solid #00ffcc; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-user-astronaut" style="font-size: 40px; color: #00ffcc;"></i>
-                </div>
-                
-                <div>
-                    <h4 style="color: #00ffcc; margin-bottom: 10px;">Оператор #7</h4>
-                    <div class="status-grid" style="grid-template-columns: repeat(2, 1fr);">
-                        <div class="status-card">
-                            <div class="status-title">
-                                <i class="fas fa-bolt"></i> Уровень энергии
-                            </div>
-                            <div class="status-value" id="current-energy">500</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-title">
-                                <i class="fas fa-heart"></i> Здоровье
-                            </div>
-                            <div class="status-value">87%</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-title">
-                                <i class="fas fa-shield-alt"></i> Уровень
-                            </div>
-                            <div class="status-value">5</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-title">
-                                <i class="fas fa-star"></i> Опыт
-                            </div>
-                            <div class="status-value">1200/2000</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Репутация -->
-            <div>
-                <h4 class="section-title">Репутация</h4>
-                <div class="reputation-list">
-                    <div class="reputation-item">
-                        <span>Синдикат "Глория"</span>
-                        <span style="color: #ffcc00;">+25 (Друг)</span>
-                    </div>
-                    <div class="reputation-item">
-                        <span>Братство Стали</span>
-                        <span style="color: #a0a0d0;">0 (Нейтрал)</span>
-                    </div>
-                    <div class="reputation-item">
-                        <span>Рейдеры "Черное солнце"</span>
-                        <span style="color: #ff5555;">-15 (Враг)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Прогресс отдыха -->
-            <div>
-                <h4 class="section-title">Процесс отдыха</h4>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="rest-progress" style="width: 0%"></div>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                    <span id="rest-time">0%</span>
-                    <span id="rest-status">Готов к отдыху</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="modal-actions">
-            <button class="btn btn-primary" id="rest-button" style="width: 100%;">
-                <i class="fas fa-bed"></i> Отдохнуть (8 часов)
-            </button>
-        </div>
-    </div>
-</div>
-
-
     <script>
         // Состояние игры (исправленное)
         const gameState = {
