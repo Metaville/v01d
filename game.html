@@ -917,25 +917,59 @@
     padding: 0 15px;
 }
 
+/* Стили для результатов сканирования */
 .scan-result-info {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     padding: 15px;
     background: rgba(20, 25, 40, 0.7);
     border-radius: 10px;
     border: 1px solid #3a3a5a;
 }
 
-.scan-result-info div {
+.result-row {
     display: flex;
     justify-content: space-between;
-    padding: 5px 0;
-    border-bottom: 1px solid #2a2a4a;
+    align-items: center;
+    padding: 8px 0;
 }
 
-.scan-result-info div:last-child {
-    border-bottom: none;
+.result-label {
+    font-weight: 600;
+    color: #a0a0d0;
+    min-width: 120px;
+}
+
+.result-value {
+    color: #00ffcc;
+    text-align: right;
+    flex: 1;
+}
+
+/* Блок ресурсов */
+.resource-block {
+    background: rgba(30, 35, 60, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #3a3a5a;
+}
+
+/* Блок стоимости */
+.cost-block {
+    background: rgba(40, 30, 50, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #3a3a5a;
+}
+
+/* Разделитель между блоками */
+.separator {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #2a2a4a, transparent);
+    margin: 15px 0;
 }
 
 /* Адаптивные отступы для внутренних блоков */
@@ -1018,6 +1052,49 @@
     animation: none;
 }
         
+/* Стили для результатов сканирования */
+.scan-result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px;
+    background: rgba(20, 25, 40, 0.7);
+    border-radius: 10px;
+    border: 1px solid #3a3a5a;
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #2a2a4a;
+}
+
+.result-row:last-child {
+    border-bottom: none;
+}
+
+.result-label {
+    font-weight: 600;
+    color: #a0a0d0;
+    min-width: 120px;
+}
+
+.result-value {
+    color: #00ffcc;
+    text-align: right;
+    flex: 1;
+}
+
+.resources-container {
+    background: rgba(30, 35, 60, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #3a3a5a;
+}
+
 /* Общий стиль для индикатора клика */
 .click-indicator {
     position: absolute;
@@ -1831,25 +1908,46 @@
 <div class="modal" id="scan-result-modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Результаты сканирования сектора</h3>
+            <h3 class="modal-title">Scan results</h3>
             <button class="close-modal">&times;</button>
         </div>
         
         <div class="modal-body">
             <div class="scan-result-info">
-                <div><strong>Sector:</strong> <span id="result-sector">-</span></div>
-                <div><strong>Belt:</strong> <span id="result-belt">-</span></div>
-                <div><strong>Risk:</strong> <span id="result-risk">-</span></div>
-                <div style="margin-top: 30px; padding: 10px; background: rgba(30, 35, 60, 0.5); border-radius: 8px;">
-                    <strong>Resurse:</strong>
-                    <div id="result-resources">-</div>
+                <div class="result-row">
+                    <span class="result-label">Sector:</span>
+                    <span class="result-value" id="result-sector">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Belt:</span>
+                    <span class="result-value" id="result-belt">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Risk level:</span>
+                    <span class="result-value" id="result-risk">-</span>
+                </div>
+                
+                <!-- Отдельный блок для ресурсов -->
+                <div class="resource-block">
+                    <div class="result-row">
+                        <span class="result-label">Resources:</span>
+                        <span class="result-value" id="result-resources">-</span>
+                    </div>
+                </div>
+                
+                <!-- Отдельный блок для стоимости -->
+                <div class="cost-block">
+                    <div class="result-row">
+                        <span class="result-label">Harvest cost:</span>
+                        <span class="result-value" id="result-cost">-</span>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="modal-actions">
-            <button class="btn btn-danger" id="cancel-harvest">BREAKE</button>
-            <button class="btn btn-primary" id="start-harvest">HARVEST</button>
+            <button class="btn btn-danger" id="cancel-harvest">Cancel</button>
+            <button class="btn btn-primary" id="start-harvest">Send harvester</button>
         </div>
     </div>
 </div>
@@ -2327,7 +2425,7 @@ document.querySelector('#scan-result-modal .close-modal').addEventListener('clic
 
 
 
-// Новая функция для показа результатов сканирования
+// функция для показа результатов сканирования
 function showScanResultModal(sectorData, resourceType, resourceAmount) {
     const modal = document.getElementById('scan-result-modal');
     
@@ -2336,26 +2434,25 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
     document.getElementById('result-belt').textContent = sectorData.belt;
     document.getElementById('result-risk').textContent = `${sectorData.risk}%`;
     
+    // Форматируем ресурсы с иконками
     const resourceNames = {
-        bio: "Биоматериалы 🧪",
-        parts: "Запчасти 🛠️",
+        bio: "Biomaterials 🧪",
+        parts: "Parts 🛠️",
         mvc: "MVC",
-        oxygen: "Кислород O₂"
+        oxygen: "Oxygen O₂"
     };
     
-    document.getElementById('result-resources').innerHTML = `
-        <div>${resourceNames[resourceType] || resourceType}: ${resourceAmount} ед.</div>
-        <div>Стоимость сбора: 15 O₂, 70 ⚡</div>
-    `;
-    // Сохраняем данные о ресурсах в gameState
-    gameState.missions.scannedResources = {
-        type: resourceType,
-        amount: resourceAmount
-    };
+    // Форматируем стоимость с иконками
+    const costInfo = `15 <span style="color: #00ccff;">O₂</span>, 70 <span style="color: #ffcc00;">⚡</span>`;
+    
+    document.getElementById('result-resources').innerHTML = 
+        `${resourceAmount} ${resourceNames[resourceType] || resourceType}`;
+    
+    document.getElementById('result-cost').innerHTML = costInfo;
+    
     // Показываем модальное окно
     modal.classList.add('active');
 }
-
         // Отправка харвестера
         function sendHarvester() {
     if (!gameState.missions.scannedResources || gameState.missions.harvested) {
