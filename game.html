@@ -131,10 +131,26 @@
         .clickable { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .clickable:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 243, 255, 0.3); }
         /* Анимация кругов*/
-.map-circle {animation: pulse-combined 4s infinite ease-in-out;transform-origin: center;}
-@keyframes pulse-combined { 0% {transform: scale(0.98);box-shadow: 0 0 0 0 rgba(var(--ring-color), 0.5);}
-    50% { transform: scale(1.01); box-shadow: 0 0 0 15px rgba(var(--ring-color), 0);  
-    100% {transform: scale(0.98);box-shadow: 0 0 0 0 rgba(var(--ring-color), 0);}}
+.map-circle {
+    animation: pulse-combined 4s infinite ease-in-out;
+    transform-origin: center;
+}
+
+@keyframes pulse-combined {
+    0% {
+        transform: scale(0.98);
+        box-shadow: 0 0 0 0 rgba(var(--ring-color), 0.5);
+    }
+    50% {
+        transform: scale(1.01);
+        box-shadow: 0 0 0 15px rgba(var(--ring-color), 0);
+    }
+    100% {
+        transform: scale(0.98);
+        box-shadow: 0 0 0 0 rgba(var(--ring-color), 0);
+    }
+}
+
 .inner-ring { --ring-color: 0, 204, 153; }
 .middle-ring { --ring-color: 255, 204, 0; }
 .outer-ring { --ring-color: 255, 85, 85; }
