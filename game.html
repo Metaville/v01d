@@ -14,7 +14,8 @@
     <style>
         /* Все стили остаются без изменений */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        html, body, #app { margin: 0; padding: 0; width: 100%; height: 100%; }
+        html, body,
+         #app { margin: 0; padding: 0; width: 100%; height: 100%; }
         .container { min-height: 100vh; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); background: #0a0a15; position: relative; }
         .resource-bar { background: rgba(10, 15, 30, 0.9); padding: 12px 15px; display: flex; justify-content: space-evenly; flex-wrap: nowrap; border-bottom: 2px solid #2a2a4a; z-index: 10; gap: 4px; overflow-x: auto; }
         .resource-item { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600; min-width: 70px; }
@@ -36,9 +37,9 @@
         .btn { background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2f 100%); color: #e0e0ff; border: none; padding: 12px 15px; border-radius: 10px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; border: 1px solid #3a3a5a; }
         .btn:hover { background: linear-gradient(135deg, #3a3a5a 0%, #2a2a4a 100%); transform: translateY(-2px); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .btn-primary {    color: #ffffff !important; /* Было #001a14 */}
+        .btn-primary { color: #ffffff !important; /* Было #001a14 */}
         .btn-warning { color: #ffffff !important; /* Было #332900 */}
-        .btn-danger {color: #ffffff !important; /* Было #1a0000 */}
+        .btn-danger  { color: #ffffff !important; /* Было #1a0000 */}
         .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .status-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; border: 1px solid #3a3a5a; }
         .status-title { font-size: 14px; color: #a0a0d0; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
@@ -1206,11 +1207,14 @@
                 parts: 100
             },
 
+
+
             player: {
         health: 87,
         level: 5,
         exp: 1200,
         maxExp: 2000,
+
         reputation: {
             glory: 25,
             brotherhood: 0,
@@ -1411,7 +1415,7 @@
         // Изменить ресурсы
         function updateResource(resource, amount) {
             if (gameState.resources[resource] + amount < 0) {
-                showNotification(`Недостаточно ${getResourceName(resource)}!`, false);
+                showNotification(`Not enough ${getResourceName(resource)}!`, false);
                 return false;
             }
             
@@ -1528,9 +1532,9 @@
                     // Случайные события
                     if (Math.random() < 0.02) {
                         const events = [
-                            "Обнаружены редкие ресурсы! +15 🧪",
-                            "Сканирование прервано радиационной бурей!",
-                            "Обнаружен заброшенный склад! +25 🛠️"
+                            "Rare resources have been discovered! +15 🧪",
+                            "The scan has been interrupted by a radiation storm!",
+                            "An abandoned warehouse has been discovered! +25 🛠️"
                         ];
                         const event = events[Math.floor(Math.random() * events.length)];
                         
@@ -1544,7 +1548,7 @@
                     }
                 } else {
                     clearInterval(scanInterval);
-                    showNotification("Сканирование сектора завершено!", true);
+                    showNotification("Sector scan completed!", true);
                     updateResource('oxygen', -5);
                     updateResource('bio', 1);
                 }
@@ -1555,12 +1559,12 @@
         // Отправка харвестера
         function sendHarvester() {
             if (!gameState.missions.scannedResources || gameState.missions.harvested) {
-                showNotification("Нет ресурсов для добычи!", false);
+                showNotification("There are no resources to mine!", false);
                 return;
             }
             
             if (gameState.missions.harvestCount >= gameState.missions.maxHarvests) {
-                showNotification("Достигнут лимит отправок харвестеров!", false);
+                showNotification("The limit of harvester shipments has been reached!", false);
                 return;
             }
             
@@ -1572,7 +1576,7 @@
                 gameState.missions.harvestCount++;
                 gameState.missions.harvested = true;
                 
-                showNotification(`Харвестер добыл ${res.amount} ${getResourceName(res.type)}!`, true);
+                showNotification(`Harvester got ${res.amount} ${getResourceName(res.type)}!`, true);
                 updateUI();
             }
         }
@@ -2035,7 +2039,9 @@ setInterval(() => {
             showNotification("Добро пожаловать в METAVILLE на платформу V.01.D! ", true);
         }, 1000);
 
-        // TON Connect
+
+
+    // TON Connect
        document.addEventListener('DOMContentLoaded', async () => {
   const connectButton = document.getElementById('connect-wallet');
   const addressSpan = document.getElementById('wallet-address');
@@ -2106,6 +2112,8 @@ setInterval(() => {
     console.error('TON Connect initialization error:', error);
     showNotification("Ошибка инициализации TON Connect", false);
   }
+
+
 });
     </script>
 </body>
