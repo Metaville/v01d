@@ -5,138 +5,863 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>METAVILLE: V.01.D / Genesis Platform</title>
+       <title>METAVILLE: V.01.D / Genesis Platform</title>
 
     <!-- TON Connect UI Kit -->
-    <script src="https://unpkg.com/@tonconnect/ui-kit@0.0.13/dist/tonconnect-ui-kit.umd.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
+ 
     <link rel="tonconnect" href="https://metaville.github.io/v01d/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Все стили остаются без изменений */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        html, body,
-         #app { margin: 0; padding: 0; width: 100%; height: 100%; }
-        .container { min-height: 100vh; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); background: #0a0a15; position: relative; }
-        .resource-bar { background: rgba(10, 15, 30, 0.9); padding: 12px 15px; display: flex; justify-content: space-evenly; flex-wrap: nowrap; border-bottom: 2px solid #2a2a4a; z-index: 10; gap: 4px; overflow-x: auto; }
-        .resource-item { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600; min-width: 70px; }
-        .main-content { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
-        .screen { display: none; }
-        .screen.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .section-title { color: #00ffcc; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid #2a2a4a; font-size: 18px; font-weight: 600; }
-        .map-container { position: relative; height: 300px; background: #0d0d1a; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 1px solid #2a2a4a; display: flex; justify-content: center; align-items: center; }
-        .map-circle { position: absolute; border-radius: 50%; border: 1px solid; display: flex; justify-content: center; align-items: center; }
-        .inner-ring { width: 120px; height: 120px; border-color: #00cc99; z-index: 3; }
-        .middle-ring { width: 200px; height: 200px; border-color: #ffcc00; z-index: 2; }
-        .outer-ring { width: 280px; height: 280px; border-color: #ff5555; z-index: 1; }
-        .ring-label { position: absolute; color: #fff; font-size: 12px; font-weight: 500; background: rgba(10, 15, 30, 0.8); padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
-        .inner-label { top: calc(50% - 70px); }
-        .middle-label { top: calc(50% - 110px); }
-        .outer-label { top: calc(50% - 150px); }
-        .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn { background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2f 100%); color: #e0e0ff; border: none; padding: 12px 15px; border-radius: 10px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; border: 1px solid #3a3a5a; }
-        .btn:hover { background: linear-gradient(135deg, #3a3a5a 0%, #2a2a4a 100%); transform: translateY(-2px); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .btn-primary { color: #ffffff !important; /* Было #001a14 */}
-        .btn-warning { color: #ffffff !important; /* Было #332900 */}
-        .btn-danger  { color: #ffffff !important; /* Было #1a0000 */}
-        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .status-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; border: 1px solid #3a3a5a; }
-        .status-title { font-size: 14px; color: #a0a0d0; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-        .status-value { font-size: 18px; font-weight: 600; color: #00ffcc; }
-        .progress-bar { height: 8px; background: #1a1a2f; border-radius: 4px; margin-top: 10px; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #00cc99, #00ffcc); }
-        .research-node { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; }
-        .node-title { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .node-progress { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-        .progress-dots { display: flex; gap: 5px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; background: #2a2a4a; }
-        .dot.filled { background: #00ffcc; }
-        .node-cost { display: flex; gap: 10px; margin-top: 10px; font-size: 14px; }
-        .cost-item { display: flex; align-items: center; gap: 4px; }
-        .market-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
-        .market-menu button { margin-right: 10px; }
-        .tab { flex: 1; text-align: center; padding: 10px; background: #1a1a2f; border-radius: 8px; cursor: pointer; font-size: 14px; }
-        .tab.active { background: #2a2a4a; color: #00ffcc; }
-        .offer-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; }
-        .offer-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .offer-vendor { color: #ffcc00; font-weight: 500; }
-        .offer-rating { color: #ffcc00; }
-        .offer-details { display: flex; justify-content: space-between; align-items: center; }
-        .offer-price { font-weight: 600; color: #00ffcc; }
-        .vote-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; }
-        .vote-title { font-size: 16px; margin-bottom: 10px; color: #00ffcc; }
-        .vote-progress { height: 10px; background: #1a1a2f; border-radius: 5px; margin-bottom: 10px; overflow: hidden; }
-        .vote-fill { height: 100%; background: linear-gradient(90deg, #0099ff, #00ccff); border-radius: 5px; }
-        .vote-info { display: flex; justify-content: space-between; font-size: 14px; color: #a0a0d0; margin-bottom: 10px; }
-        .vote-controls { display: flex; gap: 10px; margin-top: 10px; }
-        .vote-input { flex: 1; background: #1a1a2f; border: 1px solid #3a3a5a; border-radius: 8px; color: #fff; padding: 8px 12px; text-align: center; }
-        .nav-menu { display: flex; background: rgba(10, 15, 30, 0.95); border-top: 1px solid #2a2a4a; padding: 1px 0; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 8px 0; cursor: pointer; transition: all 0.3s ease; color: #a0a0d0; font-size: 12px; }
-        .nav-item.active { color: #00ffcc; }
-        .nav-item i { font-size: 20px; }
-        .nav-item:hover { background: rgba(30, 35, 60, 0.5); }
-        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 10, 0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .modal.active { display: flex; opacity: 1; visibility: visible; }
-        .modal:not(.active) { display: none; opacity: 0; visibility: hidden; }
-        .modal-content > p { background: #0f0f1a; width: 90%; max-width: 400px; border-radius: 15px; padding: 25px; border: 1px solid #2a2a4a; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transform: translateY(20px); transition: transform 0.3s ease; margin-bottom: 40px; }
-        .modal.active .modal-content { transform: translateY(0); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-title { color: #00ffcc; font-size: 20px; font-weight: 600; }
-        .close-modal { background: none; border: none; color: #a0a0d0; font-size: 24px; cursor: pointer; }
-        .sectors-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .sector-item { background: #1a1a2f; border-radius: 10px; padding: 15px 10px; text-align: center; cursor: pointer; border: 1px solid #3a3a5a; transition: all 0.3s ease; }
-        .sector-item:hover { background: #2a2a4a; border-color: #00ffcc; }
-        .sector-name { font-size: 14px; margin-bottom: 5px; }
-        .sector-risk { font-size: 12px; color: #ff5555; }
-        .sector-risk.low { color: #00cc99; }
-        .sector-risk.medium { color: #ffcc00; }
-        .modal-actions { display: flex; gap: 10px; }
-        .modal-actions .btn { flex: 1; }
-        .notification { position: fixed; top: 0; left: 0; width: 100%; max-width: 100%; border-radius: 0; padding: 15px; box-sizing: border-box; z-index: 100; display: flex; align-items: center; gap: 10px; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .notification.show { opacity: 1; visibility: visible; top: 30px; }
-        .notification i { font-size: 20px; }
-        .notification.success { background: rgba(10, 30, 15, 0.9); color: #99ffaa; border-left: 4px solid #00cc99; }
-        .mission-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; position: relative; }
-        .mission-progress { position: absolute; top: 0; left: 0; height: 4px; background: #00ffcc; border-radius: 0 0 4px 0; }
-        .quest-card { background: rgba(20, 25, 40, 0.7); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #3a3a5a; position: relative; overflow: hidden; }
-        .quest-title { font-size: 16px; color: #00ffcc; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .quest-description { font-size: 14px; margin-bottom: 12px; color: #a0a0d0; }
-        .quest-reward { display: flex; align-items: center; gap: 5px; font-size: 14px; color: #ffcc00; margin-bottom: 12px; }
-        .quest-progress { height: 6px; background: #1a1a2f; border-radius: 3px; margin-bottom: 10px; overflow: hidden; }
-        .quest-progress-fill { height: 100%; background: linear-gradient(90deg, #0099ff, #00ccff); border-radius: 3px; }
-        .quest-status { display: flex; justify-content: space-between; font-size: 12px; color: #a0a0d0; }
-        .quest-actions { display: flex; gap: 10px; margin-top: 10px; }
-        .quest-badge { position: absolute; top: 15px; right: 15px; padding: 3px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
-        .new-badge { background: linear-gradient(135deg, #ffcc00, #cc9900); color: #332900; }
-        .active-badge { background: linear-gradient(135deg, #0099ff, #0066cc); color: #fff; }
-        .completed-badge { background: linear-gradient(135deg, #00cc99, #009973); color: #001a14; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .pulse { animation: pulse 1.5s infinite; }
-        .resource-item.changed { animation: highlight 1s; }
-        @keyframes highlight { 0% { background-color: rgba(0, 255, 204, 0.3); } 100% { background-color: transparent; } }
-        .quest-card.new { border-left: 4px solid #ffcc00; }
-        .quest-card.active { border-left: 4px solid #0099ff; }
-        .quest-card.completed { border-left: 4px solid #00cc99; }
-        #wallet-container { display: flex; align-items: center; justify-content: center; padding: 8px 0; flex: 1; }
-        #wallet-address { font-size: 12px; color: #00ffcc; margin-left: 8px; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
-        .tutorial-item { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 15px; padding: 10px; background: rgba(30, 35, 60, 0.5); border-radius: 10px; }
-        .tutorial-item i { font-size: 24px; color: #00ffcc; margin-top: 3px; }
-        .tutorial-item strong { color: #ffcc00; display: block; margin-bottom: 5px; }
-        .tutorial-warning { background: rgba(255, 85, 85, 0.15); border-left: 3px solid #ff5555; padding: 10px 15px; border-radius: 5px; margin-top: 20px; display: flex; gap: 10px; align-items: center; }
-        .tutorial-warning i { color: #ff5555; font-size: 20px; }
-        .modal-body { max-height: 60vh; overflow-y: auto; padding-right: 10px; margin-bottom: 20px; }
-        .modal-body::-webkit-scrollbar { width: 6px; }
-        .modal-body::-webkit-scrollbar-track { background: rgba(10, 15, 30, 0.5); }
-        .modal-body::-webkit-scrollbar-thumb { background: #00cc99; border-radius: 3px; }
-        .clickable { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .clickable:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 243, 255, 0.3); }
-        /* Анимация кругов*/
-.map-circle { animation: pulse-combined 4s infinite ease-in-out;transform-origin: center;}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Полноэкранный режим на мобильных */
+        html, body, #app {
+  margin: 0; 
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+        
+        body {
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2f 100%);;
+    color: #e0e0ff;
+    margin: 0;
+    padding: 0;
+    /* убираем flex-центрирование */
+    display: block;
+}
+       .container {
+    /* Занимаем всю ширину и высоту экрана */
+    width: 100%;
+    height: 100vh;
+    max-width: none;
 
-@keyframes pulse-combined {  0% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(var(--ring-color), 0.5); }
-    50% { transform: scale(1.01);box-shadow: 0 0 0 15px rgba(var(--ring-color), 0); }
-    100% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(var(--ring-color), 0); }
+    /* Убираем рамку, скругления и тень (если хочется «без полей») */
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+
+    background: #0a0a15;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    /* Поддержка «чёлки» на iPhone */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+        
+        /* Верхняя панель ресурсов */
+        .resource-bar {
+            background: rgba(10, 15, 30, 0.9);
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-evenly;
+            flex-wrap: nowrap;
+            border-bottom: 2px solid #2a2a4a;
+            z-index: 10;
+            gap: 4px;
+            overflow-x: auto;
+        }
+        
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 70px;
+        }
+        
+        /* Основной контент */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            position: relative;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-title {
+            color: #00ffcc;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a2a4a;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* Карта */
+        .map-container {
+            position: relative;
+            height: 300px;
+            background: #0d0d1a;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a4a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .map-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .inner-ring {
+            width: 120px;
+            height: 120px;
+            border-color: #00cc99;
+            z-index: 3;
+        }
+        
+        .middle-ring {
+            width: 200px;
+            height: 200px;
+            border-color: #ffcc00;
+            z-index: 2;
+        }
+        
+        .outer-ring {
+            width: 280px;
+            height: 280px;
+            border-color: #ff5555;
+            z-index: 1;
+        }
+        
+        .ring-label {
+            position: absolute;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(10, 15, 30, 0.8);
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+        
+        .inner-label {
+            top: calc(50% - 70px);
+        }
+        
+        .middle-label {
+            top: calc(50% - 110px);
+        }
+        
+        .outer-label {
+            top: calc(50% - 150px);
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2f 100%);
+            color: #e0e0ff;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid #3a3a5a;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #3a3a5a 0%, #2a2a4a 100%);
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00cc99 0%, #009973 100%);
+            color: #001a14;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffcc00 0%, #cc9900 100%);
+            color: #332900;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff5555 0%, #cc0000 100%);
+            color: #1a0000;
+        }
+        
+        /* База */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .status-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #3a3a5a;
+        }
+        
+        .status-title {
+            font-size: 14px;
+            color: #a0a0d0;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #00ffcc;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #1a1a2f;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #00cc99, #00ffcc);
+        }
+        
+        /* Исследования */
+        .research-node {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #3a3a5a;
+        }
+        
+        .node-title {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .node-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .progress-dots {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #2a2a4a;
+        }
+        
+        .dot.filled {
+            background: #00ffcc;
+        }
+        
+        .node-cost {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .cost-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* Маркет */
+        .market-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+           }  
+            .market-menu button {
+    margin-right: 10px;
+  }
+       
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: #1a1a2f;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .tab.active {
+            background: #2a2a4a;
+            color: #00ffcc;
+        }
+        
+        .offer-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #3a3a5a;
+        }
+        
+        .offer-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .offer-vendor {
+            color: #ffcc00;
+            font-weight: 500;
+        }
+        
+        .offer-rating {
+            color: #ffcc00;
+        }
+        
+        .offer-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .offer-price {
+            font-weight: 600;
+            color: #00ffcc;
+        }
+        
+        /* Голосования */
+        .vote-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #3a3a5a;
+        }
+        
+        .vote-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #00ffcc;
+        }
+        
+        .vote-progress {
+            height: 10px;
+            background: #1a1a2f;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        .vote-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0099ff, #00ccff);
+            border-radius: 5px;
+        }
+        
+        .vote-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #a0a0d0;
+            margin-bottom: 10px;
+        }
+        
+        .vote-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .vote-input {
+            flex: 1;
+            background: #1a1a2f;
+            border: 1px solid #3a3a5a;
+            border-radius: 8px;
+            color: #fff;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        
+        /* Навигация */
+        .nav-menu {
+            display: flex;
+            background: rgba(10, 15, 30, 0.95);
+            border-top: 1px solid #2a2a4a;
+            padding: 1px 0;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #a0a0d0;
+            font-size: 12px;
+        }
+        
+        .nav-item.active {
+            color: #00ffcc;
+        }
+        
+        .nav-item i {
+            font-size: 20px;
+        }
+        
+        .nav-item:hover {
+            background: rgba(30, 35, 60, 0.5);
+        }
+        
+        /* Модальные окна */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 10, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content > p {
+            
+            background: #0f0f1a;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #2a2a4a;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            margin-bottom: 40px;  /* любое желаемое значение */
+        }
+        
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            color: #00ffcc;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: #a0a0d0;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .sectors-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .sector-item {
+            background: #1a1a2f;
+            border-radius: 10px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #3a3a5a;
+            transition: all 0.3s ease;
+        }
+        
+        .sector-item:hover {
+            background: #2a2a4a;
+            border-color: #00ffcc;
+        }
+        
+        .sector-name {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .sector-risk {
+            font-size: 12px;
+            color: #ff5555;
+        }
+        
+        .sector-risk.low {
+            color: #00cc99;
+        }
+        
+        .sector-risk.medium {
+            color: #ffcc00;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal-actions .btn {
+            flex: 1;
+        }
+        
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            max-width: 100%;
+            border-radius: 0;
+            padding: 15px;
+            box-sizing: border-box;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            visibility: visible;
+            top: 30px;
+        }
+        
+        .notification i {
+            font-size: 20px;
+        }
+        
+        .notification.success {
+            background: rgba(10, 30, 15, 0.9);
+            color: #99ffaa;
+            border-left: 4px solid #00cc99;
+        }
+        
+        .notification.false {
+           background: rgba(40, 0, 0, 0.9);
+           color: #ffaaaa;
+           border-left: 4px solid #ff5555;
+}
+        /* Миссии */
+        .mission-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #3a3a5a;
+            position: relative;
+        }
+        
+        .mission-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: #00ffcc;
+            border-radius: 0 0 4px 0;
+        }
+        
+        /* Квесты */
+        .quest-card {
+            background: rgba(20, 25, 40, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #3a3a5a;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quest-title {
+            font-size: 16px;
+            color: #00ffcc;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .quest-description {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #a0a0d0;
+        }
+        
+        .quest-reward {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            color: #ffcc00;
+            margin-bottom: 12px;
+        }
+        
+        .quest-progress {
+            height: 6px;
+            background: #1a1a2f;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        .quest-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0099ff, #00ccff);
+            border-radius: 3px;
+        }
+        
+        .quest-status {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #a0a0d0;
+        }
+        
+        .quest-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .quest-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .new-badge {
+            background: linear-gradient(135deg, #ffcc00, #cc9900);
+            color: #332900;
+        }
+        
+        .active-badge {
+            background: linear-gradient(135deg, #0099ff, #0066cc);
+            color: #fff;
+        }
+        
+        .completed-badge {
+            background: linear-gradient(135deg, #00cc99, #009973);
+            color: #001a14;
+        }
+        
+        /* Анимации */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        .resource-item.changed {
+            animation: highlight 1s;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: rgba(0, 255, 204, 0.3); }
+            100% { background-color: transparent; }
+        }
+        
+        .quest-card.new {
+            border-left: 4px solid #ffcc00;
+        }
+        
+        .quest-card.active {
+            border-left: 4px solid #0099ff;
+        }
+        
+        .quest-card.completed {
+            border-left: 4px solid #00cc99;
+        }
+
+        /* Кошелек */
+        #wallet-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0;
+            flex: 1;
+        }
+        
+        #wallet-address {
+            font-size: 12px;
+            color: #00ffcc;
+            margin-left: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+        }
+
+/* Стили для обучения */
+.tutorial-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(30, 35, 60, 0.5);
+    border-radius: 10px;
+}
+
+.tutorial-item i {
+    font-size: 24px;
+    color: #00ffcc;
+    margin-top: 3px;
+}
+
+.tutorial-item strong {
+    color: #ffcc00;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.tutorial-warning {
+    background: rgba(255, 85, 85, 0.15);
+    border-left: 3px solid #ff5555;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.tutorial-warning i {
+    color: #ff5555;
+    font-size: 20px;
+}
+
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 10px;
+    margin-bottom: 20px;
+}
+
+/* Полоса прокрутки */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: rgba(10, 15, 30, 0.5);
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #00cc99;
+    border-radius: 3px;
+}
+        /* Анимация кругов*/
+.map-circle {
+    animation: pulse-combined 4s infinite ease-in-out;
+    transform-origin: center;
+}
+
+@keyframes pulse-combined {
+    0% {
+        transform: scale(0.98);
+        box-shadow: 0 0 0 0 rgba(var(--ring-color), 0.5);
+    }
+    50% {
+        transform: scale(1.01);
+        box-shadow: 0 0 0 15px rgba(var(--ring-color), 0);
+    }
+    100% {
+        transform: scale(0.98);
+        box-shadow: 0 0 0 0 rgba(var(--ring-color), 0);
+    }
 }
 
 .inner-ring { --ring-color: 0, 204, 153; }
@@ -1178,6 +1903,8 @@
 </div>
     
     <!-- Уведомление -->
+
+
     <div class="notification" id="notification">
         <i class="fas fa-exclamation-triangle"></i>
         <div id="notification-text">Transport-7 is under attack by raiders! Losses: 35 resources</div>
@@ -1385,19 +2112,21 @@
 
         // Показать уведомление
         function showNotification(message, isSuccess = false) {
-            elements.notificationText.textContent = message;
-            elements.notification.classList.remove('success');
-            
-            if (isSuccess) {
-                elements.notification.classList.add('success');
-            }
-            
-            elements.notification.classList.add('show');
-            
-            setTimeout(() => {
-                elements.notification.classList.remove('show');
-            }, 3000);
-        }
+    elements.notificationText.textContent = message;
+    elements.notification.classList.remove('success', 'error');
+    
+    if (isSuccess) {
+        elements.notification.classList.add('success');
+    } else {
+        elements.notification.classList.add('error'); // Добавляем класс error
+    }
+    
+    elements.notification.classList.add('show');
+    
+    setTimeout(() => {
+        elements.notification.classList.remove('show');
+    }, 3000);
+}
 
         // Изменить ресурсы
         function updateResource(resource, amount) {
@@ -1488,60 +2217,63 @@
             
             startScanning(sectorData);
         });
-
+// Добавляем константу для вместимости харвестера
+const HARVESTER_CAPACITY = 20;
         // Функция сканирования сектора
         function startScanning(sectorData) {
-            // Генерация случайных ресурсов
-            const resourceTypes = ['bio', 'parts', 'mvc', 'oxygen'];
-            const randomResource = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
-            const amount = Math.floor(Math.random() * 30) + 10;
+    // Генерация случайных ресурсов
+    const resourceTypes = ['bio', 'parts', 'mvc', 'oxygen'];
+    const randomResource = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
+    const amount = Math.floor(Math.random() * 30) + 10;
+    
+    // Сброс предыдущего состояния сканирования
+    gameState.missions.scanning = true;
+    gameState.missions.sector = sectorData.sector;
+    gameState.missions.belt = sectorData.belt;
+    gameState.missions.risk = sectorData.risk;
+    gameState.missions.progress = 0;
+    gameState.missions.scannedResources = {
+        type: randomResource,
+        amount: amount
+    };
+    // СБРОС СОСТОЯНИЯ ХАРВЕСТЕРОВ
+    gameState.missions.harvested = false;
+    gameState.missions.harvestCount = 0;
+    
+    // Остановка предыдущего интервала
+    if (scanInterval) clearInterval(scanInterval);
+    
+    scanInterval = setInterval(() => {
+        if (gameState.missions.progress < 100) {
+            gameState.missions.progress += 2;
+            updateUI();
             
-            // Запуск процесса сканирования
-            gameState.missions.scanning = true;
-            gameState.missions.sector = sectorData.sector;
-            gameState.missions.belt = sectorData.belt;
-            gameState.missions.risk = sectorData.risk;
-            gameState.missions.progress = 0;
-            gameState.missions.scannedResources = {
-                type: randomResource,
-                amount: amount
-            };
-            gameState.missions.harvested = false;
-            
-            // Остановка предыдущего интервала
-            if (scanInterval) clearInterval(scanInterval);
-            
-            scanInterval = setInterval(() => {
-                if (gameState.missions.progress < 100) {
-                    gameState.missions.progress += 2;
-                    updateUI();
-                    
-                    // Случайные события
-                    if (Math.random() < 0.02) {
-                        const events = [
-                            "Rare resources have been discovered! +15 🧪",
-                            "The scan has been interrupted by a radiation storm!",
-                            "An abandoned warehouse has been discovered! +25 🛠️"
-                        ];
-                        const event = events[Math.floor(Math.random() * events.length)];
-                        
-                        if (event.includes("+")) {
-                            const resource = event.includes("🧪") ? 'bio' : 'parts';
-                            const amount = parseInt(event.match(/\d+/)[0]);
-                            updateResource(resource, amount);
-                        }
-                        
-                        showNotification(event, !event.includes("прервано"));
-                    }
-                } else {
-                    clearInterval(scanInterval);
-                    showNotification("Sector scan completed!", true);
-                    updateResource('oxygen', -5);
-                    updateResource('bio', 1);
+            // Случайные события
+            if (Math.random() < 0.02) {
+                const events = [
+                    "Rare resources have been discovered! +15 🧪",
+                    "The scan has been interrupted by a radiation storm!",
+                    "An abandoned warehouse has been discovered! +25 🛠️"
+                ];
+                const event = events[Math.floor(Math.random() * events.length)];
+                
+                if (event.includes("+")) {
+                    const resource = event.includes("🧪") ? 'bio' : 'parts';
+                    const amount = parseInt(event.match(/\d+/)[0]);
+                    updateResource(resource, amount);
                 }
-                updateUI();
-            }, 200);
+                
+                showNotification(event, !event.includes("прервано"));
+            }
+        } else {
+            clearInterval(scanInterval);
+            showNotification("Sector scan completed!", true);
+            updateResource('oxygen', -5);
+            updateResource('bio', 1);
         }
+        updateUI();
+    }, 200);
+}
 
         // Отправка харвестера
         function sendHarvester() {
@@ -1760,7 +2492,7 @@ setInterval(() => {
         
         // Если энергия ниже 20%, показываем предупреждение
         if (gameState.resources.energy < 200 && Math.random() > 0.8) {
-            showNotification("⚠️ Низкий уровень энергии! Отдохните в капсуле", false);
+            showNotification("⚠️ Low energy level ! Relax in the capsule.", false);
         }
     }
 }, 1000);
@@ -1868,21 +2600,21 @@ setInterval(() => {
         <div class="container">
             
             <div class="header">
-                <h1>Майнер O2</h1>
-                <div class="subtitle">СЕКТОР 7G</div>
+                <h1>Mining O2</h1>
+                <div class="subtitle">SECTOR 7G</div>
             </div>
             
             <div class="mining-container">
                 <div class="mining-header">
-                    <div class="mining-title">Добыча O₂</div>
+                    <div class="mining-title">Mine O₂</div>
                     <div class="timer" id="timer">03:59:45</div>
                 </div>
                 
                 <div class="progress-container">
                     <div class="progress-labels">
-                        <div>Начало</div>
+                        <div>Start</div>
                         <div id="progressPercentage">75%</div>
-                        <div>Клейм</div>
+                        <div>Claim</div>
                     </div>
                     <div class="o2-progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
@@ -1890,30 +2622,30 @@ setInterval(() => {
                 </div>
                 
                 <div class="o2-production">
-                    <div class="o2-label">Текущая Добыча</div>
+                    <div class="o2-label">Current Production</div>
                     <div class="o2-value" id="o2Value">8.73 O₂</div>
-                    <div class="o2-label">за цикл</div>
+                    <div class="o2-label">per cycle</div>
                 </div>
             </div>
             
             <div class="stats-container">
                 <div class="stat-box">
-                    <div class="stat-label">Активные Майнеры</div>
+                    <div class="stat-label">Active Miners</div>
                     <div class="stat-value" id="activeMiners">1,427</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Ваша Доля</div>
+                    <div class="stat-label">Your Share</div>
                     <div class="stat-value" id="yourShare">2.7%</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Следующий Клейм</div>
+                    <div class="stat-label">The next Claim</div>
                     <div class="stat-value" id="nextClaim">04:00:00</div>
                 </div>
             </div>
             
             <div class="status-container">
-                <div class="status-label">Статус системы</div>
-                <div class="status-value pulse" id="status">Добыча активна</div>
+                <div class="status-label">System status</div>
+                <div class="status-value pulse" id="status">Mining is active</div>
             </div>
             
         </div>
@@ -1930,14 +2662,14 @@ setInterval(() => {
                 // Если время вышло, сбрасываем таймер
                 if (timeLeft <= 0) {
                     timeLeft = 4 * 60 * 60;
-                    document.getElementById('status').textContent = "Клейм O2 завершен!";
+                    document.getElementById('status').textContent = "Claim O2 completed!";
                     document.getElementById('status').style.color = "#00ff99";
                     
                     // Добавляем кислород игроку
                     updateResource('oxygen', 10);
                     
                     setTimeout(() => {
-                        document.getElementById('status').textContent = "Добыча активна";
+                        document.getElementById('status').textContent = "Mining active";
                         document.getElementById('status').style.color = "#00ff99";
                     }, 5000);
                 }
@@ -2015,7 +2747,7 @@ setInterval(() => {
             // Запуск генерации кислорода
             o2Interval = setInterval(updateO2Generation, 1000);
             
-            showNotification("Платформа V.01.D активирована! Удачи в освоении METAVILLE", true);
+            showNotification("The V.01.D platform is activated! Good luck learning METAVILLE", true);
         });
 
         // Инициализация интерфейса
@@ -2023,7 +2755,7 @@ setInterval(() => {
         
         // Стартовое уведомление
         setTimeout(() => {
-            showNotification("Добро пожаловать в METAVILLE на платформу V.01.D! ", true);
+            showNotification("Welcome to METAVILLE on the V.01.D platform! ", true);
         }, 1000);
 
 
