@@ -1215,6 +1215,21 @@
     background: #00ccff;
     border-radius: 3px;
 }
+/* Для экрана квестов */
+#quest-screen.screen.active { display: flex: column; }
+
+/* Для карточек квестов */
+.quest-card {
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.quest-description {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 
  </style>
 </head>
@@ -1345,14 +1360,14 @@
                     <div class="status-title">
                         <i class="fas fa-satellite-dish"></i> Drone 1: Terrain Survey
                     </div>
-                    <div>Сектор <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
+                    <div>Sector <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
                     <div class="progress-bar">
                         <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 50px;">
                         <span id="mission-time">0%</span>
                         <span id="mission-harvest">HARVESTER: 0/2</span>
-                        <span id="scanned-resources">Ресурсы: -</span>
+                        <span id="scanned-resources">Resourse: -</span>
                         <span id="mission-risk" style="color: #ffcc00;">RISK: 0% ⚠️</span>
                     </div>
                 </div>
@@ -1684,35 +1699,33 @@
                     </div>
                 </div>
             </div>
-            
+             <!-- Экран Квестов -->
+<div id="quest-screen" class="screen">
+  <h2 class="section-title">Active Quests</h2>
             <!-- Экран Квестов -->
-            <div id="quest-screen" class="screen">
-                <h2 class="section-title">Missions and quests</h2>
-                
-                <div class="quest-card new">
-                    <div class="quest-badge new-badge">New!</div>
-                    <div class="quest-title">
-                        <i class="fas fa-star"></i> The Awakening
-                    </div>
-                    <div class="quest-description">
-                        Explore your capsule and find a way to escape. Inspect each compartment of the capsule carefully for any useful items.
-                    </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Rewards: 100 MVC, Map
-                    </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 0%"></div>
-                    </div>
-                    <div class="quest-status">
-                        <span>Progress: 0%</span>
-                        <span>Accept: NO</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn btn-primary" data-quest="awakening">
-                            Accept quest
-                        </button>
-                    </div>
-                </div>
+           <div class="quest-card new">
+  <div class="quest-badge new-badge">New!</div>
+  <div class="quest-title">
+    <i class="fas fa-star"></i> Пробуждение
+  </div>
+  <div class="quest-description">
+    Осмотри свою капсулу и найди способ выбраться. Проверь все отсеки — там могут быть полезные вещи.
+  </div>
+  <div class="quest-reward">
+    <i class="fas fa-gift"></i> Награда: 100 MVC, Карта
+  </div>
+  <div class="quest-progress">
+    <div class="quest-progress-fill" style="width: 0%"></div>
+  </div>
+  <div class="quest-status">
+    <span>Прогресс: 0%</span>
+    <span>Статус: НЕ принят</span>
+  </div>
+  <div class="quest-actions">
+    <button class="btn btn-primary" data-quest="awakening">Принять</button>
+  </div>
+</div>
+
                 
                 <div class="quest-card">
                     <div class="quest-badge active-badge">Active</div>
@@ -1816,7 +1829,7 @@
                 </div>
             </div>
         </div>
-        
+        </div>
         <!-- Нижнее меню навигации -->
         <div class="nav-menu">
             <div class="nav-item active" data-screen="map-screen">
@@ -1851,7 +1864,31 @@
             </div>
         </div>
     </div>
-    
+
+
+    <!-- Модалка квеста "Пробуждение" -->
+<div id="quest-awake-modal" class="modal" aria-hidden="true">
+  <div class="modal-content" style="max-width: 620px;">
+    <button class="close-modal" id="quest-awake-close" aria-label="Закрыть">&times;</button>
+    <h2 class="modal-title">ПРОБУЖДЕНИЕ</h2>
+
+    <div class="quest-body" id="quest-awake-body">
+      <p>Вы медленно приходите в себя. Вокруг — гладкие металлические стены капсулы. Холодный синий свет экрана мигает: «Система активирована».</p>
+      <p>Голос из динамиков: «Добро пожаловать в Метавиль, субъект 7-дельта. Следуйте инструкциям для выхода из капсулы».</p>
+      <p>Сквозь запотевшее стекло виден огромный ангар с сотнями таких же капсул. Некоторые уже открыты.</p>
+    </div>
+
+    <div class="quest-choices" id="quest-awake-choices" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+      <button class="btn" id="quest-awake-inspect">▶ Осмотреть капсулу</button>
+      <button class="btn" id="quest-awake-open">▶ Попытаться открыть капсулу</button>
+    </div>
+
+    <div class="quest-stats" style="margin-top:10px;font-size:12px;color:#a0a0d0;text-align:center;">
+      Здоровье: <span id="quest-awake-health">100</span> | Репутация: <span id="quest-awake-rep">0</span>
+    </div>
+  </div>
+</div>
+
     <!-- Модальное окно майнера кислорода -->
     <div class="modal" id="o2-miner-modal">
         <div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: transparent;">
@@ -2737,6 +2774,104 @@ setInterval(() => {
                 }
             });
         });
+
+  // === Квест "Пробуждение": открытие из меню, логика сцен ===
+(function(){
+  // Кнопка "Принять" в карточке квеста (data-quest="awakening")
+  const acceptBtn = document.querySelector('[data-quest="awakening"]');
+  const modal = document.getElementById('quest-awake-modal');
+  const closeBtn = document.getElementById('quest-awake-close');
+  const body = document.getElementById('quest-awake-body');
+  const choices = document.getElementById('quest-awake-choices');
+  const healthEl = document.getElementById('quest-awake-health');
+  const repEl = document.getElementById('quest-awake-rep');
+
+  let hasKey = false;
+  let health = 100;
+  let rep = 0;
+
+  function openModal(){
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+  function closeModal(){
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  function refreshStats(){
+    healthEl.textContent = String(health);
+    repEl.textContent = String(rep);
+  }
+
+  function sceneInspect(){
+    body.innerHTML = `
+      <p>Вы внимательно осматриваете капсулу. На панели замечаете:</p>
+      <ul>
+        <li>Экран: «Активация завершена. Ожидание выхода»</li>
+        <li>Отсек с «Инструкцией по выживанию»</li>
+        <li>Скрытый карман с энергетическим батончиком</li>
+        <li>Металлический ключ, застрявший в щели между панелями</li>
+      </ul>
+    `;
+    choices.innerHTML = `
+      <button class="btn" id="awake-takekey">▶ Взять ключ</button>
+      <button class="btn" id="awake-skipkey">▶ Проигнорировать ключ</button>
+    `;
+    document.getElementById('awake-takekey').onclick = () => {
+      hasKey = true; rep += 1; refreshStats(); sceneOpen();
+    };
+    document.getElementById('awake-skipkey').onclick = () => {
+      hasKey = false; sceneOpen();
+    };
+  }
+
+  function sceneOpen(){
+    body.innerHTML = `
+      <p>Вы нажимаете кнопку выхода. Шипение — капсула медленно открывается.</p>
+      <p>Холодный воздух ангара, вокруг — десятки капсул, некоторые пусты.</p>
+      <p>К вам подходит мужчина в потрёпанной куртке — <strong>Борис</strong>.</p>
+      <p><strong>Борис</strong>: «Рад видеть тебя в Метавиле. Есть работёнка… доставь посылку по координатам».</p>
+      ${hasKey ? '<p>Вы сжимаете найденный ключ — может пригодиться.</p>' : ''}
+    `;
+    choices.innerHTML = `<button class="btn btn-primary" id="awake-accept">▶ Принять посылку</button>`;
+    document.getElementById('awake-accept').onclick = () => {
+      // Закрываем модалку и мягко помечаем квест как принятый
+      closeModal();
+      try {
+        // Обновим статус карточки визуально (необязательно)
+        const card = acceptBtn.closest('.quest-card');
+        if (card) {
+          const status = card.querySelector('.quest-status span:last-child');
+          if (status) status.textContent = 'Статус: Принят';
+          const badge = card.querySelector('.quest-badge');
+          if (badge) { badge.textContent = 'Active'; badge.className = 'quest-badge active-badge'; }
+          const progress = card.querySelector('.quest-progress-fill');
+          if (progress) progress.style.width = '10%';
+        }
+        // Вызов системного уведомления, если оно есть в проекте
+        if (typeof showNotification === 'function') {
+          showNotification('Квест принят: «Посылка Бориса»', true);
+        }
+      } catch(e) {}
+    };
+  }
+
+  // Привязки
+  if (acceptBtn) {
+    acceptBtn.addEventListener('click', openModal);
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeModal);
+  }
+  window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+  // Первые кнопки в стартовом экране модалки
+  const firstInspect = document.getElementById('quest-awake-inspect');
+  const firstOpen = document.getElementById('quest-awake-open');
+  if (firstInspect) firstInspect.addEventListener('click', sceneInspect);
+  if (firstOpen) firstOpen.addEventListener('click', sceneOpen);
+})();
+
 
         // Имитация случайных событий
         setInterval(() => {
