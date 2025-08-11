@@ -1230,6 +1230,66 @@
   overflow-wrap: break-word;
 }
 
+/* ===== ОПАК-ФОН для оверлея именно выбранных модалок ===== */
+#tutorial-modal.modal,
+#rest-modal.modal,
+#quest-awake-modal.modal {
+  /* сплошной тёмный фон без прозрачности */
+  background: #070914 !important; /* можно #0b1020 / на вкус */
+}
+
+/* ВАРИАНТ С КАРТИНКОЙ-ПОДЛОЖКОЙ (раскомментируй если хочешь арт на фоне) */
+/*
+#tutorial-modal.modal,
+#rest-modal.modal,
+#quest-awake-modal.modal {
+  background: #070914 url('images/modal-bg.jpg') center/cover no-repeat !important;
+}
+*/
+
+/* Мягкая дымка поверх картинки (если используешь картинку) */
+#tutorial-modal.modal::before,
+#rest-modal.modal::before,
+#quest-awake-modal.modal::before {
+  content: "";
+  position: fixed; inset: 0;
+  background: rgba(7,9,20,0.5);      /* лёгкое затемнение */
+  backdrop-filter: blur(2px);         /* нежный блюр */
+  pointer-events: none;
+}
+
+/* ===== ПЛОТНЫЙ ФОН самих карточек модалок ===== */
+#tutorial-modal .modal-content,
+#rest-modal .modal-content,
+#quest-awake-modal .modal-content {
+  background: linear-gradient(135deg, #0e1324 0%, #121832 100%) !important;
+  border: 1px solid #273056 !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6) !important;
+}
+
+/* если внутри .modal-content встречаются <p> с собственным фоном — убираем его,
+   чтобы всё выглядело единообразно */
+#tutorial-modal .modal-content > p,
+#rest-modal .modal-content > p,
+#quest-awake-modal .modal-content > p {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 16px !important;
+}
+
+/* Кнопка закрытия на тёмном фоне выглядит лучше ярче */
+#tutorial-modal .close-modal,
+#rest-modal .close-modal,
+#quest-awake-modal .close-modal {
+  color: #c9d4ff !important;
+}
+
+/* Блокируем прокрутку body, когда есть активная модалка */
+body.modal-open {
+  overflow: hidden;
+}
 
  </style>
 </head>
