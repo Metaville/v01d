@@ -2612,10 +2612,16 @@ body.modal-open {
 
         // Запуск сканирования
         document.getElementById('scan-btn').addEventListener('click', () => {
-            if (updateResource('energy', -50)) {
-                document.getElementById('scan-modal').classList.add('active');
-            }
-        });
+  const m = document.getElementById('scan-modal');
+  m.classList.add('active');
+
+  // сброс выбора сектора визуально и логически
+  let selectedSector = null;
+  document.querySelectorAll('#scan-modal .sector-item').forEach(s=>{
+    s.style.borderColor = '#3a3a5a';
+    s.style.background  = '#1a1a2f';
+  });
+});
 
         // Закрытие модальных окон
         document.querySelectorAll('.close-modal').forEach(button => {
@@ -2712,6 +2718,9 @@ body.modal-open {
                     showNotification("Sector scanning complete!", true);
                     updateResource('oxygen', -5);
                     updateResource('bio', 1);
+                    clearInterval(scanInterval);
+gameState.missions.scanning = false; // готов к следующему скану
+
                     // Показать модальное окно с результатами сканирования
             showScanResultModal(sectorData, randomResource, amount);
                 }
@@ -3767,6 +3776,22 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if (e.target === tutorial) closeTutorial();
   });
 })();
+
+document.addEventListener('DOMContentLoaded', () => {
+  const modal    = document.getElementById('tutorial-modal');
+  const startBtn = document.getElementById('start-game-btn');
+  if (!modal || !startBtn) return;
+
+  // показываем туториал каждый запуск
+  modal.classList.add('active');
+  document.body.classList.add('modal-open'); // блок скролла фона
+
+  // закрытие по кнопке
+  startBtn.addEventListener('click', () => {
+    modal.classList.remove('active');
+    document.body.classList.remove('modal-open');
+  }, { once: true });
+});
         // TON Connect
        document.addEventListener('DOMContentLoaded', async () => {
   const connectButton = document.getElementById('connect-wallet');
