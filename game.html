@@ -877,6 +877,27 @@
         .quest-card.completed {
             border-left: 4px solid #00cc99;
         }
+
+        /* ===== Avatar card ===== */
+.avatar-card .avatar-row{
+  display:flex; align-items:center; gap:12px;
+}
+.avatar-img{
+  width:56px; height:56px; border-radius:50%;
+  object-fit:cover;
+  border:2px solid #00ffcc;
+  box-shadow:0 0 12px rgba(0,255,204,.25);
+}
+.avatar-info .avatar-meta{
+  font-size:12px; color:#a0a0d0; margin-top:4px;
+}
+/* Вариант без картинки: круг с инициалами */
+.avatar-initials{
+  width:56px;height:56px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#2a2a4a,#1a1a2f);
+  border:2px solid #00ffcc; font-weight:700; color:#00ffcc;
+}
  
         /* Кошелек */
         #wallet-container {
@@ -1067,6 +1088,24 @@
     100% { box-shadow: 0 0 5px rgba(204, 102, 255, 0.3); }
 }
 
+#o2-generation-card{
+  position: relative;
+  border: 1px solid rgba(0,255,204,0.5);
+  box-shadow: 0 0 15px rgba(0,255,204,0.3);
+  animation: pulse-cyan 2s infinite;
+}
+@keyframes pulse-cyan{
+  0%   { box-shadow: 0 0 5px  rgba(0,255,204,0.3); }
+  50%  { box-shadow: 0 0 20px rgba(0,255,204,0.7); }
+  100% { box-shadow: 0 0 5px  rgba(0,255,204,0.3); }
+}
+#o2-generation-card:hover{
+  transform: scale(1.03);
+  box-shadow: 0 0 25px rgba(0,255,204,0.9);
+  animation: none;
+}
+
+
 #rest-capsule-card:hover {
     transform: scale(1.03);
     box-shadow: 0 0 25px rgba(204, 102, 255, 0.9);
@@ -1244,6 +1283,153 @@ body.modal-open {
 }
 .sleep-grid .btn{padding:8px 10px; font-size:13px;}
 
+/* Общий стиль аватара */
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ff4d4d; /* красная окантовка */
+}
+
+/* Текст под фото */
+.avatar-info .avatar-meta {
+  font-size: 12px;
+  color: #ffb3b3;
+  margin-top: 4px;
+}
+/* Пульсация как у капсулы, но красная */
+#avatar-card{
+  position: relative;
+  border: 1px solid rgba(255,77,77,0.5);
+  box-shadow: 0 0 15px rgba(255,77,77,0.3);
+  animation: pulse-red 2s infinite;
+}
+@keyframes pulse-red{
+  0%   { box-shadow: 0 0 5px  rgba(255,77,77,0.3); }
+  50%  { box-shadow: 0 0 20px rgba(255,77,77,0.7); }
+  100% { box-shadow: 0 0 5px  rgba(255,77,77,0.3); }
+}
+#avatar-card:hover{
+  transform: scale(1.03);
+  box-shadow: 0 0 25px rgba(255,77,77,0.9);
+  animation: none;
+}
+
+/* Красноватая подсветка карточки */
+.red-glow {
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.7),
+              inset 0 0 10px rgba(255, 77, 77, 0.3);
+  border: 1px solid rgba(255, 77, 77, 0.6);
+}
+/* === overlay & modal === */
+.overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.82);
+  backdrop-filter: blur(2px);
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s ease;
+  z-index: 900;
+}
+.overlay.open{ opacity:1; pointer-events: auto; }
+
+
+.modal-close{
+  position:absolute; top:10px; right:12px;
+  background: transparent; border:0; color:#f7b1b1;
+  font-size:18px; cursor:pointer;
+}
+
+/* header */
+.profile-header{ display:flex; align-items:center; gap:12px; }
+.profile-avatar{
+  width:56px; height:56px; border-radius:50%; object-fit:cover;
+  border:2px solid #ff4d4d; box-shadow:0 0 12px rgba(255,77,77,.35);
+}
+#profileTitle{ margin:0; font-size:20px; color:#fff; letter-spacing:.5px; }
+.profile-sub{ color:#ffb3b3; font-size:12px; opacity:.85; }
+
+/* grid of stat cards */
+.stats-grid{
+  display:grid; grid-template-columns: 1fr 1fr; gap:14px;
+  margin-top:16px;
+}
+.stat-card{
+  background:#111428; border:1px solid rgba(255,105,180,.35);
+  border-radius:12px; padding:14px;
+  box-shadow:0 0 12px rgba(255,105,180,.18);
+}
+.stat-title{ color:#ff6fa0; font-weight:700; margin-bottom:4px; }
+.stat-value{ color:#fff; font-size:22px; margin:6px 0 8px; }
+
+.progress{
+  width:100%; height:10px; border-radius:999px;
+  background:#2a2f45; overflow:hidden; margin-bottom:8px;
+}
+.progress .bar{
+  height:100%; width: var(--p,0%); border-radius:inherit;
+  background: linear-gradient(90deg,#ff6fa0,#ff6fa0 60%, #ff89b3);
+  box-shadow: 0 0 12px rgba(255,105,180,.6);
+  transition: width .35s ease;
+}
+.stat-desc{ color:#9aa0c6; font-size:12px; }
+
+.modal-actions{
+  display:flex; gap:10px; justify-content:flex-end; margin-top:14px;
+}
+.btn{ padding:8px 12px; border-radius:10px; border:1px solid #394066; background:#141833; color:#d6dbff; cursor:pointer; }
+.btn.primary{ border-color:#ff6fa0; color:#fff; box-shadow:0 0 10px rgba(255,105,180,.35) inset; }
+.btn.ghost{ background:transparent; }
+
+/* пульсация карточек */
+#avatar-card{ animation: pulse-red 2s infinite; }
+#o2-generation-card{ animation: pulse-cyan 2s infinite; }
+@keyframes pulse-red{
+  0%{ box-shadow:0 0 6px rgba(255,77,77,.35); }
+  50%{ box-shadow:0 0 22px rgba(255,77,77,.75); }
+  100%{ box-shadow:0 0 6px rgba(255,77,77,.35); }
+}
+@keyframes pulse-cyan{
+  0%{ box-shadow:0 0 6px rgba(0,255,204,.35); }
+  50%{ box-shadow:0 0 22px rgba(0,255,204,.8); }
+  100%{ box-shadow:0 0 6px rgba(0,255,204,.35); }
+}
+
+/* === Profile overlay & modal  === */
+.profile-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.82);
+  backdrop-filter: blur(2px);
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s ease;
+  z-index: 900;
+}
+.profile-overlay.open{ opacity:1; pointer-events:auto; }
+
+.profile-modal{
+  position: fixed; inset: 50% auto auto 50%;
+  transform: translate(-50%,-46%) scale(.98);
+  width: min(680px, 92vw);
+  max-height: 86vh; overflow:auto;
+  background:#0f1220;
+  border:1px solid rgba(255,77,77,.5);
+  box-shadow:0 0 24px rgba(255,77,77,.35), inset 0 0 10px rgba(255,77,77,.2);
+  border-radius:14px; padding:18px 18px 12px;
+  opacity:0; pointer-events:none;
+  transition: transform .2s ease, opacity .2s ease;
+  z-index: 901;
+}
+.profile-modal.open{
+  opacity:1; pointer-events:auto;
+  transform: translate(-50%,-50%) scale(1);
+}
+
 
  </style>
 </head>
@@ -1269,7 +1455,7 @@ body.modal-open {
         </div>
         
         <!-- Модальное окно обучения -->
-        <div class="modal active" id="tutorial-modal">
+        <div class="modal" id="tutorial-modal">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title">Welcome to METAVILLE!</h3>
@@ -1408,16 +1594,17 @@ body.modal-open {
                         </div>
                     </div>
                     
-                    <div class="status-card">
-                        <div class="status-title">
-                            <i class="fas fa-tint"></i> Water supply
-                        </div>
-                        <div class="status-value">1,200 L</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 64%"></div>
-                        </div>
-                    </div>
-                    
+ <!-- AVATAR CARD (кликабельно) -->
+<div class="status-card red-glow" id="avatar-card" role="button" aria-label="Open profile">
+  <div class="avatar-row">
+   <!-- <img class="avatar-img" src="images/avatar.png" alt="Avatar">  -->
+    <div class="avatar-info">
+      <div class="status-title"><i class="fas fa-user-astronaut"></i> Pilot</div>
+      <div class="status-value" id="player-name">ZAGADKA</div>
+      <div class="avatar-meta">Rank: Citizen • ID: V01D-031</div>
+    </div>
+  </div>
+</div>            
                     <!-- карточка генерации O₂ -->
 
                    <div class="status-card clickable highlight-oxygen" id="o2-generation-card">
@@ -2106,6 +2293,76 @@ body.modal-open {
         <div id="notification-text">Transport-7 is under attack by raiders! Losses: 35 resources</div>
     </div>
     
+<!-- ===== Profile modal (единственный экземпляр) ===== -->
+<div id="profile-overlay" class="profile-overlay"></div>
+
+<div id="profile-modal" class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+  <button class="modal-close" id="profile-close" aria-label="Close">✕</button>
+
+  <header class="modal-header">
+    <div class="profile-header">
+     <!-- <img class="profile-avatar" src="images/avatar.png" alt="Avatar">    -->
+      <div>
+        <h2 id="profileTitle">ZAGADKA</h2>
+        <div class="profile-sub">Status: Citizen • ID: V01D-031 • Sector 7G</div>
+      </div>
+    </div>
+  </header>
+
+    <!-- ваши карточки статов здесь -->
+<section class="stats-grid">
+    <!-- один элемент -->
+    <article class="stat-card">
+      <div class="stat-title">Огневая мощь (FP)</div>
+      <div class="stat-value">139</div>
+      <div class="progress"><div class="bar" style="--p:62%"></div></div>
+      <div class="stat-desc">Эффективность в боевых сценариях, защита караванов</div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-title">Статус (HT)</div>
+      <div class="stat-value">Titan [3]</div>
+      <div class="progress"><div class="bar" style="--p:55%"></div></div>
+      <div class="stat-desc">Доступ к закрытым зонам, дипломатия с фракциями</div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-title">Энергия (EN)</div>
+      <div class="stat-value">143/160</div>
+      <div class="progress"><div class="bar" style="--p:89%"></div></div>
+      <div class="stat-desc">Количество действий за ход, работа в токсичных зонах</div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-title">Защита (ED)</div>
+      <div class="stat-value">151</div>
+      <div class="progress"><div class="bar" style="--p:75%"></div></div>
+      <div class="stat-desc">Устойчивость к радиации/токсинам, сохранность груза</div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-title">Здоровье (HP)</div>
+      <div class="stat-value">137/200</div>
+      <div class="progress"><div class="bar" style="--p:68%"></div></div>
+      <div class="stat-desc">Выживаемость и скорость восстановления</div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-title">Опыт (XP)</div>
+      <div class="stat-value">150/200</div>
+      <div class="progress"><div class="bar" style="--p:75%"></div></div>
+      <div class="stat-desc">Прокачка характеристик</div>
+    </article>
+
+  </section>
+
+  <footer class="modal-actions">
+    <button class="btn primary">Edit profile</button>
+    <button class="btn ghost" id="profile-close-2">Close</button>
+  </footer>
+</div>
+
+
     <script>
         // Состояние игры (исправленное)
         const gameState = {
@@ -3439,7 +3696,77 @@ document.addEventListener('DOMContentLoaded', ()=>{
   bindScanConfirm();
 });
 
+  const avatarCard = document.getElementById('avatar-card');
+  const modal      = document.getElementById('profile-modal');
+  const overlay    = document.getElementById('profile-overlay');
+  const close1     = document.getElementById('profile-close');
+  const close2     = document.getElementById('profile-close-2');
 
+  function openProfile(){
+    overlay.classList.add('open');
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+  }
+  function closeProfile(){
+    overlay.classList.remove('open');
+    modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+  }
+
+  if (avatarCard) avatarCard.addEventListener('click', openProfile);
+  [close1, close2, overlay].forEach(el => el && el.addEventListener('click', closeProfile));
+  window.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) closeProfile(); });
+       
+(function(){
+  const avatar  = document.getElementById('avatar-card');
+  const modal   = document.getElementById('profile-modal');
+  const overlay = document.getElementById('profile-overlay');
+  const c1 = document.getElementById('profile-close');
+  const c2 = document.getElementById('profile-close-2');
+
+  if (!avatar || !modal || !overlay) return;
+
+  const open = () => { overlay.classList.add('open'); modal.classList.add('open'); document.body.classList.add('modal-open'); };
+  const close = () => { overlay.classList.remove('open'); modal.classList.remove('open'); document.body.classList.remove('modal-open'); };
+
+  avatar.addEventListener('click', open);
+  overlay.addEventListener('click', close);
+  if (c1) c1.addEventListener('click', close);
+  if (c2) c2.addEventListener('click', close);
+  window.addEventListener('keydown', e => (e.key === 'Escape' && modal.classList.contains('open')) && close());
+})();
+
+
+(function(){
+  const tutorial = document.getElementById('tutorial-modal');
+  if (!tutorial) return;
+
+  // ПОКАЗЫВАТЬ ТОЛЬКО ОДИН РАЗ:
+  const seen = localStorage.getItem('tutorialSeen');
+  if (!seen) tutorial.classList.add('active');
+  else tutorial.classList.remove('active');
+
+  function closeTutorial(){
+    tutorial.classList.remove('active');
+    localStorage.setItem('tutorialSeen','1'); // закомментируй эту строку, если нужно показывать КАЖДЫЙ раз
+  }
+
+  // Кнопки закрытия (примерные id/атрибуты — подставь свои)
+  const startBtn = document.getElementById('start-game-btn');
+  const skipBtn  = document.getElementById('tutorial-skip');
+  startBtn && startBtn.addEventListener('click', closeTutorial);
+  skipBtn  && skipBtn.addEventListener('click', closeTutorial);
+
+  // Закрытие по ESC
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && tutorial.classList.contains('active')) closeTutorial();
+  });
+
+  // Если у туториала кликабельный фон:
+  tutorial.addEventListener('click', (e)=>{
+    if (e.target === tutorial) closeTutorial();
+  });
+})();
         // TON Connect
        document.addEventListener('DOMContentLoaded', async () => {
   const connectButton = document.getElementById('connect-wallet');
