@@ -928,7 +928,9 @@
     max-height: 80vh;
     padding-bottom: 20px;
 }
-
+#o2-miner-content .stats-container .stat-box:nth-child(3) {
+  display: none;
+}
         /* стили для капсулы отдыха */
 #rest-capsule-card {
     position: relative;
@@ -2824,15 +2826,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
             
             <div class="stats-container">
                 <div class="stat-box">
-                    <div class="stat-label">Активные Майнеры</div>
+                    <div class="stat-label">Active Miners</div>
                     <div class="stat-value" id="activeMiners">1,427</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Ваша Доля</div>
+                    <div class="stat-label">Your Share</div>
                     <div class="stat-value" id="yourShare">2.7%</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Следующий Клейм</div>
+                    <div class="stat-label">Next Claim</div>
                     <div class="stat-value" id="nextClaim">04:00:00</div>
                 </div>
             </div>
