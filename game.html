@@ -8,7 +8,16 @@
     <title>METAVILLE: V.01.D / Genesis Platform</title>
 
      <!-- TON Connect UI Kit -->
-    <script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
+    <script defer src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (window.TonConnectUI) {
+      // инициализация
+    } else {
+      console.error('TonConnect UI не загрузился (проверь сеть/URL/порядок скриптов)');
+    }
+  });
+</script>
  
     <link rel="tonconnect" href="https://metaville.github.io/v01d/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -538,7 +547,120 @@
             font-size: 24px;
             cursor: pointer;
         }
-        
+        #scan-modal {
+  background-color: rgba(20, 20, 30, 1); /* плотный тёмный фон */
+  backdrop-filter: none; /* убираем размытие */
+}
+
+/* Для модалки сканирования */
+#scan-modal,
+#scan-result-modal {
+  background-color: #14141E; /* полностью непрозрачный фон */
+  backdrop-filter: none; /* убираем размытие, если было */
+}
+
+/* Для содержимого, чтобы не просвечивало */
+#scan-modal .modal-content,
+#scan-result-modal .modal-content {
+  background-color: #14141E;
+}
+
+/* === Scan Results — обновлённый вид === */
+#scan-result-modal.modal {
+  display: flex; align-items: center; justify-content: center;
+  background: #0b1020;            /* плотный фон */
+}
+#scan-result-modal .modal-content {
+  width: min(560px, 92vw);
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0e1324 0%, #121832 100%);
+  border: 1px solid #273056;
+  box-shadow: 0 18px 44px rgba(0,0,0,.55);
+}
+
+/* шапка */
+.sr-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.sr-title {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; letter-spacing: .3px;
+  color: #00e6c2; font-size: 18px;
+}
+.sr-title .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #00e6c2; box-shadow: 0 0 10px #00e6c2;
+}
+#scan-result-modal .close-modal {
+  background: none; border: 0; cursor: pointer;
+  color: #c9d4ff; font-size: 22px; line-height: 1;
+  opacity: .9;
+}
+#scan-result-modal .close-modal:hover { opacity: 1; }
+
+/* контент */
+.sr-body {
+  display: grid; gap: 14px;
+  padding: 10px 4px 2px;
+}
+.sr-row {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 12px;
+  padding: 10px 12px;
+  background: rgba(22, 28, 55, .55);
+  border: 1px solid #2a3358;
+  border-radius: 10px;
+}
+.sr-label {
+  color: #aab0ff; font-size: 13px;
+}
+.sr-value {
+  color: #e9ecff; font-weight: 600; font-size: 14px;
+}
+
+/* бейджи */
+.sr-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 999px; font-size: 12px;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.sr-badge.info   { color:#8fe5ff; border-color:#156ea4; background:rgba(21,110,164,.18); }
+.sr-badge.warn   { color:#ffd36e; border-color:#8a6a12; background:rgba(138,106,18,.16); }
+.sr-badge.good   { color:#00e6a8; border-color:#0b8a6f; background:rgba(11,138,111,.16); }
+
+/* ресурсы/стоимость в одну строку */
+.sr-hstack { display:flex; flex-wrap:wrap; gap:8px; }
+
+/* кнопки */
+.sr-actions {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-top: 14px;
+}
+.sr-btn {
+  border: 1px solid #2a3358; border-radius: 12px;
+  padding: 12px 14px; font-weight: 600; cursor: pointer;
+  background: #1a1f36; color:#e6e8ff;
+  transition: transform .12s ease, box-shadow .12s ease, background .2s ease;
+}
+.sr-btn:hover{ transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+.sr-btn.cancel { background: linear-gradient(135deg, #5a1f1f, #3a1414); color:#ffd6d6; }
+.sr-btn.primary{ background: linear-gradient(135deg, #0d5a59, #0a3f43); color:#d9fff8; }
+
+/* разделитель */
+.sr-sep {
+  height: 1px; margin: 8px 0 2px;
+  background: linear-gradient(90deg, transparent, #26315a, transparent);
+}
+
+/* адаптив */
+@media (max-width: 420px){
+  .sr-actions { grid-template-columns: 1fr; }
+  .sr-row { grid-template-columns: 1fr; gap: 6px; }
+  .sr-value { justify-self: start; }
+}
+
         .sectors-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -1093,6 +1215,36 @@ body.modal-open {
 #scanned-resources { 
   display: none !important; 
 }
+
+/* Узлы электростанций на карте */
+.power-node {
+  position: absolute;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid #00e6a8;
+  background: radial-gradient(circle at 40% 40%, #14ffec, #008b8b);
+  box-shadow: 0 0 10px rgba(20,255,236,.6), inset 0 0 6px rgba(0,0,0,.6);
+  cursor: pointer;
+}
+.power-node.cooldown {
+  border-color: #444c6a;
+  background: radial-gradient(circle at 40% 40%, #2a3358, #1a2038);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.power-node .cd {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #cde7ff; text-shadow: 0 1px 2px #000;
+}
+
+/* Кнопки сна в модалке каюты */
+.sleep-grid{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px;
+}
+.sleep-grid .btn{padding:8px 10px; font-size:13px;}
+
+
  </style>
 </head>
 <body>
@@ -1202,6 +1354,14 @@ body.modal-open {
                     <div class="map-circle outer-ring">
                         <span class="ring-label outer-label">Area that is dangerous (100-150 km)</span>
                     </div>
+
+                <!-- Energy Nodes (Power Stations) -->
+<div id="power-nodes">
+  <button class="power-node" data-node-id="n1" style="left:16%; top:38%;"></button>
+  <button class="power-node" data-node-id="n2" style="left:62%; top:22%;"></button>
+  <button class="power-node" data-node-id="n3" style="left:73%; top:68%;"></button>
+</div>
+
                 </div>
                 
                 <!-- Упрощенное меню действий -->
@@ -1918,6 +2078,17 @@ body.modal-open {
         <span id="rest-time">0%</span>
         <span id="rest-status">Ready to rest</span>
     </div>
+<div class="section-title">Sleep (energy regen ×4)</div>
+<div class="sleep-grid">
+  <button class="btn" data-sleep="1">1h</button>
+  <button class="btn" data-sleep="2">2h</button>
+  <button class="btn" data-sleep="4">4h</button>
+  <button class="btn" data-sleep="8">8h</button>
+</div>
+<div style="margin-top:8px; font-size:12px; color:#a0a0d0">
+  While sleeping: ~80 energy per hour (base).
+</div>
+
 </div>
         </div>
         
@@ -2548,14 +2719,14 @@ function completeRest() {
 }
 // Потребление энергии с течением времени
 setInterval(() => {
-    if (!gameState.player.isResting) {
-        updateResource('energy', -1);
+   // if (!gameState.player.isResting) {
+      //  updateResource('energy', -0.01);
         
         // Если энергия ниже 20%, показываем предупреждение
         if (gameState.resources.energy < 200 && Math.random() > 0.8) {
             showNotification("⚠️ Low energy level! Rest in the capsule", false);
         }
-    }
+    
 }, 1000);
 
 
@@ -2578,7 +2749,7 @@ function renderReputation(reps){
   });
 }
 
-// пример вызова — подставь свои реальные данные
+// пример вызова — подставить  данные
 document.addEventListener('DOMContentLoaded', ()=>{
   renderReputation([
     { name:'Syndicate "Gloria"', value: 25, status:'friend',  percent:62 },
@@ -3000,6 +3171,273 @@ function showNotification(message, isSuccess = true, ms = 6000) {
 // showNotification("Mission completed!", true);
 // showNotification("Not enough oxygen!", false);
 
+
+/* ==== ENERGY SYSTEM v1 ==== */
+
+/** Баланс */
+const E_CFG = {
+  max: 600,                                        // базовый максимум энергии
+  regenPassiveMsPerPoint: 3 * 60 * 1000,           // 1 ед / 3 мин
+  regenSleepMsPerPoint:   45 * 1000,               // 1 ед / 45 сек (x4)
+  nodeRestoreMs:          2 * 60 * 60 * 1000,      // узел: откат 2 часа
+  nodeReward:             50,                      // узел: +50 энергии
+  scanCost:  { low: 65,  medium: 110, high: 150 },
+  scanMult:  { low: 1.0, medium: 1.5, high: 2.0  },
+  scanChance:{ low: 0.9, medium: 0.7, high: 0.5  } // шанс успеха
+};
+
+const E_STORE_KEY = 'mv_energy_state_v1';
+const nowTs = () => Date.now();
+
+/** Состояние */
+let E = loadState() || {
+  energy: E_CFG.max,
+  lastTs: nowTs(),
+  sleepUntil: 0,
+  nodes: {
+    n1: { readyAt: 0 },
+    n2: { readyAt: 0 },
+    n3: { readyAt: 0 }
+  }
+};
+
+function saveState(){ localStorage.setItem(E_STORE_KEY, JSON.stringify(E)); }
+function loadState(){
+  try { return JSON.parse(localStorage.getItem(E_STORE_KEY)); } catch(e){ return null; }
+}
+
+/** Хелперы */
+function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+function addEnergy(amount){
+  E.energy = clamp(E.energy + amount, 0, E_CFG.max);
+  updateEnergyUI();
+  saveState();
+}
+function spendEnergy(cost){
+  if (E.energy < cost) return false;
+  E.energy -= cost;
+  updateEnergyUI();
+  saveState();
+  return true;
+}
+function updateEnergyUI(){
+  const el = document.getElementById('energy-value');
+  if (el) el.textContent = Math.floor(E.energy);
+}
+
+/** Оффлайн/онлайн регенерация по времени */
+function regenSince(last, now){
+  if (now <= last) return 0;
+  const sleepU = E.sleepUntil || 0;
+
+  // базовая часть
+  let baseMs = now - last;
+  let sleepMs = 0;
+
+  // выделяем отрезок "сна"
+  if (sleepU > last){
+    const sFrom = last;
+    const sTo = Math.min(now, sleepU);
+    if (sTo > sFrom) {
+      sleepMs = sTo - sFrom;
+      baseMs -= sleepMs;
+    }
+  }
+
+  const basePts  = baseMs  / E_CFG.regenPassiveMsPerPoint;
+  const sleepPts = sleepMs / E_CFG.regenSleepMsPerPoint;
+
+  return Math.floor(basePts + sleepPts);
+}
+function tickRegen(){
+  const t = nowTs();
+  const pts = regenSince(E.lastTs, t);
+  if (pts > 0){
+    E.energy = clamp(E.energy + pts, 0, E_CFG.max);
+    E.lastTs = t;
+    // если «сон» закончился — обнулим флажок
+    if (E.sleepUntil && t >= E.sleepUntil) E.sleepUntil = 0;
+    updateEnergyUI();
+    saveState();
+  } else {
+    // просто обновим lastTs, чтобы не копилась дельта
+    E.lastTs = t;
+  }
+}
+
+/** Узлы электростанций */
+function formatCD(ms){
+  const s = Math.ceil(ms/1000);
+  const mm = Math.floor(s/60); const ss = s%60;
+  return mm + ':' + String(ss).padStart(2,'0');
+}
+function renderNodes(){
+  document.querySelectorAll('.power-node').forEach(btn=>{
+    const id = btn.dataset.nodeId;
+    const nd = E.nodes[id] || { readyAt: 0 };
+    const leftMs = nd.readyAt - nowTs();
+    let cd = btn.querySelector('.cd');
+    if (!cd){ cd = document.createElement('div'); cd.className='cd'; btn.appendChild(cd); }
+
+    if (leftMs > 0){
+      btn.classList.add('cooldown');
+      cd.textContent = formatCD(leftMs);
+    } else {
+      btn.classList.remove('cooldown');
+      cd.textContent = '+50';
+    }
+  });
+}
+function bindNodes(){
+  document.querySelectorAll('.power-node').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.nodeId;
+      const nd = E.nodes[id] || (E.nodes[id] = { readyAt: 0 });
+      const leftMs = nd.readyAt - nowTs();
+      if (leftMs > 0){
+        showNotification('Node recharging: ' + formatCD(leftMs), false);
+        return;
+      }
+      addEnergy(E_CFG.nodeReward);
+      nd.readyAt = nowTs() + E_CFG.nodeRestoreMs;
+      saveState();
+      renderNodes();
+      showNotification('+50 Energy from node', true);
+    });
+  });
+}
+
+/** СОН (каюта) — кнопки в #rest-modal */
+function bindSleepButtons(){
+  const restModal = document.getElementById('rest-modal');
+  if (!restModal) return;
+  restModal.querySelectorAll('[data-sleep]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const hrs = parseInt(b.dataset.sleep,10)||1;
+      E.sleepUntil = nowTs() + hrs*3600000;
+      saveState();
+      showNotification(`Sleep started for ${hrs}h (regen ×4)`, true);
+    });
+  });
+}
+
+/** Сканирование: новая стоимость/риск/награда */
+const SCAN = {
+  // маппим data-risk → редкость
+  riskToKey(risk){ return (risk==='low'?'low':risk==='medium'?'medium':'high'); },
+  current: null // { sector, belt, risk }
+};
+
+function bindSectorPick(){
+  document.querySelectorAll('#scan-modal .sector-item').forEach(it=>{
+    it.addEventListener('click', ()=>{
+      // визуальный выбор
+      document.querySelectorAll('#scan-modal .sector-item').forEach(x=>x.style.outline='none');
+      it.style.outline = '2px solid #00ffcc';
+
+      const sector = it.dataset.sector;
+      const belt   = it.dataset.belt;
+      const risk   = it.dataset.risk;  // low/medium/high
+      SCAN.current = { sector, belt, risk };
+      // обновим цену в UI
+      const key = SCAN.riskToKey(risk);
+      const price = E_CFG.scanCost[key];
+      const costEl = document.getElementById('scan-cost');
+      if (costEl) costEl.textContent = String(price);
+    });
+  });
+}
+
+function bindScanConfirm(){
+  const btn = document.getElementById('confirm-scan');
+  if (!btn) return;
+  btn.addEventListener('click', ()=>{
+    if (!SCAN.current){
+      showNotification('Choose sector to scan', false);
+      return;
+    }
+    const key  = SCAN.riskToKey(SCAN.current.risk);
+    const cost = E_CFG.scanCost[key];
+    if (!spendEnergy(cost)){
+      showNotification('Not enough Energy', false);
+      return;
+    }
+
+    // запускаем миссию (оставляю твою существующую анимацию прогресса)
+    startMissionWithOutcome(key, cost);
+    closeModalById('scan-modal');
+  });
+}
+
+/** Итог миссии: шанс успеха, возврат половины при фейле */
+function startMissionWithOutcome(key, cost){
+  // Здесь используем твои элементы миссии (progress и т.д.)
+  const chance = E_CFG.scanChance[key];
+  // имитация завершения через 3 секунды (если у тебя уже есть таймер — используй его)
+  setTimeout(()=>{
+    const ok = Math.random() < chance;
+
+    if (ok){
+      const mult = E_CFG.scanMult[key];
+      // начисляем награду — подставь свою функцию лута/XP
+      const gainedMvc = Math.floor(10 * mult); // пример!
+      showNotification(`Scan success (+${gainedMvc} MVC, x${mult})`, true);
+      // TODO: тут вызови свою логику: добавить ресурсы по мультипликатору
+    } else {
+      // риск-энергия: теряем 50% стоимости (мы списали всё при старте — вернём половину)
+      addEnergy(Math.floor(cost * 0.5));
+      showNotification('Scan failed (refunded 50% energy)', false);
+    }
+  }, 3000);
+}
+
+/** Утилиты уведомлений/модалок (опираюсь на твои же классы) */
+function showNotification(text, ok=true){
+  // у тебя уже есть .notification.success и .notification.error — воспользуемся ими
+  let n = document.getElementById('mv-toast');
+  if (!n){
+    n = document.createElement('div');
+    n.id = 'mv-toast';
+    n.className = 'notification';
+    document.body.appendChild(n);
+  }
+  n.className = 'notification ' + (ok?'success':'error');
+  n.innerHTML = `<i class="fas ${ok?'fa-check-circle':'fa-exclamation-triangle'}"></i> ${text}`;
+  n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'), 2500);
+}
+
+function closeModalById(id){
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.classList.remove('active');
+  m.style.visibility='hidden';
+  m.style.opacity='0';
+}
+
+/** Инициализация */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // оффлайн реген сразу при входе
+  const gained = regenSince(E.lastTs, nowTs());
+  if (gained>0){
+    E.energy = clamp(E.energy + gained, 0, E_CFG.max);
+    E.lastTs = nowTs();
+    saveState();
+  }
+  updateEnergyUI();
+
+  // таймеры
+  setInterval(()=>{ tickRegen(); renderNodes(); }, 30000); // каждые 30с
+  // первый рендер узлов
+  bindNodes(); renderNodes();
+
+  // сон
+  bindSleepButtons();
+
+  // сканирование
+  bindSectorPick();
+  bindScanConfirm();
+});
 
 
         // TON Connect
