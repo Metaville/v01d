@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -340,8 +340,8 @@
             .market-menu button {
     margin-right: 10px;
   }
-       
         
+         
         .tab {
             flex: 1;
             text-align: center;
@@ -622,7 +622,15 @@
             color: #99ffaa;
             border-left: 4px solid #00cc99;
         }
-        
+        /* Ошибка / отказ / false */
+.notification.error {
+  background: rgba(30, 0, 0, 0.9);
+  color: #ffb3b3;
+  border-left: 4px solid #ff4444;
+}
+
+/* Иконка по умолчанию слева .notification.error i::before { content: "⚠"; }*/
+
         /* Миссии */
         .mission-card {
             background: rgba(20, 25, 40, 0.7);
@@ -704,29 +712,16 @@
             margin-top: 10px;
         }
         
-        .quest-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 500;
+        .quest-badge { position: absolute;  top: 15px;  right: 15px;  padding: 3px 8px;  border-radius: 10px;  font-size: 12px;  font-weight: 500;
         }
         
-        .new-badge {
-            background: linear-gradient(135deg, #ffcc00, #cc9900);
-            color: #332900;
+        .new-badge { background: linear-gradient(135deg, #ffcc00, #cc9900);  color: #332900;
         }
         
-        .active-badge {
-            background: linear-gradient(135deg, #0099ff, #0066cc);
-            color: #fff;
+        .active-badge {  background: linear-gradient(135deg, #0099ff, #0066cc);   color: #fff;
         }
         
-        .completed-badge {
-            background: linear-gradient(135deg, #00cc99, #009973);
-            color: #001a14;
+        .completed-badge { background: linear-gradient(135deg, #00cc99, #009973); color: #001a14;
         }
         
         /* Анимации */
@@ -760,7 +755,7 @@
         .quest-card.completed {
             border-left: 4px solid #00cc99;
         }
-
+ 
         /* Кошелек */
         #wallet-container {
             display: flex;
@@ -779,6 +774,37 @@
             max-width: 100px;
         }
 
+        /* Репутация: сетка и карточки */
+.rep-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* ← теперь всегда один столбец */
+  gap: 12px;
+}
+.rep-card{
+  background: rgba(20,25,40,0.6);
+  border:1px solid #2a3358;
+  border-radius:10px;
+  padding:10px 12px;
+}
+.rep-head{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
+  font-weight:600;font-size:14px;color:#e0e0ff;
+}
+.rep-badge{
+  font-size:11px; padding:2px 8px; border-radius:9999px; border:1px solid transparent;
+}
+.rep-badge.friend  { color:#00e6a8; border-color:#00e6a8; background:rgba(0,230,168,.08); }
+.rep-badge.neutral { color:#ffc400; border-color:#ffc400; background:rgba(255,196,0,.08); }
+.rep-badge.enemy   { color:#ff5b5b; border-color:#ff5b5b; background:rgba(255,91,91,.08); }
+
+.rep-value{ font-size:13px; color:#aab0ff; margin-bottom:8px; }
+.rep-bar{ height:6px; background:#141a2e; border-radius:4px; overflow:hidden; }
+.rep-fill{ height:100%; width:0%; border-radius:4px; background:linear-gradient(90deg,#00cc99,#00ffcc); }
+
+/* Для тёмной темы модалки */
+#rest-modal .section-title{ color:#00ffcc; margin:12px 0 6px; }
+
+ 
 /* Стили для обучения */
 .tutorial-item {
     display: flex;
@@ -859,9 +885,7 @@
 .inner-ring { --ring-color: 0, 204, 153; }
 .middle-ring { --ring-color: 255, 204, 0; }
 .outer-ring { --ring-color: 255, 85, 85; }
-
          /* кислород*/
-
         #o2-miner-content .container { max-width: 100%; padding: 20px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, #00171f, #003049, #022b3a); color: #00f3ff; position: relative; }
         #o2-miner-content .header { text-align: center; padding: 15px 0; border-bottom: 2px solid rgba(0, 243, 255, 0.3); position: relative; }
         #o2-miner-content .header::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00f3ff, transparent); }
@@ -893,145 +917,18 @@
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
         #o2-miner-content .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00f3ff, transparent); animation: scan 8s linear infinite; z-index: 10; }
         #o2-miner-content .glow { text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); }
-        @media (max-width: 480px) {
-            h1 { font-size: 1.5rem; }
-            #o2-miner-content .stats-container { flex-direction: column; gap: 10px; }
-            #o2-miner-content .stat-value { font-size: 1.3rem; }
-            #o2-miner-content .timer { font-size: 1.1rem; padding: 6px 12px; }
-            #o2-miner-content .o2-value { font-size: 1.8rem; }}
-        #o2-generation-card { position: relative; border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); animation: pulse-o2 2s infinite; }
-        @keyframes pulse-o2 { 0% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); } 50% { box-shadow: 0 0 20px rgba(0, 243, 255, 0.7); } 100% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); } }
-        #o2-generation-card:hover { transform: scale(1.03); box-shadow: 0 0 25px rgba(0, 243, 255, 0.9); animation: none; }
-        .status-title i.fa-wind { color: #00f3ff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); }
-        .click-indicator { position: absolute; top: 10px; right: 10px; color: #00ffcc; font-size: 12px; }
-
-#rest-modal .modal-content {
-    width: 90%;
-    max-width: 500px;
-    padding: 25px 20px;
-    margin: 0 auto;
-    box-sizing: border-box;
+        #o2-miner-modal .modal-content { overflow-y: auto; /* Добавляем вертикальную прокрутку */ max-height: 90vh; /* Ограничиваем высоту */
+}
+#o2-miner-content .container {
+    height: auto; /* Отменяем фиксированную высоту */
+    min-height: 100%; /* Минимальная высота на весь контейнер */
+}
+#o2-miner-content .container {
+    overflow-y: auto;
+    max-height: 80vh;
+    padding-bottom: 20px;
 }
 
-#rest-modal .modal-body {
-    padding: 0 15px;
-}
-
-/* Стили для результатов сканирования */
-.scan-result-info {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 15px;
-    background: rgba(20, 25, 40, 0.7);
-    border-radius: 10px;
-    border: 1px solid #3a3a5a;
-}
-
-.result-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-}
-
-.result-label {
-    font-weight: 600;
-    color: #a0a0d0;
-    min-width: 120px;
-}
-
-.result-value {
-    color: #00ffcc;
-    text-align: right;
-    flex: 1;
-}
-
-/* Блок ресурсов */
-.resource-block {
-    background: rgba(30, 35, 60, 0.5);
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 10px;
-    border: 1px solid #3a3a5a;
-}
-
-/* Блок стоимости */
-.cost-block {
-    background: rgba(40, 30, 50, 0.5);
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 10px;
-    border: 1px solid #3a3a5a;
-}
-
-/* Разделитель между блоками */
-.separator {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #2a2a4a, transparent);
-    margin: 15px 0;
-}
-
-/* Адаптивные отступы для внутренних блоков */
-#rest-modal .status-grid {
-    gap: 5px;
-    padding: 0 5px;
-}
-
-#rest-modal .reputation-item {
-    padding: 8px 5px;
-}
-
-
-/* Базовые стили для всех модалок */
-.modal-content {
-    width: 90% !important;
-    max-width: 500px !important;
-    padding: 25px 20px !important;
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 480px) {
-    .modal-content {
-        padding: 20px 15px !important;
-        width: 95% !important;
-    }
-    
-    #tutorial-modal .tutorial-item,
-    #rest-modal .status-grid {
-        flex-direction: column;
-        gap: 10px;
-    }
-}
-#tutorial-modal .modal-content {
-    width: 90%;
-    max-width: 500px; /* Увеличим максимальную ширину */
-    padding: 25px 20px; /* Отступы: 25px сверху/снизу, 20px по бокам */
-    margin: 0 auto; /* Центрирование */
-    box-sizing: border-box; /* Учитываем padding в ширине */
-}
-
-#tutorial-modal .modal-body {
-    padding: 0 15px; /* Дополнительные отступы внутри контента */
-}
-
-/* Контейнер для контента каюты */
-#rest-modal .modal-body-container {
-    padding: 0 10px;
-    margin: 0 -5px; /* Компенсируем внешние отступы */
-}
-
-/* Адаптивные отступы для аватара */
-#rest-modal .avatar {
-    margin-right: 3px;
-}
-
-/* Увеличим боковые отступы для прогресс-бара */
-#rest-modal .progress-container {
-    padding: 0 10px;
-}
         /* стили для капсулы отдыха */
 #rest-capsule-card {
     position: relative;
@@ -1051,186 +948,48 @@
     box-shadow: 0 0 25px rgba(204, 102, 255, 0.9);
     animation: none;
 }
-        
-/* Стили для результатов сканирования */
-.scan-result-info {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 15px;
-    background: rgba(20, 25, 40, 0.7);
-    border-radius: 10px;
-    border: 1px solid #3a3a5a;
-}
+    
 
-.result-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #2a2a4a;
-}
-
-.result-row:last-child {
-    border-bottom: none;
-}
-
-.result-label {
-    font-weight: 600;
-    color: #a0a0d0;
-    min-width: 120px;
-}
-
-.result-value {
-    color: #00ffcc;
-    text-align: right;
-    flex: 1;
-}
-
-.resources-container {
-    background: rgba(30, 35, 60, 0.5);
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 10px;
-    border: 1px solid #3a3a5a;
-}
-
-/* Общий стиль для индикатора клика */
-.click-indicator {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    color: #00ffcc; /* Для кислорода */
-    font-size: 12px;
-}
-
-/* Фиолетовый цвет для капсулы */
+        /* Фиолетовый цвет для капсулы */
 #rest-capsule-card .click-indicator {
     color: #cc66ff;
 }
 
-/* репутация*/
-.reputation-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #2a2a4a;
+/* Подсветка для кислородной карточки */
+.highlight-oxygen {
+  box-shadow: 0 0 14px rgba(0, 153, 255, 0.6);
+  border: 1px solid rgba(0, 153, 255, 0.8);
+  border-radius: 12px;
 }
 
-.reputation-item:last-child {
-    border-bottom: none;
-}       
-
-/* Карточки и элементы интерфейса */
-.status-card, 
-.research-node, 
-.offer-card, 
-.vote-card, 
-.quest-card,
-.sector-item {
-    color: #e0e0ff !important;
-}
-
-.status-title, 
-.node-title, 
-.offer-vendor, 
-.vote-title, 
-.quest-title {
-    color: #a0a0d0 !important;
-}
-
-.status-value, 
-.offer-price, 
-.quest-reward {
-    color: #00ffcc !important;
-}
-
- /* Светлый текст на кнопках */
-    .btn-primary, .btn-warning, .btn-danger {
-        color: #ffffff !important;
-    }
-    
-    /* Светлый текст в карточках */
-    .status-card, .research-node, .offer-card, 
-    .vote-card, .quest-card, .sector-item {
-        color: #e0e0ff !important;
-    }
-    
-    /* Светлые заголовки */
-    .status-title, .node-title, .offer-vendor, 
-    .vote-title, .quest-title {
-        color: #a0a0d0 !important;
-    }
-    
-    /* Яркие акцентные значения */
-    .status-value, .offer-price, .quest-reward {
-        color: #00ffcc !important;
-    }      
-    /* Майнер кислорода */
-    #o2-miner-content .stat-value,
-    #o2-miner-content .mining-title,
-    #o2-miner-content .timer,
-    #o2-miner-content .o2-value,
-    #o2-miner-content .status-value {
-        color: #ffffff !important;
-        text-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
-    }
-    
-    /* Общий цвет текста */
-    body {
-        color: #f0f0ff !important;
-    }
-    
-    /* Светлые точки прогресса */
-    .progress-dots .dot.filled {
-        background: #a0ffea !important;
-    }
-
-#o2-miner-modal .modal-content {
-    overflow-y: auto; /* Добавляем вертикальную прокрутку */
-    max-height: 90vh; /* Ограничиваем высоту */
-}
-
-#o2-miner-content .container {
-    height: auto; /* Отменяем фиксированную высоту */
-    min-height: 100%; /* Минимальная высота на весь контейнер */
-}
-
-#o2-miner-content .container {
-    overflow-y: auto;
-    max-height: 80vh;
-    padding-bottom: 20px;
-}
-
-/* Стилизация скроллбара */
-#o2-miner-content .container::-webkit-scrollbar {
-    width: 6px;
-}
-
-#o2-miner-content .container::-webkit-scrollbar-track {
-    background: rgba(0, 30, 40, 0.3);
-}
-
-#o2-miner-content .container::-webkit-scrollbar-thumb {
-    background: #00ccff;
-    border-radius: 3px;
-}
-/* Для экрана квестов */
-#quest-screen.screen.active { display: flex: column; }
-
-/* Для карточек квестов */
-.quest-card {
+        /* Стилизация скроллбара */
+        #o2-miner-content .container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #o2-miner-content .container::-webkit-scrollbar-track {
+            background: rgba(0, 30, 40, 0.3);
+        }
+        
+        #o2-miner-content .container::-webkit-scrollbar-thumb {
+            background: #00ccff;
+            border-radius: 3px;
+        }
+        /* Для экрана квестов */
+        #quest-screen.screen.active { display: flex; flex-direction: column; }
+ 
+        /* Для карточек квестов */
+        .quest-card {
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
 }
-
-.quest-description {
+ 
+        .quest-description {
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
-
-/* ===== ОПАК-ФОН для оверлея именно выбранных модалок ===== */
+ /* ===== ОПАК-ФОН для оверлея именно выбранных модалок ===== */
 #tutorial-modal.modal,
 #rest-modal.modal,
 #quest-awake-modal.modal {
@@ -1238,16 +997,7 @@
   background: #070914 !important; /* можно #0b1020 / на вкус */
 }
 
-/* ВАРИАНТ С КАРТИНКОЙ-ПОДЛОЖКОЙ (раскомментируй если хочешь арт на фоне) */
-/*
-#tutorial-modal.modal,
-#rest-modal.modal,
-#quest-awake-modal.modal {
-  background: #070914 url('images/modal-bg.jpg') center/cover no-repeat !important;
-}
-*/
-
-/* Мягкая дымка поверх картинки (если используешь картинку) */
+/* Мягкая дымка поверх картинки  */
 #tutorial-modal.modal::before,
 #rest-modal.modal::before,
 #quest-awake-modal.modal::before {
@@ -1291,6 +1041,56 @@ body.modal-open {
   overflow: hidden;
 }
 
+/* Ограничение ширины/высоты и границы от экрана для туториала и квестов */
+#tutorial-modal .modal-content,
+#quest-awake-modal .modal-content,
+#rest-modal .modal-content {
+  max-width: 90vw;   /* максимум 90% ширины окна */
+  max-height: 90vh;  /* максимум 90% высоты окна */
+  margin: auto;      /* центрируем */
+  overflow-y: auto;  /* скролл, если контента много */
+  border-radius: 16px; /* закругления краёв */
+  background: linear-gradient(135deg, #0e1324, #121832); /* плотный фон */
+  border: 1px solid #273056; /* обводка */
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  padding: 20px;
+}
+#tutorial-modal.modal,
+#quest-awake-modal.modal,
+#rest-modal.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px; /* отступ внутри оверлея для мобильных */
+}
+
+/* Блокируем прокрутку фона, когда открыта модалка */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Базовая раскладка модалки — центрирование содержимого */
+.modal {
+  display: none;                /* по умолчанию скрыта */
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,10,0.8); /* затемнение фона */
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal.active {
+  display: flex;
+}
+
+/* Чтобы клик «по фону» был кликабельным, а контент — нет */
+.modal .modal-content {
+  position: relative;
+  pointer-events: auto;
+}
+#scanned-resources { 
+  display: none !important; 
+}
  </style>
 </head>
 <body>
@@ -1298,13 +1098,13 @@ body.modal-open {
         <!-- Верхняя панель ресурсов -->
         <div class="resource-bar">
             <div class="resource-item" id="oxygen-resource">
-                <span>O₂: <span id="oxygen-value">100</span></span>
+                <span>O₂: <span id="oxygen-value">250</span></span>
             </div>
             <div class="resource-item" id="energy-resource">
-                <span>⚡ <span id="energy-value">1000</span></span>
+                <span>⚡ <span id="energy-value">500</span></span>
             </div>
             <div class="resource-item" id="mvc-resource">
-                <span>MVC: <span id="mvc-value">200</span></span>
+                <span>MVC: <span id="mvc-value">500</span></span>
             </div>
             <div class="resource-item" id="bio-resource">
                 <span>🧪 <span id="bio-value">100</span></span>
@@ -1379,9 +1179,7 @@ body.modal-open {
                 </div>
                 
                 <div class="modal-actions">
-                    <button class="btn btn-primary" id="start-game-btn">
-                        Start the game
-                    </button>
+                    <button class="btn btn-primary" id="start-game-btn">Start the game</button>
                 </div>
             </div>
         </div>
@@ -1414,7 +1212,7 @@ body.modal-open {
                     </button>
                 </div>
                 
-                <h3 class="section-title" style="margin-top: 20px;">Active missions</h3>
+                <h3 class="section-title" style="margin-top: 10px;">Active missions</h3>
                 <div class="mission-card" id="probe-mission">
                     <div class="mission-progress" id="probe-progress" style="width: 0%"></div>
                     <div class="status-title">
@@ -1424,10 +1222,10 @@ body.modal-open {
                     <div class="progress-bar">
                         <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 50px;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
                         <span id="mission-time">0%</span>
                         <span id="mission-harvest">HARVESTER: 0/2</span>
-                        <span id="scanned-resources">Resourse: -</span>
+                        <span id="scanned-resources">Resourse: -</span> 
                         <span id="mission-risk" style="color: #ffcc00;">RISK: 0% ⚠️</span>
                     </div>
                 </div>
@@ -1459,18 +1257,17 @@ body.modal-open {
                     </div>
                     
                     <!-- карточка генерации O₂ -->
-                    <div class="status-card clickable" id="o2-generation-card">
-                        <div class="status-title">
-                            <i class="fas fa-wind"></i> Generation O₂
-                             <!-- иконка пальца -->
-                            <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
 
-                        </div>
-                        <div class="status-value" id="o2-generation-value">0/h</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="o2-progress" style="width: 0%"></div>
-                        </div>
-                    </div>
+                   <div class="status-card clickable highlight-oxygen" id="o2-generation-card">
+  <div class="status-title">
+    <i class="fas fa-wind"></i> Generation O₂
+    <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
+  </div>
+  <div class="status-value" id="o2-generation-value">5/h</div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="o2-progress" style="width: 0%"></div>
+  </div>
+</div>
                     
                     <div class="status-card">
                         <div class="status-title">
@@ -1608,8 +1405,8 @@ body.modal-open {
                         <span>Transport</span>
                     </div>
                     <div class="node-progress">
-                        <span>Прогресс:</span>
-                        <div id="engine-status" style="color: #00ffcc;">Не начато</div>
+                        <span>Progress:</span>
+                        <div id="engine-status" style="color: #00ffcc;">Not started</div>
                     </div>
                     <p>Increases the speed of transport by 15%</p>
                     <div class="node-cost">
@@ -1647,7 +1444,7 @@ body.modal-open {
                     <div class="offer-details">
                         <div class="offer-price">12 MVC/unit</div>
                         <button class="btn buy-btn" data-resource="polymers" data-price="12" data-amount="85" style="padding: 8px 12px;">BUY</button>
-                        <button id="sell-btn" class="btn btn-secondary">SELL</button>
+                        <button class="btn btn-secondary">SELL</button>
                     </div>
                 </div>
                 
@@ -1660,7 +1457,7 @@ body.modal-open {
                     <div class="offer-details">
                         <div class="offer-price">28 MVC/unit</div>
                         <button class="btn buy-btn" data-resource="rare" data-price="28" data-amount="12" style="padding: 8px 12px;">BUY</button>
-                        <button id="sell-btn" class="btn btn-secondary">SELL</button>
+                        <button class="btn btn-secondary">SELL</button>
                     </div>
                 </div>
                 
@@ -1673,7 +1470,7 @@ body.modal-open {
                     <div class="offer-details">
                         <div class="offer-price">10 MVC/unit</div>
                         <button class="btn buy-btn" data-resource="oxygen" data-price="10" data-amount="150" style="padding: 8px 12px;">BUY</button>
-                        <button id="sell-btn" class="btn btn-secondary">SELL</button>
+                        <button class="btn btn-secondary">SELL</button>
                     </div>
                 </div>
                 
@@ -1737,8 +1534,8 @@ body.modal-open {
                         <div class="vote-fill" id="moon-progress" style="width: 28%"></div>
                     </div>
                     <div class="vote-info">
-                        <div>Прогресс: <span id="moon-percent">28</span>%</div>
-                        <div>Стоимость: 95,000 MVC</div>
+                        <div>Progress: <span id="moon-percent">28</span>%</div>
+                        <div>Cost: 95,000 MVC</div>
                     </div>
                     <div class="vote-controls">
                         <input type="number" min="1" max="150" value="5" class="vote-input" id="moon-votes">
@@ -1766,23 +1563,23 @@ body.modal-open {
            <div class="quest-card new">
   <div class="quest-badge new-badge">New!</div>
   <div class="quest-title">
-    <i class="fas fa-star"></i> Пробуждение
+    <i class="fas fa-star"></i> Awakening
   </div>
   <div class="quest-description">
-    Осмотри свою капсулу и найди способ выбраться. Проверь все отсеки — там могут быть полезные вещи.
+    Explore your capsule and find a way out. Check all compartments – there may be useful items.
   </div>
   <div class="quest-reward">
-    <i class="fas fa-gift"></i> Награда: 100 MVC, Карта
+    <i class="fas fa-gift"></i> Reward: 100 MVC, Metaville Map
   </div>
   <div class="quest-progress">
     <div class="quest-progress-fill" style="width: 0%"></div>
   </div>
   <div class="quest-status">
-    <span>Прогресс: 0%</span>
-    <span>Статус: НЕ принят</span>
+    <span>Progress: 0%</span>
+    <span>Status: Not accepted</span>
   </div>
   <div class="quest-actions">
-    <button class="btn btn-primary" data-quest="awakening">Принять</button>
+    <button class="btn btn-primary" data-quest="awakening">Accept</button>
   </div>
 </div>
 
@@ -1807,16 +1604,16 @@ body.modal-open {
                     </div>
                     <div class="quest-actions">
                         <button class="btn" disabled>
-                            In process
+                            In progress
                         </button>
                         <button class="btn btn-danger">
-                            Brake
+                            Abort
                         </button>
                     </div>
                 </div>
                 
                 <div class="quest-card completed">
-                    <div class="quest-badge completed-badge">Завершено</div>
+                    <div class="quest-badge completed-badge">Completed</div>
                     <div class="quest-title">
                         <i class="fas fa-truck"></i> First job
                     </div>
@@ -1831,7 +1628,7 @@ body.modal-open {
                     </div>
                     <div class="quest-status">
                         <span>Progress: 100%</span>
-                        <span>Finish </span>
+                        <span>Status: Completed</span>
                     </div>
                     <div class="quest-actions">
                         <button class="btn btn-primary" disabled>
@@ -1858,9 +1655,7 @@ body.modal-open {
                         <span>Status: Available</span>
                     </div>
                     <div class="quest-actions">
-                        <button class="btn btn-primary">
-                            Accept quest
-                        </button>
+                        <button class="btn btn-primary" data-quest="fragments">Accept quest</button>
                     </div>
                 </div>
                 
@@ -1869,7 +1664,7 @@ body.modal-open {
                         <i class="fas fa-cogs"></i> Activating the Genesis Machine
                     </div>
                     <div class="quest-description">
-                        After collecting all the fragments of the chip, please activate the Start Machine in the central laboratory. This will unlock access to new technologies.
+                        After collecting all the fragments of the chip, please activate the Genesis Machine in the central laboratory. This will unlock access to new technologies.
                     </div>
                     <div class="quest-reward">
                         <i class="fas fa-gift"></i> Rewards: 1000 MVC, Access to V.01.D
@@ -1879,7 +1674,7 @@ body.modal-open {
                     </div>
                     <div class="quest-status">
                         <span>Progress: 0%</span>
-                        <span>Статус: Unavailable</span>
+                        <span>Status: Unavailable</span>
                     </div>
                     <div class="quest-actions">
                         <button class="btn" disabled>
@@ -1925,33 +1720,32 @@ body.modal-open {
         </div>
     </div>
 
-
-    <!-- Модалка квеста "Пробуждение" -->
+    <!-- Модалка квеста "Awakening" -->
 <div id="quest-awake-modal" class="modal" aria-hidden="true">
   <div class="modal-content" style="max-width: 620px;">
     <button class="close-modal" id="quest-awake-close" aria-label="Закрыть">&times;</button>
-    <h2 class="modal-title">ПРОБУЖДЕНИЕ</h2>
+    <h2 class="modal-title">AWAKENING</h2>
 
     <div class="quest-body" id="quest-awake-body">
-      <p>Вы медленно приходите в себя. Вокруг — гладкие металлические стены капсулы. Холодный синий свет экрана мигает: «Система активирована».</p>
-      <p>Голос из динамиков: «Добро пожаловать в Метавиль, субъект 7-дельта. Следуйте инструкциям для выхода из капсулы».</p>
-      <p>Сквозь запотевшее стекло виден огромный ангар с сотнями таких же капсул. Некоторые уже открыты.</p>
+      <p>You slowly regain consciousness. Around you are smooth metal walls of the capsule. A cold blue light on a screen flashes: 'System activated'.</p>
+      <p>A voice from the speakers: 'Welcome to Metaville, subject 7-delta. Follow the instructions to exit the capsule.'</p>
+      <p>Through the fogged glass you see a huge hangar with hundreds of identical capsules. Some are already open.</p>
     </div>
 
     <div class="quest-choices" id="quest-awake-choices" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
-      <button class="btn" id="quest-awake-inspect">▶ Осмотреть капсулу</button>
-      <button class="btn" id="quest-awake-open">▶ Попытаться открыть капсулу</button>
+      <button class="btn" id="quest-awake-inspect">▶ Inspect the capsule</button>
+      <button class="btn" id="quest-awake-open">▶ Try to open the capsule</button>
     </div>
 
     <div class="quest-stats" style="margin-top:10px;font-size:12px;color:#a0a0d0;text-align:center;">
-      Здоровье: <span id="quest-awake-health">100</span> | Репутация: <span id="quest-awake-rep">0</span>
+      Health: <span id="quest-awake-health">100</span> | Reputation: <span id="quest-awake-rep">0</span>
     </div>
   </div>
 </div>
 
     <!-- Модальное окно майнера кислорода -->
     <div class="modal" id="o2-miner-modal">
-        <div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: transparent;">
+        <div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: #0f0f1a;">
             <button class="close-modal" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #00f3ff; font-size: 24px; z-index: 100;">&times;</button>
             <div id="o2-miner-content"></div>
         </div>
@@ -1995,7 +1789,7 @@ body.modal-open {
             </div>
             
             <div class="modal-actions">
-                <button class="btn btn-danger" id="break-btn">BREAK</button>
+                <button class="btn btn-danger" id="break-btn">ABORT</button>
                 <button class="btn btn-primary" id="confirm-scan">SCAN</button>
             </div>
         </div>
@@ -2049,7 +1843,6 @@ body.modal-open {
     </div>
 </div>
 
-    <!-- Модальное окно капсулы отдыха -->
 <div class="modal" id="rest-modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -2063,10 +1856,8 @@ body.modal-open {
 
             <!-- Аватар и характеристики -->
             <div style="display: flex; align-items: center; gap: 20px;">
-                <div class="avatar" style="width: 10px; height: 10px; border-radius: 50%; 
-                        background: linear-gradient(135deg, #1a1a2f, #2a2a4a); 
-                        border: 3px solid #00ffcc; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-user-astronaut" style="font-size: 40px; color: #00ffcc;"></i>
+               
+                    
                 </div>
                 
                 <div>
@@ -2082,42 +1873,39 @@ body.modal-open {
                             <div class="status-title">
                                 <i class="fas fa-heart"></i> Health
                             </div>
-                            <div class="status-value">87%</div>
+                            <div class="status-value" id="current-health">87%</div>
                         </div>
                         <div class="status-card">
                             <div class="status-title">
                                 <i class="fas fa-shield-alt"></i> Level
                             </div>
-                            <div class="status-value">5</div>
+                            <div class="status-value" id="current-level">5</div>
                         </div>
                         <div class="status-card">
                             <div class="status-title">
                                 <i class="fas fa-star"></i> XP
                             </div>
-                            <div class="status-value">1200/2000</div>
+                            <div class="status-value" id="current-xp">1200/2000</div>
                         </div>
                     </div>
                 </div>
             </div>
             
             <!-- Репутация -->
-            <div>
-                <h4 class="section-title">Reputation</h4>
-                <div class="reputation-list">
-                    <div class="reputation-item">
-                        <span>Syndicate "Gloria"</span>
-                        <span style="color: #ffcc00;">+25 (Друг)</span>
-                    </div>
-                    <div class="reputation-item">
-                        <span>The Brotherhood of Steel</span>
-                        <span style="color: #a0a0d0;">0 (Нейтрал)</span>
-                    </div>
-                    <div class="reputation-item">
-                        <span>The Black Sun Raiders</span>
-                        <span style="color: #ff5555;">-15 (Враг)</span>
-                    </div>
-                </div>
-            </div>
+            <h3 class="section-title">Reputation</h3>
+<div class="rep-grid" id="rep-grid">
+  <!-- Карточки создадим из JS (см. ниже). 
+       Если хочешь статично, пример:
+  <div class="rep-card" data-faction="Syndicate Gloria">
+    <div class="rep-head">
+      <span>Syndicate "Gloria"</span>
+      <span class="rep-badge friend">Friend</span>
+    </div>
+    <div class="rep-value">+25</div>
+    <div class="rep-bar"><div class="rep-fill" style="width:62%"></div></div>
+  </div>
+  -->
+</div>
             
             <!-- Прогресс отдыха -->
             <div class="progress-container" style="margin-top: 15px;">
@@ -2206,7 +1994,7 @@ body.modal-open {
             drones: 0,
             slots: 2,
             quests: [
-                { id: 1, title: "Пробуждение", description: "Исследуйте свою капсулу и найдите способ выбраться наружу. Осмотрите все отсеки капсулы для получения ключевых предметов.", reward: "100 MVC, Карта Метавиля", status: "new", progress: 0, accepted: false, completed: false },
+                { id: 1, title: "Awakening", description: "Исследуйте свою капсулу и найдите способ выбраться наружу. Осмотрите все отсеки капсулы для получения ключевых предметов.", reward: "100 MVC, Карта Метавиля", status: "new", progress: 0, accepted: false, completed: false },
                 { id: 2, title: "Сканирование поверхности", description: "Выберите сектор для сканирования и запустите зонды для сбора данных. Используйте полученные данные для дальнейшего исследования.", reward: "250 MVC, 5 биоматериалов", status: "active", progress: 45, accepted: true, completed: false },
                 { id: 3, title: "Первая доставка", description: "Доставьте посылку Борису в центральный хаб. Избегайте опасных зон и следите за уровнем энергии.", reward: "150 MVC, Инструкция по выживанию", status: "completed", progress: 100, accepted: true, completed: true },
                 { id: 4, title: "Поиск фрагментов чипа", description: "Найти 5 фрагментов чипа Начала по всей территории Метавиля. Каждый фрагмент открывает новые возможности платформы.", reward: "500 MVC, Улучшенный сканер", status: "available", progress: 20, accepted: false, completed: false },
@@ -2282,26 +2070,23 @@ body.modal-open {
                 elements.missionBelt.textContent = gameState.missions.belt;
                 elements.missionProgress.style.width = gameState.missions.progress + '%';
                 elements.missionTime.textContent = Math.round(gameState.missions.progress) + '%';
-                elements.missionRisk.textContent = `Риск: ${gameState.missions.risk}% ⚠️`;
-                elements.probeProgress.style.width = gameState.missions.progress + '%';
-                elements.missionHarvest.textContent = `Сборщик: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
+                elements.missionRisk.textContent = `Risk: ${gameState.missions.risk}% ⚠️`;
+                elements.probeProgress.style.width = gameState.missions.progress  + '%';
+                elements.missionHarvest.textContent = `HARVESTER: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
                 
                 // Отображение ресурсов
                 if (gameState.missions.scannedResources) {
                     const res = gameState.missions.scannedResources;
-                    document.getElementById('scanned-resources').textContent = 
-                        `Ресурсы: ${res.amount} ${getResourceName(res.type)}`;
+                    document.getElementById('scanned-resources').textContent = `Resources: ${res.amount} ${getResourceName(res.type)}`;
                 } else {
-                    document.getElementById('scanned-resources').textContent = 'Ресурсы: -';
+                    document.getElementById('scanned-resources').textContent = 'Resources: -';
                 }
                 
                 // Блокировка кнопки комбайна
-                document.getElementById('harvest-btn').disabled = 
-                    gameState.missions.progress < 100 || 
-                    gameState.missions.harvestCount >= gameState.missions.maxHarvests;
+                document.getElementById('harvest-btn').disabled = gameState.missions.progress < 100 || gameState.missions.harvestCount >= gameState.missions.maxHarvests;
             } else {
                 document.getElementById('harvest-btn').disabled = true;
-                document.getElementById('scanned-resources').textContent = 'Ресурсы: -';
+                document.getElementById('scanned-resources').textContent = 'Resources: -';
             }
             
             // Исследования
@@ -2309,10 +2094,10 @@ body.modal-open {
             updateResearchDots('radiation', gameState.research.radiation);
             
             if (gameState.research.engines) {
-                elements.engineStatus.textContent = "Активно • 3:45 ⏳";
+                elements.engineStatus.textContent = "Active • 3:45 ⏳";
                 document.getElementById('engine-btn').textContent = "Ускорить";
             } else {
-                elements.engineStatus.textContent = "Не начато";
+                elements.engineStatus.textContent = "Not started";
                 document.getElementById('engine-btn').textContent = "Research";
             }
             
@@ -2431,7 +2216,7 @@ body.modal-open {
         // Начать сканирование
         document.getElementById('confirm-scan').addEventListener('click', function() {
             if (!selectedSector) {
-                showNotification("Выберите сектор для сканирования!", false);
+                showNotification("Select a sector to scan!", false);
                 return;
             }
             
@@ -2478,9 +2263,9 @@ body.modal-open {
                     // Случайные события
                     if (Math.random() < 0.02) {
                         const events = [
-                            "Обнаружены редкие ресурсы! +15 🧪",
-                            "Сканирование прервано радиационной бурей!",
-                            "Обнаружен заброшенный склад! +25 🛠️"
+                            "Rare resources found! +15 🧪",
+                            "Scanning interrupted by a radiation storm!",
+                            "Abandoned warehouse found! +25 🛠️"
                         ];
                         const event = events[Math.floor(Math.random() * events.length)];
                         
@@ -2490,11 +2275,11 @@ body.modal-open {
                             updateResource(resource, amount);
                         }
                         
-                        showNotification(event, !event.includes("прервано"));
+                        showNotification(event, !event.includes("interrupted"));
                     }
                 } else {
                     clearInterval(scanInterval);
-                    showNotification("Сканирование сектора завершено!", true);
+                    showNotification("Sector scanning complete!", true);
                     updateResource('oxygen', -5);
                     updateResource('bio', 1);
                     // Показать модальное окно с результатами сканирования
@@ -2542,8 +2327,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
     // Форматируем стоимость с иконками
     const costInfo = `15 <span style="color: #00ccff;">O₂</span>, 70 <span style="color: #ffcc00;">⚡</span>`;
     
-    document.getElementById('result-resources').innerHTML = 
-        `${resourceAmount} ${resourceNames[resourceType] || resourceType}`;
+    document.getElementById('result-resources').innerHTML = `${resourceAmount} ${resourceNames[resourceType] || resourceType}`;
     
     document.getElementById('result-cost').innerHTML = costInfo;
     
@@ -2553,12 +2337,12 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
         // Отправка харвестера
         function sendHarvester() {
     if (!gameState.missions.scannedResources || gameState.missions.harvested) {
-        showNotification("Нет ресурсов для добычи!", false);
+        showNotification("No resources to harvest!", false);
         return;
     }
     
     if (gameState.missions.harvestCount >= gameState.missions.maxHarvests) {
-        showNotification("Достигнут лимит отправок харвестеров!", false);
+        showNotification("Harvester dispatch limit reached!", false);
         return;
     }
     
@@ -2570,7 +2354,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
         gameState.missions.harvestCount++;
         gameState.missions.harvested = true;
         
-        showNotification(`Харвестер добыл ${res.amount} ${getResourceName(res.type)}!`, true);
+        showNotification(`Harvester collected ${res.amount} ${getResourceName(res.type)}!`, true);
         updateUI();
     }
 }
@@ -2583,10 +2367,10 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                 if (updateResource('mvc', -120) && updateResource('parts', -40)) {
                     gameState.research.stealth++;
                     updateUI();
-                    showNotification("Исследование стелс-модулей продвинуто!", true);
+                    showNotification("Stealth module research progressed!", true);
                 }
             } else {
-                showNotification("Исследование стелс-модулей завершено!", true);
+                showNotification("Stealth module research completed!", true);
             }
         });
 
@@ -2596,10 +2380,10 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                 if (updateResource('mvc', -85) && updateResource('bio', -5)) {
                     gameState.research.radiation++;
                     updateUI();
-                    showNotification("Исследование радиационной адаптации продвинуто!", true);
+                    showNotification("Radiation adaptation research progressed!", true);
                 }
             } else {
-                showNotification("Исследование радиационной адаптации завершено!", true);
+                showNotification("Radiation adaptation research completed!", true);
             }
         });
 
@@ -2609,18 +2393,18 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                 if (updateResource('mvc', -200) && updateResource('parts', -25)) {
                     gameState.research.engines = true;
                     updateUI();
-                    showNotification("Исследование двигателей начато!", true);
+                    showNotification("Engine research started!", true);
                     
                     // Имитация исследования
                     setTimeout(() => {
                         gameState.research.engines = false;
-                        showNotification("Исследование двигателей завершено! +15% к скорости транспорта", true);
+                        showNotification("Engine research completed! +15% to transport speed", true);
                         updateUI();
                     }, 5000);
                 }
             } else {
                 if (updateResource('mvc', -100)) {
-                    showNotification("Исследование двигателей ускорено!", true);
+                    showNotification("Engine research accelerated!", true);
                 }
             }
         });
@@ -2630,7 +2414,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
             if (updateResource('mvc', -200) && updateResource('parts', -15)) {
                 gameState.drones = Math.min(3, gameState.drones + 1);
                 updateUI();
-                showNotification("Системы обновлены! Дроны в ремонте: " + gameState.drones, true);
+                showNotification("Systems upgraded! Drones in repair: " + gameState.drones, true);
             }
         });
 
@@ -2638,7 +2422,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
         document.getElementById('emergency-btn').addEventListener('click', function() {
             if (updateResource('mvc', -80)) {
                 updateResource('energy', 100);
-                showNotification("Экстренное питание активировано! +100 ⚡", true);
+                showNotification("Emergency power activated! +100 ⚡", true);
             }
         });
 
@@ -2656,7 +2440,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                     switch(resource) {
                         case "polymers":
                         case "rare":
-                            resourceName = resource === "polymers" ? "полимеров" : "редкоземельных материалов";
+                            resourceName = resource === "polymers" ? "polymers" : "rare materials";
                             break;
                         case "oxygen":
                             updateResource('oxygen', amount);
@@ -2665,12 +2449,12 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                             break;
                         case "stealth":
                             gameState.slots--;
-                            resourceName = "стелс-модуль";
+                            resourceName = "stealth module";
                             resourceAmount = 1;
                             break;
                     }
                     
-                    showNotification(`Куплено: ${resourceAmount > 0 ? resourceAmount + ' ' : ''}${resourceName}`, true);
+                    showNotification(`Purchased: ${resourceAmount > 0 ? resourceAmount + ' ' : ''}${resourceName}`, true);
                     updateUI();
                 }
             });
@@ -2703,19 +2487,19 @@ document.getElementById('rest-button').addEventListener('click', startRest);
 
 function startRest() {
     if (gameState.player.isResting) {
-        showNotification("Вы уже отдыхаете!", false);
+        showNotification("You are already resting!", false);
         return;
     }
     
     if (gameState.resources.energy >= 1000) {
-        showNotification("Ваша энергия уже полна!", false);
+        showNotification("Your energy is already full!", false);
         return;
     }
     
     gameState.player.isResting = true;
     const restButton = document.getElementById('rest-button');
     restButton.disabled = true;
-    restButton.innerHTML = '<i class="fas fa-hourglass-half"></i> Отдых...';
+    restButton.innerHTML = '<i class="fas fa-hourglass-half"></i> Resting...';
     
     // Установим время отдыха: 8 секунд для демо
     const restTime = 8;
@@ -2729,12 +2513,11 @@ function startRest() {
         // Плавная анимация прогресса
         document.getElementById('rest-progress-fill').style.width = `${progress}%`;
         document.getElementById('rest-time').textContent = `${Math.round(progress)}%`;
-        document.getElementById('rest-status').textContent = `Отдых: ${restTime - timeLeft}/${restTime} сек`;
+        document.getElementById('rest-status').textContent = `Rest: ${restTime - timeLeft}/${restTime} sec`;
         
         // Пульсирующая анимация при завершении
         if (progress > 90) {
-            document.getElementById('rest-progress-fill').style.background = 
-                'linear-gradient(90deg, #ffcc00, #ff9900)';
+            document.getElementById('rest-progress-fill').style.background = 'linear-gradient(90deg, #ffcc00, #ff9900)';
         }
         
         if (timeLeft <= 0) {
@@ -2750,10 +2533,10 @@ function completeRest() {
     gameState.player.isResting = false;
     
     document.getElementById('rest-button').disabled = false;
-    document.getElementById('rest-button').innerHTML = '<i class="fas fa-bed"></i> Отдохнуть (8 часов)';
-    document.getElementById('rest-status').textContent = "Отдых завершен!";
+    document.getElementById('rest-button').innerHTML = '<i class="fas fa-bed"></i> Rest (8 hours)';
+    document.getElementById('rest-status').textContent = "Rest complete!";
     
-    showNotification("Вы полностью отдохнули! Энергия восстановлена до 1000", true);
+    showNotification("You are fully rested! Energy restored to 1000", true);
     updateUI();
     
     // Закрываем модальное окно через 3 секунды
@@ -2768,11 +2551,40 @@ setInterval(() => {
         
         // Если энергия ниже 20%, показываем предупреждение
         if (gameState.resources.energy < 200 && Math.random() > 0.8) {
-            showNotification("⚠️ Низкий уровень энергии! Отдохните в капсуле", false);
+            showNotification("⚠️ Low energy level! Rest in the capsule", false);
         }
     }
 }, 1000);
 
+
+function renderReputation(reps){
+  const grid = document.getElementById('rep-grid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  reps.forEach(r=>{
+    const card = document.createElement('div');
+    card.className = 'rep-card';
+    card.innerHTML = `
+      <div class="rep-head">
+        <span>${r.name}</span>
+        <span class="rep-badge ${r.status}">${r.status[0].toUpperCase()+r.status.slice(1)}</span>
+      </div>
+      <div class="rep-value">${r.value>0?'+':''}${r.value}</div>
+      <div class="rep-bar"><div class="rep-fill" style="width:${Math.max(0,Math.min(100, r.percent||0))}%"></div></div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// пример вызова — подставь свои реальные данные
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderReputation([
+    { name:'Syndicate "Gloria"', value: 25, status:'friend',  percent:62 },
+    { name:'The Brotherhood of Steel', value: 0,  status:'neutral', percent:50 },
+    { name:'The Black Sun Raiders', value:-15, status:'enemy',  percent:30 },
+    { name:'Humanists Council', value:10, status:'friend', percent:55 },
+  ]);
+});
         // Голосование
         document.querySelectorAll('.vote-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -2781,17 +2593,17 @@ setInterval(() => {
                 let votes = parseInt(voteInput.value);
                 
                 if (isNaN(votes)) {
-                    showNotification("Введите количество голосов!", false);
+                    showNotification("Enter a number of votes!", false);
                     return;
                 }
                 
                 if (votes <= 0) {
-                    showNotification("Количество голосов должно быть положительным!", false);
+                    showNotification("Number of votes must be positive!", false);
                     return;
                 }
                 
                 if (gameState.userVotes < votes) {
-                    showNotification("Недостаточно голосов для поддержки проекта!", false);
+                    showNotification("Not enough votes to support the project!", false);
                     return;
                 }
                 
@@ -2810,13 +2622,13 @@ setInterval(() => {
                 }
                 
                 updateUI();
-                showNotification(`Ваши ${votes} голосов учтены для проекта!`, true);
+                showNotification(`Your ${votes} votes have been counted for the project!`, true);
             });
         });
 
         // Создание нового предложения
         document.getElementById('create-proposal-btn').addEventListener('click', function() {
-            showNotification("Новое предложение отправлено на модерацию", true);
+            showNotification("New proposal submitted for moderation", true);
         });
 
         // Принятие квеста
@@ -2828,16 +2640,24 @@ setInterval(() => {
                     if (awakeningQuest && !awakeningQuest.accepted) {
                         awakeningQuest.accepted = true;
                         awakeningQuest.status = "active";
-                        showNotification("Квест 'Пробуждение' принят! Осмотрите капсулу для выполнения.", true);
+                        showNotification("Quest 'Awakening' accepted! Inspect the capsule to complete it.", true);
+                        updateUI();
+                    }
+                } else if (questId === "fragments") {
+                    const fragQuest = gameState.quests.find(q => q.id === 4);
+                    if (fragQuest && !fragQuest.accepted) {
+                        fragQuest.accepted = true;
+                        fragQuest.status = "active";
+                        showNotification("Quest 'Searching for chip fragments' accepted!", true);
                         updateUI();
                     }
                 }
             });
         });
 
-  // === Квест "Пробуждение": открытие из меню, логика сцен ===
+  // === Квест "Awakening": открытие из меню, логика сцен ===
 (function(){
-  // Кнопка "Принять" в карточке квеста (data-quest="awakening")
+  // Кнопка "Accept" в карточке квеста (data-quest="awakening")
   const acceptBtn = document.querySelector('[data-quest="awakening"]');
   const modal = document.getElementById('quest-awake-modal');
   const closeBtn = document.getElementById('quest-awake-close');
@@ -2865,17 +2685,17 @@ setInterval(() => {
 
   function sceneInspect(){
     body.innerHTML = `
-      <p>Вы внимательно осматриваете капсулу. На панели замечаете:</p>
+      <p>You carefully inspect the capsule. On the panel you notice:</p>
       <ul>
-        <li>Экран: «Активация завершена. Ожидание выхода»</li>
-        <li>Отсек с «Инструкцией по выживанию»</li>
-        <li>Скрытый карман с энергетическим батончиком</li>
-        <li>Металлический ключ, застрявший в щели между панелями</li>
+        <li>Screen: «Activation complete. Awaiting exit»</li>
+        <li>Compartment with «Survival Guide»</li>
+        <li>Hidden pocket with an energy bar</li>
+        <li>A metal key stuck in a crack between panels</li>
       </ul>
     `;
     choices.innerHTML = `
-      <button class="btn" id="awake-takekey">▶ Взять ключ</button>
-      <button class="btn" id="awake-skipkey">▶ Проигнорировать ключ</button>
+      <button class="btn" id="awake-takekey">▶ Take the key</button>
+      <button class="btn" id="awake-skipkey">▶ Ignore the key</button>
     `;
     document.getElementById('awake-takekey').onclick = () => {
       hasKey = true; rep += 1; refreshStats(); sceneOpen();
@@ -2887,13 +2707,13 @@ setInterval(() => {
 
   function sceneOpen(){
     body.innerHTML = `
-      <p>Вы нажимаете кнопку выхода. Шипение — капсула медленно открывается.</p>
-      <p>Холодный воздух ангара, вокруг — десятки капсул, некоторые пусты.</p>
-      <p>К вам подходит мужчина в потрёпанной куртке — <strong>Борис</strong>.</p>
-      <p><strong>Борис</strong>: «Рад видеть тебя в Метавиле. Есть работёнка… доставь посылку по координатам».</p>
-      ${hasKey ? '<p>Вы сжимаете найденный ключ — может пригодиться.</p>' : ''}
+      <p>You press the exit button. A hiss—the capsule opens slowly.</p>
+      <p>Cold hangar air surrounds you, dozens of capsules around, some empty.</p>
+      <p>A man in a shabby jacket approaches you – <strong>Boris</strong>.</p>
+      <p><strong>Boris</strong>: "Glad to see you in Metaville. I have a job... deliver this package to the coordinates."</p>
+      ${hasKey ? '<p>You clench the key you found – it might come in handy.</p>' : ''}
     `;
-    choices.innerHTML = `<button class="btn btn-primary" id="awake-accept">▶ Принять посылку</button>`;
+    choices.innerHTML = `<button class="btn btn-primary" id="awake-accept">▶ Accept the package</button>`;
     document.getElementById('awake-accept').onclick = () => {
       // Закрываем модалку и мягко помечаем квест как принятый
       closeModal();
@@ -2902,7 +2722,7 @@ setInterval(() => {
         const card = acceptBtn.closest('.quest-card');
         if (card) {
           const status = card.querySelector('.quest-status span:last-child');
-          if (status) status.textContent = 'Статус: Принят';
+          if (status) status.textContent = 'Status: Accepted';
           const badge = card.querySelector('.quest-badge');
           if (badge) { badge.textContent = 'Active'; badge.className = 'quest-badge active-badge'; }
           const progress = card.querySelector('.quest-progress-fill');
@@ -2910,7 +2730,7 @@ setInterval(() => {
         }
         // Вызов системного уведомления, если оно есть в проекте
         if (typeof showNotification === 'function') {
-          showNotification('Квест принят: «Посылка Бориса»', true);
+          showNotification('Quest accepted: "Boris\'s package"', true);
         }
       } catch(e) {}
     };
@@ -2937,15 +2757,15 @@ setInterval(() => {
         setInterval(() => {
             if (Math.random() < 0.1 && gameState.missions.scanning) {
                 const events = [
-                    "Радиационная буря! Сканирование замедлено",
-                    "Обнаружены редкие ресурсы! +10 🧪",
-                    "Атака рейдеров! Потери ресурсов"
+                    "Radiation storm! Scanning slowed down",
+                    "Rare resources found! +10 🧪",
+                    "Raider attack! Resource losses"
                 ];
                 const event = events[Math.floor(Math.random() * events.length)];
                 
                 if (event.includes("+")) {
                     updateResource('bio', 10);
-                } else if (event.includes("Потери")) {
+                } else if (event.includes("Losses")) {
                     updateResource('oxygen', -20);
                 }
                 
@@ -2974,21 +2794,21 @@ setInterval(() => {
         <div class="container">
             
             <div class="header">
-                <h1>Майнер O2</h1>
-                <div class="subtitle">СЕКТОР 7G</div>
+                <h1>O₂ Miner</h1>
+                <div class="subtitle">SECTOR 7G</div>
             </div>
             
             <div class="mining-container">
                 <div class="mining-header">
-                    <div class="mining-title">Добыча O₂</div>
+                    <div class="mining-title">O₂ Extraction</div>
                     <div class="timer" id="timer">03:59:45</div>
                 </div>
                 
                 <div class="progress-container">
                     <div class="progress-labels">
-                        <div>Начало</div>
+                        <div>Start</div>
                         <div id="progressPercentage">75%</div>
-                        <div>Клейм</div>
+                        <div>Claim</div>
                     </div>
                     <div class="o2-progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
@@ -2996,9 +2816,9 @@ setInterval(() => {
                 </div>
                 
                 <div class="o2-production">
-                    <div class="o2-label">Текущая Добыча</div>
+                    <div class="o2-label">Current yield</div>
                     <div class="o2-value" id="o2Value">8.73 O₂</div>
-                    <div class="o2-label">за цикл</div>
+                    <div class="o2-label">per cycle</div>
                 </div>
             </div>
             
@@ -3018,8 +2838,8 @@ setInterval(() => {
             </div>
             
             <div class="status-container">
-                <div class="status-label">Статус системы</div>
-                <div class="status-value pulse" id="status">Добыча активна</div>
+                <div class="status-label">System Status</div>
+                <div class="status-value pulse" id="status">Extraction active</div>
             </div>
             
         </div>
@@ -3036,14 +2856,14 @@ setInterval(() => {
                 // Если время вышло, сбрасываем таймер
                 if (timeLeft <= 0) {
                     timeLeft = 4 * 60 * 60;
-                    document.getElementById('status').textContent = "Клейм O2 завершен!";
+                    document.getElementById('status').textContent = "O2 claim complete!";
                     document.getElementById('status').style.color = "#00ff99";
                     
                     // Добавляем кислород игроку
                     updateResource('oxygen', 10);
                     
                     setTimeout(() => {
-                        document.getElementById('status').textContent = "Добыча активна";
+                        document.getElementById('status').textContent = "Extraction active";
                         document.getElementById('status').style.color = "#00ff99";
                     }, 5000);
                 }
@@ -3121,7 +2941,7 @@ setInterval(() => {
             // Запуск генерации кислорода
             o2Interval = setInterval(updateO2Generation, 1000);
             
-            showNotification("Платформа V.01.D активирована! Удачи в освоении METAVILLE", true);
+            showNotification("Platform V.01.D activated! Good luck exploring METAVILLE", true);
         });
 
         // Инициализация интерфейса
@@ -3129,8 +2949,56 @@ setInterval(() => {
         
         // Стартовое уведомление
         setTimeout(() => {
-            showNotification("Добро пожаловать в METAVILLE на платформу V.01.D! ", true);
+            showNotification("Welcome to METAVILLE on the V.01.D platform!", true);
         }, 1000);
+
+/**
+ * Показывает уведомление.
+ * @param {string} message - текст
+ * @param {boolean} isSuccess - true => зелёное, false => красное
+ * @param {number} ms - время показа
+ */
+function showNotification(message, isSuccess = true, ms = 6000) {
+  // ищем/создаём единственный элемент уведомления
+  let el = document.getElementById('app-notification');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'app-notification';
+    el.className = 'notification';
+    // добавим иконку слева по желанию
+    const icon = document.createElement('i');
+    el.appendChild(icon);
+    const textNode = document.createElement('span');
+    textNode.className = 'notification-text';
+    el.appendChild(textNode);
+    document.body.appendChild(el);
+  }
+
+  // сбрасываем классы и текст
+  el.classList.remove('success', 'error', 'show');
+  el.querySelector('.notification-text').textContent = message;
+
+  // применяем тип
+  el.classList.add(isSuccess ? 'success' : 'error');
+
+  // показываем
+  // (у тебя в CSS .notification.show поднимает и делает видимым)
+  // .notification { opacity:0; visibility:hidden; }
+  // .notification.show { opacity:1; visibility:visible; top:30px; }
+  requestAnimationFrame(() => el.classList.add('show'));
+
+  // автоскрытие
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => {
+    el.classList.remove('show');
+  }, ms);
+}
+
+// Примеры:
+// showNotification("Mission completed!", true);
+// showNotification("Not enough oxygen!", false);
+
+
 
         // TON Connect
        document.addEventListener('DOMContentLoaded', async () => {
@@ -3138,12 +3006,12 @@ setInterval(() => {
   const addressSpan = document.getElementById('wallet-address');
   
   // Используем демо-манифест для теста
-  const manifestUrl = 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json';
+  const manifestUrl = 'https://metaville.github.io/v01d/manifest.json';
   
   // Проверка загрузки библиотеки
   if (!window.TonConnectUI) {
     console.error('TON Connect UI not loaded');
-    showNotification("Ошибка: Библиотека TON Connect не загружена", false);
+    showNotification("Error: TON Connect library not loaded", false);
     return;
   }
   
@@ -3152,7 +3020,7 @@ setInterval(() => {
     const ui = window.TonConnectUI.create({
       manifestUrl,
       buttonRootId: 'wallet-container',
-      language: 'ru'
+      language: 'en'
     });
     
     // Функция обновления интерфейса кошелька
@@ -3163,7 +3031,7 @@ setInterval(() => {
         addressSpan.textContent = shortAddr;
         connectButton.innerHTML = '<i class="fas fa-check"></i>';
         connectButton.classList.replace('btn-warning', 'btn-primary');
-        showNotification("TON кошелек подключен!", true);
+        showNotification("TON wallet connected!", true);
       } else {
         addressSpan.textContent = '';
         connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
@@ -3183,14 +3051,14 @@ setInterval(() => {
         if (ui.connected) {
           await ui.disconnect();
           updateWalletUI(null);
-          showNotification("TON кошелек отключен", true);
+          showNotification("TON wallet disconnected", true);
         } else {
           const wallet = await ui.connect();
           updateWalletUI(wallet);
         }
       } catch (err) {
         console.error('Connection failed:', err);
-        showNotification("Ошибка подключения: " + err.message, false);
+        showNotification("Connection error: " + err.message, false);
       }
     });
     
@@ -3201,7 +3069,7 @@ setInterval(() => {
     
   } catch (error) {
     console.error('TON Connect initialization error:', error);
-    showNotification("Ошибка инициализации TON Connect", false);
+    showNotification("TON Connect initialization error", false);
   }
 });
     </script>
