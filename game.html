@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,16 +8,7 @@
     <title>METAVILLE: V.01.D / Genesis Platform</title>
 
      <!-- TON Connect UI Kit -->
-    <script defer src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
-<script>
-  window.addEventListener('DOMContentLoaded', () => {
-    if (window.TonConnectUI) {
-      // инициализация
-    } else {
-      console.error('TonConnect UI не загрузился (проверь сеть/URL/порядок скриптов)');
-    }
-  });
-</script>
+    <script src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
  
     <link rel="tonconnect" href="https://metaville.github.io/v01d/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -349,8 +340,8 @@
             .market-menu button {
     margin-right: 10px;
   }
+       
         
-         
         .tab {
             flex: 1;
             text-align: center;
@@ -547,120 +538,7 @@
             font-size: 24px;
             cursor: pointer;
         }
-        #scan-modal {
-  background-color: rgba(20, 20, 30, 1); /* плотный тёмный фон */
-  backdrop-filter: none; /* убираем размытие */
-}
-
-/* Для модалки сканирования */
-#scan-modal,
-#scan-result-modal {
-  background-color: #14141E; /* полностью непрозрачный фон */
-  backdrop-filter: none; /* убираем размытие, если было */
-}
-
-/* Для содержимого, чтобы не просвечивало */
-#scan-modal .modal-content,
-#scan-result-modal .modal-content {
-  background-color: #14141E;
-}
-
-/* === Scan Results — обновлённый вид === */
-#scan-result-modal.modal {
-  display: flex; align-items: center; justify-content: center;
-  background: #0b1020;            /* плотный фон */
-}
-#scan-result-modal .modal-content {
-  width: min(560px, 92vw);
-  padding: 18px 18px 16px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #0e1324 0%, #121832 100%);
-  border: 1px solid #273056;
-  box-shadow: 0 18px 44px rgba(0,0,0,.55);
-}
-
-/* шапка */
-.sr-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 12px;
-}
-.sr-title {
-  display: flex; align-items: center; gap: 10px;
-  font-weight: 700; letter-spacing: .3px;
-  color: #00e6c2; font-size: 18px;
-}
-.sr-title .dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #00e6c2; box-shadow: 0 0 10px #00e6c2;
-}
-#scan-result-modal .close-modal {
-  background: none; border: 0; cursor: pointer;
-  color: #c9d4ff; font-size: 22px; line-height: 1;
-  opacity: .9;
-}
-#scan-result-modal .close-modal:hover { opacity: 1; }
-
-/* контент */
-.sr-body {
-  display: grid; gap: 14px;
-  padding: 10px 4px 2px;
-}
-.sr-row {
-  display: grid; grid-template-columns: 1fr auto;
-  align-items: center; gap: 12px;
-  padding: 10px 12px;
-  background: rgba(22, 28, 55, .55);
-  border: 1px solid #2a3358;
-  border-radius: 10px;
-}
-.sr-label {
-  color: #aab0ff; font-size: 13px;
-}
-.sr-value {
-  color: #e9ecff; font-weight: 600; font-size: 14px;
-}
-
-/* бейджи */
-.sr-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 10px; border-radius: 999px; font-size: 12px;
-  border: 1px solid transparent; white-space: nowrap;
-}
-.sr-badge.info   { color:#8fe5ff; border-color:#156ea4; background:rgba(21,110,164,.18); }
-.sr-badge.warn   { color:#ffd36e; border-color:#8a6a12; background:rgba(138,106,18,.16); }
-.sr-badge.good   { color:#00e6a8; border-color:#0b8a6f; background:rgba(11,138,111,.16); }
-
-/* ресурсы/стоимость в одну строку */
-.sr-hstack { display:flex; flex-wrap:wrap; gap:8px; }
-
-/* кнопки */
-.sr-actions {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-  margin-top: 14px;
-}
-.sr-btn {
-  border: 1px solid #2a3358; border-radius: 12px;
-  padding: 12px 14px; font-weight: 600; cursor: pointer;
-  background: #1a1f36; color:#e6e8ff;
-  transition: transform .12s ease, box-shadow .12s ease, background .2s ease;
-}
-.sr-btn:hover{ transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.35); }
-.sr-btn.cancel { background: linear-gradient(135deg, #5a1f1f, #3a1414); color:#ffd6d6; }
-.sr-btn.primary{ background: linear-gradient(135deg, #0d5a59, #0a3f43); color:#d9fff8; }
-
-/* разделитель */
-.sr-sep {
-  height: 1px; margin: 8px 0 2px;
-  background: linear-gradient(90deg, transparent, #26315a, transparent);
-}
-
-/* адаптив */
-@media (max-width: 420px){
-  .sr-actions { grid-template-columns: 1fr; }
-  .sr-row { grid-template-columns: 1fr; gap: 6px; }
-  .sr-value { justify-self: start; }
-}
-
+        
         .sectors-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -744,15 +622,7 @@
             color: #99ffaa;
             border-left: 4px solid #00cc99;
         }
-        /* Ошибка / отказ / false */
-.notification.error {
-  background: rgba(30, 0, 0, 0.9);
-  color: #ffb3b3;
-  border-left: 4px solid #ff4444;
-}
-
-/* Иконка по умолчанию слева .notification.error i::before { content: "⚠"; }*/
-
+        
         /* Миссии */
         .mission-card {
             background: rgba(20, 25, 40, 0.7);
@@ -834,16 +704,29 @@
             margin-top: 10px;
         }
         
-        .quest-badge { position: absolute;  top: 15px;  right: 15px;  padding: 3px 8px;  border-radius: 10px;  font-size: 12px;  font-weight: 500;
+        .quest-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
         }
         
-        .new-badge { background: linear-gradient(135deg, #ffcc00, #cc9900);  color: #332900;
+        .new-badge {
+            background: linear-gradient(135deg, #ffcc00, #cc9900);
+            color: #332900;
         }
         
-        .active-badge {  background: linear-gradient(135deg, #0099ff, #0066cc);   color: #fff;
+        .active-badge {
+            background: linear-gradient(135deg, #0099ff, #0066cc);
+            color: #fff;
         }
         
-        .completed-badge { background: linear-gradient(135deg, #00cc99, #009973); color: #001a14;
+        .completed-badge {
+            background: linear-gradient(135deg, #00cc99, #009973);
+            color: #001a14;
         }
         
         /* Анимации */
@@ -878,27 +761,6 @@
             border-left: 4px solid #00cc99;
         }
 
-        /* ===== Avatar card ===== */
-.avatar-card .avatar-row{
-  display:flex; align-items:center; gap:12px;
-}
-.avatar-img{
-  width:56px; height:56px; border-radius:50%;
-  object-fit:cover;
-  border:2px solid #00ffcc;
-  box-shadow:0 0 12px rgba(0,255,204,.25);
-}
-.avatar-info .avatar-meta{
-  font-size:12px; color:#a0a0d0; margin-top:4px;
-}
-/* Вариант без картинки: круг с инициалами */
-.avatar-initials{
-  width:56px;height:56px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#2a2a4a,#1a1a2f);
-  border:2px solid #00ffcc; font-weight:700; color:#00ffcc;
-}
- 
         /* Кошелек */
         #wallet-container {
             display: flex;
@@ -917,37 +779,6 @@
             max-width: 100px;
         }
 
-        /* Репутация: сетка и карточки */
-.rep-grid {
-  display: grid;
-  grid-template-columns: 1fr; /* ← теперь всегда один столбец */
-  gap: 12px;
-}
-.rep-card{
-  background: rgba(20,25,40,0.6);
-  border:1px solid #2a3358;
-  border-radius:10px;
-  padding:10px 12px;
-}
-.rep-head{
-  display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
-  font-weight:600;font-size:14px;color:#e0e0ff;
-}
-.rep-badge{
-  font-size:11px; padding:2px 8px; border-radius:9999px; border:1px solid transparent;
-}
-.rep-badge.friend  { color:#00e6a8; border-color:#00e6a8; background:rgba(0,230,168,.08); }
-.rep-badge.neutral { color:#ffc400; border-color:#ffc400; background:rgba(255,196,0,.08); }
-.rep-badge.enemy   { color:#ff5b5b; border-color:#ff5b5b; background:rgba(255,91,91,.08); }
-
-.rep-value{ font-size:13px; color:#aab0ff; margin-bottom:8px; }
-.rep-bar{ height:6px; background:#141a2e; border-radius:4px; overflow:hidden; }
-.rep-fill{ height:100%; width:0%; border-radius:4px; background:linear-gradient(90deg,#00cc99,#00ffcc); }
-
-/* Для тёмной темы модалки */
-#rest-modal .section-title{ color:#00ffcc; margin:12px 0 6px; }
-
- 
 /* Стили для обучения */
 .tutorial-item {
     display: flex;
@@ -1028,7 +859,9 @@
 .inner-ring { --ring-color: 0, 204, 153; }
 .middle-ring { --ring-color: 255, 204, 0; }
 .outer-ring { --ring-color: 255, 85, 85; }
+
          /* кислород*/
+
         #o2-miner-content .container { max-width: 100%; padding: 20px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(135deg, #00171f, #003049, #022b3a); color: #00f3ff; position: relative; }
         #o2-miner-content .header { text-align: center; padding: 15px 0; border-bottom: 2px solid rgba(0, 243, 255, 0.3); position: relative; }
         #o2-miner-content .header::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00f3ff, transparent); }
@@ -1060,19 +893,144 @@
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
         #o2-miner-content .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00f3ff, transparent); animation: scan 8s linear infinite; z-index: 10; }
         #o2-miner-content .glow { text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); }
-        #o2-miner-modal .modal-content { overflow-y: auto; /* Добавляем вертикальную прокрутку */ max-height: 90vh; /* Ограничиваем высоту */
+        @media (max-width: 480px) {
+            h1 { font-size: 1.5rem; }
+            #o2-miner-content .stats-container { flex-direction: column; gap: 10px; }
+            #o2-miner-content .stat-value { font-size: 1.3rem; }
+            #o2-miner-content .timer { font-size: 1.1rem; padding: 6px 12px; }
+            #o2-miner-content .o2-value { font-size: 1.8rem; }}
+        #o2-generation-card { position: relative; border: 1px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); animation: pulse-o2 2s infinite; }
+        @keyframes pulse-o2 { 0% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); } 50% { box-shadow: 0 0 20px rgba(0, 243, 255, 0.7); } 100% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3); } }
+        #o2-generation-card:hover { transform: scale(1.03); box-shadow: 0 0 25px rgba(0, 243, 255, 0.9); animation: none; }
+        .status-title i.fa-wind { color: #00f3ff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); }
+        .click-indicator { position: absolute; top: 10px; right: 10px; color: #00ffcc; font-size: 12px; }
+
+#rest-modal .modal-content {
+    width: 90%;
+    max-width: 500px;
+    padding: 25px 20px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
-#o2-miner-content .container {
-    height: auto; /* Отменяем фиксированную высоту */
-    min-height: 100%; /* Минимальная высота на весь контейнер */
+
+#rest-modal .modal-body {
+    padding: 0 15px;
 }
-#o2-miner-content .container {
-    overflow-y: auto;
-    max-height: 80vh;
-    padding-bottom: 20px;
+
+/* Стили для результатов сканирования */
+.scan-result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px;
+    background: rgba(20, 25, 40, 0.7);
+    border-radius: 10px;
+    border: 1px solid #3a3a5a;
 }
-#o2-miner-content .stats-container .stat-box:nth-child(3) {
-  display: none;
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.result-label {
+    font-weight: 600;
+    color: #a0a0d0;
+    min-width: 120px;
+}
+
+.result-value {
+    color: #00ffcc;
+    text-align: right;
+    flex: 1;
+}
+
+/* Блок ресурсов */
+.resource-block {
+    background: rgba(30, 35, 60, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #3a3a5a;
+}
+
+/* Блок стоимости */
+.cost-block {
+    background: rgba(40, 30, 50, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #3a3a5a;
+}
+
+/* Разделитель между блоками */
+.separator {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #2a2a4a, transparent);
+    margin: 15px 0;
+}
+
+/* Адаптивные отступы для внутренних блоков */
+#rest-modal .status-grid {
+    gap: 5px;
+    padding: 0 5px;
+}
+
+#rest-modal .reputation-item {
+    padding: 8px 5px;
+}
+
+
+/* Базовые стили для всех модалок */
+.modal-content {
+    width: 90% !important;
+    max-width: 500px !important;
+    padding: 25px 20px !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+    .modal-content {
+        padding: 20px 15px !important;
+        width: 95% !important;
+    }
+    
+    #tutorial-modal .tutorial-item,
+    #rest-modal .status-grid {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+#tutorial-modal .modal-content {
+    width: 90%;
+    max-width: 500px; /* Увеличим максимальную ширину */
+    padding: 25px 20px; /* Отступы: 25px сверху/снизу, 20px по бокам */
+    margin: 0 auto; /* Центрирование */
+    box-sizing: border-box; /* Учитываем padding в ширине */
+}
+
+#tutorial-modal .modal-body {
+    padding: 0 15px; /* Дополнительные отступы внутри контента */
+}
+
+/* Контейнер для контента каюты */
+#rest-modal .modal-body-container {
+    padding: 0 10px;
+    margin: 0 -5px; /* Компенсируем внешние отступы */
+}
+
+/* Адаптивные отступы для аватара */
+#rest-modal .avatar {
+    margin-right: 3px;
+}
+
+/* Увеличим боковые отступы для прогресс-бара */
+#rest-modal .progress-container {
+    padding: 0 10px;
 }
         /* стили для капсулы отдыха */
 #rest-capsule-card {
@@ -1088,71 +1046,191 @@
     100% { box-shadow: 0 0 5px rgba(204, 102, 255, 0.3); }
 }
 
-#o2-generation-card{
-  position: relative;
-  border: 1px solid rgba(0,255,204,0.5);
-  box-shadow: 0 0 15px rgba(0,255,204,0.3);
-  animation: pulse-cyan 2s infinite;
-}
-@keyframes pulse-cyan{
-  0%   { box-shadow: 0 0 5px  rgba(0,255,204,0.3); }
-  50%  { box-shadow: 0 0 20px rgba(0,255,204,0.7); }
-  100% { box-shadow: 0 0 5px  rgba(0,255,204,0.3); }
-}
-#o2-generation-card:hover{
-  transform: scale(1.03);
-  box-shadow: 0 0 25px rgba(0,255,204,0.9);
-  animation: none;
-}
-
-
 #rest-capsule-card:hover {
     transform: scale(1.03);
     box-shadow: 0 0 25px rgba(204, 102, 255, 0.9);
     animation: none;
 }
-    
+        
+/* Стили для результатов сканирования */
+.scan-result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px;
+    background: rgba(20, 25, 40, 0.7);
+    border-radius: 10px;
+    border: 1px solid #3a3a5a;
+}
 
-        /* Фиолетовый цвет для капсулы */
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #2a2a4a;
+}
+
+.result-row:last-child {
+    border-bottom: none;
+}
+
+.result-label {
+    font-weight: 600;
+    color: #a0a0d0;
+    min-width: 120px;
+}
+
+.result-value {
+    color: #00ffcc;
+    text-align: right;
+    flex: 1;
+}
+
+.resources-container {
+    background: rgba(30, 35, 60, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #3a3a5a;
+}
+
+/* Общий стиль для индикатора клика */
+.click-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #00ffcc; /* Для кислорода */
+    font-size: 12px;
+}
+
+/* Фиолетовый цвет для капсулы */
 #rest-capsule-card .click-indicator {
     color: #cc66ff;
 }
 
-/* Подсветка для кислородной карточки */
-.highlight-oxygen {
-  box-shadow: 0 0 14px rgba(0, 153, 255, 0.6);
-  border: 1px solid rgba(0, 153, 255, 0.8);
-  border-radius: 12px;
+/* репутация*/
+.reputation-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #2a2a4a;
 }
 
-        /* Стилизация скроллбара */
-        #o2-miner-content .container::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        #o2-miner-content .container::-webkit-scrollbar-track {
-            background: rgba(0, 30, 40, 0.3);
-        }
-        
-        #o2-miner-content .container::-webkit-scrollbar-thumb {
-            background: #00ccff;
-            border-radius: 3px;
-        }
-        /* Для экрана квестов */
-        #quest-screen.screen.active { display: flex; flex-direction: column; }
- 
-        /* Для карточек квестов */
-        .quest-card {
+.reputation-item:last-child {
+    border-bottom: none;
+}       
+
+/* Карточки и элементы интерфейса */
+.status-card, 
+.research-node, 
+.offer-card, 
+.vote-card, 
+.quest-card,
+.sector-item {
+    color: #e0e0ff !important;
+}
+
+.status-title, 
+.node-title, 
+.offer-vendor, 
+.vote-title, 
+.quest-title {
+    color: #a0a0d0 !important;
+}
+
+.status-value, 
+.offer-price, 
+.quest-reward {
+    color: #00ffcc !important;
+}
+
+ /* Светлый текст на кнопках */
+    .btn-primary, .btn-warning, .btn-danger {
+        color: #ffffff !important;
+    }
+    
+    /* Светлый текст в карточках */
+    .status-card, .research-node, .offer-card, 
+    .vote-card, .quest-card, .sector-item {
+        color: #e0e0ff !important;
+    }
+    
+    /* Светлые заголовки */
+    .status-title, .node-title, .offer-vendor, 
+    .vote-title, .quest-title {
+        color: #a0a0d0 !important;
+    }
+    
+    /* Яркие акцентные значения */
+    .status-value, .offer-price, .quest-reward {
+        color: #00ffcc !important;
+    }      
+    /* Майнер кислорода */
+    #o2-miner-content .stat-value,
+    #o2-miner-content .mining-title,
+    #o2-miner-content .timer,
+    #o2-miner-content .o2-value,
+    #o2-miner-content .status-value {
+        color: #ffffff !important;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    /* Общий цвет текста */
+    body {
+        color: #f0f0ff !important;
+    }
+    
+    /* Светлые точки прогресса */
+    .progress-dots .dot.filled {
+        background: #a0ffea !important;
+    }
+
+#o2-miner-modal .modal-content {
+    overflow-y: auto; /* Добавляем вертикальную прокрутку */
+    max-height: 90vh; /* Ограничиваем высоту */
+}
+
+#o2-miner-content .container {
+    height: auto; /* Отменяем фиксированную высоту */
+    min-height: 100%; /* Минимальная высота на весь контейнер */
+}
+
+#o2-miner-content .container {
+    overflow-y: auto;
+    max-height: 80vh;
+    padding-bottom: 20px;
+}
+
+/* Стилизация скроллбара */
+#o2-miner-content .container::-webkit-scrollbar {
+    width: 6px;
+}
+
+#o2-miner-content .container::-webkit-scrollbar-track {
+    background: rgba(0, 30, 40, 0.3);
+}
+
+#o2-miner-content .container::-webkit-scrollbar-thumb {
+    background: #00ccff;
+    border-radius: 3px;
+}
+/* Для экрана квестов */
+#quest-screen.screen.active { display: flex: column; }
+
+/* Для карточек квестов */
+.quest-card {
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
 }
- 
-        .quest-description {
+
+.quest-description {
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
- /* ===== ОПАК-ФОН для оверлея именно выбранных модалок ===== */
+
+/* ===== ОПАК-ФОН для оверлея именно выбранных модалок ===== */
 #tutorial-modal.modal,
 #rest-modal.modal,
 #quest-awake-modal.modal {
@@ -1160,7 +1238,8 @@
   background: #070914 !important; /* можно #0b1020 / на вкус */
 }
 
-/* Мягкая дымка поверх картинки  */
+
+/* Мягкая дымка поверх картинки (если используешь картинку) */
 #tutorial-modal.modal::before,
 #rest-modal.modal::before,
 #quest-awake-modal.modal::before {
@@ -1204,233 +1283,6 @@ body.modal-open {
   overflow: hidden;
 }
 
-/* Ограничение ширины/высоты и границы от экрана для туториала и квестов */
-#tutorial-modal .modal-content,
-#quest-awake-modal .modal-content,
-#rest-modal .modal-content {
-  max-width: 90vw;   /* максимум 90% ширины окна */
-  max-height: 90vh;  /* максимум 90% высоты окна */
-  margin: auto;      /* центрируем */
-  overflow-y: auto;  /* скролл, если контента много */
-  border-radius: 16px; /* закругления краёв */
-  background: linear-gradient(135deg, #0e1324, #121832); /* плотный фон */
-  border: 1px solid #273056; /* обводка */
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-  padding: 20px;
-}
-#tutorial-modal.modal,
-#quest-awake-modal.modal,
-#rest-modal.modal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px; /* отступ внутри оверлея для мобильных */
-}
-
-/* Блокируем прокрутку фона, когда открыта модалка */
-body.modal-open {
-  overflow: hidden;
-}
-
-/* Базовая раскладка модалки — центрирование содержимого */
-.modal {
-  display: none;                /* по умолчанию скрыта */
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,10,0.8); /* затемнение фона */
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modal.active {
-  display: flex;
-}
-
-/* Чтобы клик «по фону» был кликабельным, а контент — нет */
-.modal .modal-content {
-  position: relative;
-  pointer-events: auto;
-}
-#scanned-resources { 
-  display: none !important; 
-}
-
-/* Узлы электростанций на карте */
-.power-node {
-  position: absolute;
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  border: 2px solid #00e6a8;
-  background: radial-gradient(circle at 40% 40%, #14ffec, #008b8b);
-  box-shadow: 0 0 10px rgba(20,255,236,.6), inset 0 0 6px rgba(0,0,0,.6);
-  cursor: pointer;
-}
-.power-node.cooldown {
-  border-color: #444c6a;
-  background: radial-gradient(circle at 40% 40%, #2a3358, #1a2038);
-  box-shadow: none;
-  cursor: not-allowed;
-}
-.power-node .cd {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; color: #cde7ff; text-shadow: 0 1px 2px #000;
-}
-
-/* Кнопки сна в модалке каюты */
-.sleep-grid{
-  display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px;
-}
-.sleep-grid .btn{padding:8px 10px; font-size:13px;}
-
-/* Общий стиль аватара */
-.avatar-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.avatar-img {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #ff4d4d; /* красная окантовка */
-}
-
-/* Текст под фото */
-.avatar-info .avatar-meta {
-  font-size: 12px;
-  color: #ffb3b3;
-  margin-top: 4px;
-}
-/* Пульсация как у капсулы, но красная */
-#avatar-card{
-  position: relative;
-  border: 1px solid rgba(255,77,77,0.5);
-  box-shadow: 0 0 15px rgba(255,77,77,0.3);
-  animation: pulse-red 2s infinite;
-}
-@keyframes pulse-red{
-  0%   { box-shadow: 0 0 5px  rgba(255,77,77,0.3); }
-  50%  { box-shadow: 0 0 20px rgba(255,77,77,0.7); }
-  100% { box-shadow: 0 0 5px  rgba(255,77,77,0.3); }
-}
-#avatar-card:hover{
-  transform: scale(1.03);
-  box-shadow: 0 0 25px rgba(255,77,77,0.9);
-  animation: none;
-}
-
-/* Красноватая подсветка карточки */
-.red-glow {
-  box-shadow: 0 0 10px rgba(255, 77, 77, 0.7),
-              inset 0 0 10px rgba(255, 77, 77, 0.3);
-  border: 1px solid rgba(255, 77, 77, 0.6);
-}
-/* === overlay & modal === */
-.overlay{
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.82);
-  backdrop-filter: blur(2px);
-  opacity: 0; pointer-events: none;
-  transition: opacity .2s ease;
-  z-index: 900;
-}
-.overlay.open{ opacity:1; pointer-events: auto; }
-
-
-.modal-close{
-  position:absolute; top:10px; right:12px;
-  background: transparent; border:0; color:#f7b1b1;
-  font-size:18px; cursor:pointer;
-}
-
-/* header */
-.profile-header{ display:flex; align-items:center; gap:12px; }
-.profile-avatar{
-  width:56px; height:56px; border-radius:50%; object-fit:cover;
-  border:2px solid #ff4d4d; box-shadow:0 0 12px rgba(255,77,77,.35);
-}
-#profileTitle{ margin:0; font-size:20px; color:#fff; letter-spacing:.5px; }
-.profile-sub{ color:#ffb3b3; font-size:12px; opacity:.85; }
-
-/* grid of stat cards */
-.stats-grid{
-  display:grid; grid-template-columns: 1fr 1fr; gap:14px;
-  margin-top:16px;
-}
-.stat-card{
-  background:#111428; border:1px solid rgba(255,105,180,.35);
-  border-radius:12px; padding:14px;
-  box-shadow:0 0 12px rgba(255,105,180,.18);
-}
-.stat-title{ color:#ff6fa0; font-weight:700; margin-bottom:4px; }
-.stat-value{ color:#fff; font-size:22px; margin:6px 0 8px; }
-
-.progress{
-  width:100%; height:10px; border-radius:999px;
-  background:#2a2f45; overflow:hidden; margin-bottom:8px;
-}
-.progress .bar{
-  height:100%; width: var(--p,0%); border-radius:inherit;
-  background: linear-gradient(90deg,#ff6fa0,#ff6fa0 60%, #ff89b3);
-  box-shadow: 0 0 12px rgba(255,105,180,.6);
-  transition: width .35s ease;
-}
-.stat-desc{ color:#9aa0c6; font-size:12px; }
-
-.modal-actions{
-  display:flex; gap:10px; justify-content:flex-end; margin-top:14px;
-}
-.btn{ padding:8px 12px; border-radius:10px; border:1px solid #394066; background:#141833; color:#d6dbff; cursor:pointer; }
-.btn.primary{ border-color:#ff6fa0; color:#fff; box-shadow:0 0 10px rgba(255,105,180,.35) inset; }
-.btn.ghost{ background:transparent; }
-
-/* пульсация карточек */
-#avatar-card{ animation: pulse-red 2s infinite; }
-#o2-generation-card{ animation: pulse-cyan 2s infinite; }
-@keyframes pulse-red{
-  0%{ box-shadow:0 0 6px rgba(255,77,77,.35); }
-  50%{ box-shadow:0 0 22px rgba(255,77,77,.75); }
-  100%{ box-shadow:0 0 6px rgba(255,77,77,.35); }
-}
-@keyframes pulse-cyan{
-  0%{ box-shadow:0 0 6px rgba(0,255,204,.35); }
-  50%{ box-shadow:0 0 22px rgba(0,255,204,.8); }
-  100%{ box-shadow:0 0 6px rgba(0,255,204,.35); }
-}
-
-/* === Profile overlay & modal  === */
-.profile-overlay{
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.82);
-  backdrop-filter: blur(2px);
-  opacity: 0; pointer-events: none;
-  transition: opacity .2s ease;
-  z-index: 900;
-}
-.profile-overlay.open{ opacity:1; pointer-events:auto; }
-
-.profile-modal{
-  position: fixed; inset: 50% auto auto 50%;
-  transform: translate(-50%,-46%) scale(.98);
-  width: min(680px, 92vw);
-  max-height: 86vh; overflow:auto;
-  background:#0f1220;
-  border:1px solid rgba(255,77,77,.5);
-  box-shadow:0 0 24px rgba(255,77,77,.35), inset 0 0 10px rgba(255,77,77,.2);
-  border-radius:14px; padding:18px 18px 12px;
-  opacity:0; pointer-events:none;
-  transition: transform .2s ease, opacity .2s ease;
-  z-index: 901;
-}
-.profile-modal.open{
-  opacity:1; pointer-events:auto;
-  transform: translate(-50%,-50%) scale(1);
-}
-
-
  </style>
 </head>
 <body>
@@ -1438,13 +1290,13 @@ body.modal-open {
         <!-- Верхняя панель ресурсов -->
         <div class="resource-bar">
             <div class="resource-item" id="oxygen-resource">
-                <span>O₂: <span id="oxygen-value">250</span></span>
+                <span>O₂: <span id="oxygen-value">100</span></span>
             </div>
             <div class="resource-item" id="energy-resource">
-                <span>⚡ <span id="energy-value">500</span></span>
+                <span>⚡ <span id="energy-value">1000</span></span>
             </div>
             <div class="resource-item" id="mvc-resource">
-                <span>MVC: <span id="mvc-value">500</span></span>
+                <span>MVC: <span id="mvc-value">200</span></span>
             </div>
             <div class="resource-item" id="bio-resource">
                 <span>🧪 <span id="bio-value">100</span></span>
@@ -1455,7 +1307,7 @@ body.modal-open {
         </div>
         
         <!-- Модальное окно обучения -->
-        <div class="modal" id="tutorial-modal">
+        <div class="modal active" id="tutorial-modal">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title">Welcome to METAVILLE!</h3>
@@ -1519,7 +1371,9 @@ body.modal-open {
                 </div>
                 
                 <div class="modal-actions">
-                    <button class="btn btn-primary" id="start-game-btn">Start the game</button>
+                    <button class="btn btn-primary" id="start-game-btn">
+                        Start the game
+                    </button>
                 </div>
             </div>
         </div>
@@ -1540,14 +1394,6 @@ body.modal-open {
                     <div class="map-circle outer-ring">
                         <span class="ring-label outer-label">Area that is dangerous (100-150 km)</span>
                     </div>
-
-                <!-- Energy Nodes (Power Stations) -->
-<div id="power-nodes">
-  <button class="power-node" data-node-id="n1" style="left:16%; top:38%;"></button>
-  <button class="power-node" data-node-id="n2" style="left:62%; top:22%;"></button>
-  <button class="power-node" data-node-id="n3" style="left:73%; top:68%;"></button>
-</div>
-
                 </div>
                 
                 <!-- Упрощенное меню действий -->
@@ -1560,7 +1406,7 @@ body.modal-open {
                     </button>
                 </div>
                 
-                <h3 class="section-title" style="margin-top: 10px;">Active missions</h3>
+                <h3 class="section-title" style="margin-top: 20px;">Active missions</h3>
                 <div class="mission-card" id="probe-mission">
                     <div class="mission-progress" id="probe-progress" style="width: 0%"></div>
                     <div class="status-title">
@@ -1570,10 +1416,10 @@ body.modal-open {
                     <div class="progress-bar">
                         <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 50px;">
                         <span id="mission-time">0%</span>
                         <span id="mission-harvest">HARVESTER: 0/2</span>
-                        <span id="scanned-resources">Resourse: -</span> 
+                        <span id="scanned-resources">Resourse: -</span>
                         <span id="mission-risk" style="color: #ffcc00;">RISK: 0% ⚠️</span>
                     </div>
                 </div>
@@ -1594,29 +1440,29 @@ body.modal-open {
                         </div>
                     </div>
                     
- <!-- AVATAR CARD (кликабельно) -->
-<div class="status-card red-glow" id="avatar-card" role="button" aria-label="Open profile">
-  <div class="avatar-row">
-   <!-- <img class="avatar-img" src="images/avatar.png" alt="Avatar">  -->
-    <div class="avatar-info">
-      <div class="status-title"><i class="fas fa-user-astronaut"></i> Pilot</div>
-      <div class="status-value" id="player-name">ZAGADKA</div>
-      <div class="avatar-meta">Rank: Citizen • ID: V01D-031</div>
-    </div>
-  </div>
-</div>            
+                    <div class="status-card">
+                        <div class="status-title">
+                            <i class="fas fa-tint"></i> Water supply
+                        </div>
+                        <div class="status-value">1,200 L</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 64%"></div>
+                        </div>
+                    </div>
+                    
                     <!-- карточка генерации O₂ -->
+                    <div class="status-card clickable" id="o2-generation-card">
+                        <div class="status-title">
+                            <i class="fas fa-wind"></i> Generation O₂
+                             <!-- иконка пальца -->
+                            <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
 
-                   <div class="status-card clickable highlight-oxygen" id="o2-generation-card">
-  <div class="status-title">
-    <i class="fas fa-wind"></i> Generation O₂
-    <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
-  </div>
-  <div class="status-value" id="o2-generation-value">5/h</div>
-  <div class="progress-bar">
-    <div class="progress-fill" id="o2-progress" style="width: 0%"></div>
-  </div>
-</div>
+                        </div>
+                        <div class="status-value" id="o2-generation-value">0/h</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="o2-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
                     
                     <div class="status-card">
                         <div class="status-title">
@@ -1754,8 +1600,8 @@ body.modal-open {
                         <span>Transport</span>
                     </div>
                     <div class="node-progress">
-                        <span>Progress:</span>
-                        <div id="engine-status" style="color: #00ffcc;">Not started</div>
+                        <span>Прогресс:</span>
+                        <div id="engine-status" style="color: #00ffcc;">Не начато</div>
                     </div>
                     <p>Increases the speed of transport by 15%</p>
                     <div class="node-cost">
@@ -1793,7 +1639,7 @@ body.modal-open {
                     <div class="offer-details">
                         <div class="offer-price">12 MVC/unit</div>
                         <button class="btn buy-btn" data-resource="polymers" data-price="12" data-amount="85" style="padding: 8px 12px;">BUY</button>
-                        <button class="btn btn-secondary">SELL</button>
+                        <button id="sell-btn" class="btn btn-secondary">SELL</button>
                     </div>
                 </div>
                 
@@ -1806,7 +1652,7 @@ body.modal-open {
                     <div class="offer-details">
                         <div class="offer-price">28 MVC/unit</div>
                         <button class="btn buy-btn" data-resource="rare" data-price="28" data-amount="12" style="padding: 8px 12px;">BUY</button>
-                        <button class="btn btn-secondary">SELL</button>
+                        <button id="sell-btn" class="btn btn-secondary">SELL</button>
                     </div>
                 </div>
                 
@@ -1819,7 +1665,7 @@ body.modal-open {
                     <div class="offer-details">
                         <div class="offer-price">10 MVC/unit</div>
                         <button class="btn buy-btn" data-resource="oxygen" data-price="10" data-amount="150" style="padding: 8px 12px;">BUY</button>
-                        <button class="btn btn-secondary">SELL</button>
+                        <button id="sell-btn" class="btn btn-secondary">SELL</button>
                     </div>
                 </div>
                 
@@ -1883,8 +1729,8 @@ body.modal-open {
                         <div class="vote-fill" id="moon-progress" style="width: 28%"></div>
                     </div>
                     <div class="vote-info">
-                        <div>Progress: <span id="moon-percent">28</span>%</div>
-                        <div>Cost: 95,000 MVC</div>
+                        <div>Прогресс: <span id="moon-percent">28</span>%</div>
+                        <div>Стоимость: 95,000 MVC</div>
                     </div>
                     <div class="vote-controls">
                         <input type="number" min="1" max="150" value="5" class="vote-input" id="moon-votes">
@@ -1912,23 +1758,23 @@ body.modal-open {
            <div class="quest-card new">
   <div class="quest-badge new-badge">New!</div>
   <div class="quest-title">
-    <i class="fas fa-star"></i> Awakening
+    <i class="fas fa-star"></i> Пробуждение
   </div>
   <div class="quest-description">
-    Explore your capsule and find a way out. Check all compartments – there may be useful items.
+    Осмотри свою капсулу и найди способ выбраться. Проверь все отсеки — там могут быть полезные вещи.
   </div>
   <div class="quest-reward">
-    <i class="fas fa-gift"></i> Reward: 100 MVC, Metaville Map
+    <i class="fas fa-gift"></i> Награда: 100 MVC, Карта
   </div>
   <div class="quest-progress">
     <div class="quest-progress-fill" style="width: 0%"></div>
   </div>
   <div class="quest-status">
-    <span>Progress: 0%</span>
-    <span>Status: Not accepted</span>
+    <span>Прогресс: 0%</span>
+    <span>Статус: НЕ принят</span>
   </div>
   <div class="quest-actions">
-    <button class="btn btn-primary" data-quest="awakening">Accept</button>
+    <button class="btn btn-primary" data-quest="awakening">Принять</button>
   </div>
 </div>
 
@@ -1953,16 +1799,16 @@ body.modal-open {
                     </div>
                     <div class="quest-actions">
                         <button class="btn" disabled>
-                            In progress
+                            In process
                         </button>
                         <button class="btn btn-danger">
-                            Abort
+                            Brake
                         </button>
                     </div>
                 </div>
                 
                 <div class="quest-card completed">
-                    <div class="quest-badge completed-badge">Completed</div>
+                    <div class="quest-badge completed-badge">Завершено</div>
                     <div class="quest-title">
                         <i class="fas fa-truck"></i> First job
                     </div>
@@ -1977,7 +1823,7 @@ body.modal-open {
                     </div>
                     <div class="quest-status">
                         <span>Progress: 100%</span>
-                        <span>Status: Completed</span>
+                        <span>Finish </span>
                     </div>
                     <div class="quest-actions">
                         <button class="btn btn-primary" disabled>
@@ -2004,7 +1850,9 @@ body.modal-open {
                         <span>Status: Available</span>
                     </div>
                     <div class="quest-actions">
-                        <button class="btn btn-primary" data-quest="fragments">Accept quest</button>
+                        <button class="btn btn-primary">
+                            Accept quest
+                        </button>
                     </div>
                 </div>
                 
@@ -2013,7 +1861,7 @@ body.modal-open {
                         <i class="fas fa-cogs"></i> Activating the Genesis Machine
                     </div>
                     <div class="quest-description">
-                        After collecting all the fragments of the chip, please activate the Genesis Machine in the central laboratory. This will unlock access to new technologies.
+                        After collecting all the fragments of the chip, please activate the Start Machine in the central laboratory. This will unlock access to new technologies.
                     </div>
                     <div class="quest-reward">
                         <i class="fas fa-gift"></i> Rewards: 1000 MVC, Access to V.01.D
@@ -2023,7 +1871,7 @@ body.modal-open {
                     </div>
                     <div class="quest-status">
                         <span>Progress: 0%</span>
-                        <span>Status: Unavailable</span>
+                        <span>Статус: Unavailable</span>
                     </div>
                     <div class="quest-actions">
                         <button class="btn" disabled>
@@ -2069,32 +1917,33 @@ body.modal-open {
         </div>
     </div>
 
-    <!-- Модалка квеста "Awakening" -->
+
+    <!-- Модалка квеста "Пробуждение" -->
 <div id="quest-awake-modal" class="modal" aria-hidden="true">
   <div class="modal-content" style="max-width: 620px;">
     <button class="close-modal" id="quest-awake-close" aria-label="Закрыть">&times;</button>
-    <h2 class="modal-title">AWAKENING</h2>
+    <h2 class="modal-title">ПРОБУЖДЕНИЕ</h2>
 
     <div class="quest-body" id="quest-awake-body">
-      <p>You slowly regain consciousness. Around you are smooth metal walls of the capsule. A cold blue light on a screen flashes: 'System activated'.</p>
-      <p>A voice from the speakers: 'Welcome to Metaville, subject 7-delta. Follow the instructions to exit the capsule.'</p>
-      <p>Through the fogged glass you see a huge hangar with hundreds of identical capsules. Some are already open.</p>
+      <p>Вы медленно приходите в себя. Вокруг — гладкие металлические стены капсулы. Холодный синий свет экрана мигает: «Система активирована».</p>
+      <p>Голос из динамиков: «Добро пожаловать в Метавиль, субъект 7-дельта. Следуйте инструкциям для выхода из капсулы».</p>
+      <p>Сквозь запотевшее стекло виден огромный ангар с сотнями таких же капсул. Некоторые уже открыты.</p>
     </div>
 
     <div class="quest-choices" id="quest-awake-choices" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
-      <button class="btn" id="quest-awake-inspect">▶ Inspect the capsule</button>
-      <button class="btn" id="quest-awake-open">▶ Try to open the capsule</button>
+      <button class="btn" id="quest-awake-inspect">▶ Осмотреть капсулу</button>
+      <button class="btn" id="quest-awake-open">▶ Попытаться открыть капсулу</button>
     </div>
 
     <div class="quest-stats" style="margin-top:10px;font-size:12px;color:#a0a0d0;text-align:center;">
-      Health: <span id="quest-awake-health">100</span> | Reputation: <span id="quest-awake-rep">0</span>
+      Здоровье: <span id="quest-awake-health">100</span> | Репутация: <span id="quest-awake-rep">0</span>
     </div>
   </div>
 </div>
 
     <!-- Модальное окно майнера кислорода -->
     <div class="modal" id="o2-miner-modal">
-        <div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: #0f0f1a;">
+        <div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: transparent;">
             <button class="close-modal" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #00f3ff; font-size: 24px; z-index: 100;">&times;</button>
             <div id="o2-miner-content"></div>
         </div>
@@ -2138,7 +1987,7 @@ body.modal-open {
             </div>
             
             <div class="modal-actions">
-                <button class="btn btn-danger" id="break-btn">ABORT</button>
+                <button class="btn btn-danger" id="break-btn">BREAK</button>
                 <button class="btn btn-primary" id="confirm-scan">SCAN</button>
             </div>
         </div>
@@ -2192,6 +2041,7 @@ body.modal-open {
     </div>
 </div>
 
+    <!-- Модальное окно капсулы отдыха -->
 <div class="modal" id="rest-modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -2205,8 +2055,10 @@ body.modal-open {
 
             <!-- Аватар и характеристики -->
             <div style="display: flex; align-items: center; gap: 20px;">
-               
-                    
+                <div class="avatar" style="width: 10px; height: 10px; border-radius: 50%; 
+                        background: linear-gradient(135deg, #1a1a2f, #2a2a4a); 
+                        border: 3px solid #00ffcc; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user-astronaut" style="font-size: 40px; color: #00ffcc;"></i>
                 </div>
                 
                 <div>
@@ -2222,39 +2074,42 @@ body.modal-open {
                             <div class="status-title">
                                 <i class="fas fa-heart"></i> Health
                             </div>
-                            <div class="status-value" id="current-health">87%</div>
+                            <div class="status-value">87%</div>
                         </div>
                         <div class="status-card">
                             <div class="status-title">
                                 <i class="fas fa-shield-alt"></i> Level
                             </div>
-                            <div class="status-value" id="current-level">5</div>
+                            <div class="status-value">5</div>
                         </div>
                         <div class="status-card">
                             <div class="status-title">
                                 <i class="fas fa-star"></i> XP
                             </div>
-                            <div class="status-value" id="current-xp">1200/2000</div>
+                            <div class="status-value">1200/2000</div>
                         </div>
                     </div>
                 </div>
             </div>
             
             <!-- Репутация -->
-            <h3 class="section-title">Reputation</h3>
-<div class="rep-grid" id="rep-grid">
-  <!-- Карточки создадим из JS (см. ниже). 
-       Если хочешь статично, пример:
-  <div class="rep-card" data-faction="Syndicate Gloria">
-    <div class="rep-head">
-      <span>Syndicate "Gloria"</span>
-      <span class="rep-badge friend">Friend</span>
-    </div>
-    <div class="rep-value">+25</div>
-    <div class="rep-bar"><div class="rep-fill" style="width:62%"></div></div>
-  </div>
-  -->
-</div>
+            <div>
+                <h4 class="section-title">Reputation</h4>
+                <div class="reputation-list">
+                    <div class="reputation-item">
+                        <span>Syndicate "Gloria"</span>
+                        <span style="color: #ffcc00;">+25 (Друг)</span>
+                    </div>
+                    <div class="reputation-item">
+                        <span>The Brotherhood of Steel</span>
+                        <span style="color: #a0a0d0;">0 (Нейтрал)</span>
+                    </div>
+                    <div class="reputation-item">
+                        <span>The Black Sun Raiders</span>
+                        <span style="color: #ff5555;">-15 (Враг)</span>
+                    </div>
+                </div>
+            </div>
             
             <!-- Прогресс отдыха -->
             <div class="progress-container" style="margin-top: 15px;">
@@ -2265,17 +2120,6 @@ body.modal-open {
         <span id="rest-time">0%</span>
         <span id="rest-status">Ready to rest</span>
     </div>
-<div class="section-title">Sleep (energy regen ×4)</div>
-<div class="sleep-grid">
-  <button class="btn" data-sleep="1">1h</button>
-  <button class="btn" data-sleep="2">2h</button>
-  <button class="btn" data-sleep="4">4h</button>
-  <button class="btn" data-sleep="8">8h</button>
-</div>
-<div style="margin-top:8px; font-size:12px; color:#a0a0d0">
-  While sleeping: ~80 energy per hour (base).
-</div>
-
 </div>
         </div>
         
@@ -2293,76 +2137,6 @@ body.modal-open {
         <div id="notification-text">Transport-7 is under attack by raiders! Losses: 35 resources</div>
     </div>
     
-<!-- ===== Profile modal (единственный экземпляр) ===== -->
-<div id="profile-overlay" class="profile-overlay"></div>
-
-<div id="profile-modal" class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
-  <button class="modal-close" id="profile-close" aria-label="Close">✕</button>
-
-  <header class="modal-header">
-    <div class="profile-header">
-     <!-- <img class="profile-avatar" src="images/avatar.png" alt="Avatar">    -->
-      <div>
-        <h2 id="profileTitle">ZAGADKA</h2>
-        <div class="profile-sub">Status: Citizen • ID: V01D-031 • Sector 7G</div>
-      </div>
-    </div>
-  </header>
-
-    <!-- ваши карточки статов здесь -->
-<section class="stats-grid">
-    <!-- один элемент -->
-    <article class="stat-card">
-      <div class="stat-title">Огневая мощь (FP)</div>
-      <div class="stat-value">139</div>
-      <div class="progress"><div class="bar" style="--p:62%"></div></div>
-      <div class="stat-desc">Эффективность в боевых сценариях, защита караванов</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Статус (HT)</div>
-      <div class="stat-value">Titan [3]</div>
-      <div class="progress"><div class="bar" style="--p:55%"></div></div>
-      <div class="stat-desc">Доступ к закрытым зонам, дипломатия с фракциями</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Энергия (EN)</div>
-      <div class="stat-value">143/160</div>
-      <div class="progress"><div class="bar" style="--p:89%"></div></div>
-      <div class="stat-desc">Количество действий за ход, работа в токсичных зонах</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Защита (ED)</div>
-      <div class="stat-value">151</div>
-      <div class="progress"><div class="bar" style="--p:75%"></div></div>
-      <div class="stat-desc">Устойчивость к радиации/токсинам, сохранность груза</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Здоровье (HP)</div>
-      <div class="stat-value">137/200</div>
-      <div class="progress"><div class="bar" style="--p:68%"></div></div>
-      <div class="stat-desc">Выживаемость и скорость восстановления</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Опыт (XP)</div>
-      <div class="stat-value">150/200</div>
-      <div class="progress"><div class="bar" style="--p:75%"></div></div>
-      <div class="stat-desc">Прокачка характеристик</div>
-    </article>
-
-  </section>
-
-  <footer class="modal-actions">
-    <button class="btn primary">Edit profile</button>
-    <button class="btn ghost" id="profile-close-2">Close</button>
-  </footer>
-</div>
-
-
     <script>
         // Состояние игры (исправленное)
         const gameState = {
@@ -2424,7 +2198,7 @@ body.modal-open {
             drones: 0,
             slots: 2,
             quests: [
-                { id: 1, title: "Awakening", description: "Исследуйте свою капсулу и найдите способ выбраться наружу. Осмотрите все отсеки капсулы для получения ключевых предметов.", reward: "100 MVC, Карта Метавиля", status: "new", progress: 0, accepted: false, completed: false },
+                { id: 1, title: "Пробуждение", description: "Исследуйте свою капсулу и найдите способ выбраться наружу. Осмотрите все отсеки капсулы для получения ключевых предметов.", reward: "100 MVC, Карта Метавиля", status: "new", progress: 0, accepted: false, completed: false },
                 { id: 2, title: "Сканирование поверхности", description: "Выберите сектор для сканирования и запустите зонды для сбора данных. Используйте полученные данные для дальнейшего исследования.", reward: "250 MVC, 5 биоматериалов", status: "active", progress: 45, accepted: true, completed: false },
                 { id: 3, title: "Первая доставка", description: "Доставьте посылку Борису в центральный хаб. Избегайте опасных зон и следите за уровнем энергии.", reward: "150 MVC, Инструкция по выживанию", status: "completed", progress: 100, accepted: true, completed: true },
                 { id: 4, title: "Поиск фрагментов чипа", description: "Найти 5 фрагментов чипа Начала по всей территории Метавиля. Каждый фрагмент открывает новые возможности платформы.", reward: "500 MVC, Улучшенный сканер", status: "available", progress: 20, accepted: false, completed: false },
@@ -2500,23 +2274,26 @@ body.modal-open {
                 elements.missionBelt.textContent = gameState.missions.belt;
                 elements.missionProgress.style.width = gameState.missions.progress + '%';
                 elements.missionTime.textContent = Math.round(gameState.missions.progress) + '%';
-                elements.missionRisk.textContent = `Risk: ${gameState.missions.risk}% ⚠️`;
-                elements.probeProgress.style.width = gameState.missions.progress  + '%';
-                elements.missionHarvest.textContent = `HARVESTER: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
+                elements.missionRisk.textContent = `Риск: ${gameState.missions.risk}% ⚠️`;
+                elements.probeProgress.style.width = gameState.missions.progress + '%';
+                elements.missionHarvest.textContent = `Сборщик: ${gameState.missions.harvestCount}/${gameState.missions.maxHarvests}`;
                 
                 // Отображение ресурсов
                 if (gameState.missions.scannedResources) {
                     const res = gameState.missions.scannedResources;
-                    document.getElementById('scanned-resources').textContent = `Resources: ${res.amount} ${getResourceName(res.type)}`;
+                    document.getElementById('scanned-resources').textContent = 
+                        `Ресурсы: ${res.amount} ${getResourceName(res.type)}`;
                 } else {
-                    document.getElementById('scanned-resources').textContent = 'Resources: -';
+                    document.getElementById('scanned-resources').textContent = 'Ресурсы: -';
                 }
                 
                 // Блокировка кнопки комбайна
-                document.getElementById('harvest-btn').disabled = gameState.missions.progress < 100 || gameState.missions.harvestCount >= gameState.missions.maxHarvests;
+                document.getElementById('harvest-btn').disabled = 
+                    gameState.missions.progress < 100 || 
+                    gameState.missions.harvestCount >= gameState.missions.maxHarvests;
             } else {
                 document.getElementById('harvest-btn').disabled = true;
-                document.getElementById('scanned-resources').textContent = 'Resources: -';
+                document.getElementById('scanned-resources').textContent = 'Ресурсы: -';
             }
             
             // Исследования
@@ -2524,10 +2301,10 @@ body.modal-open {
             updateResearchDots('radiation', gameState.research.radiation);
             
             if (gameState.research.engines) {
-                elements.engineStatus.textContent = "Active • 3:45 ⏳";
+                elements.engineStatus.textContent = "Активно • 3:45 ⏳";
                 document.getElementById('engine-btn').textContent = "Ускорить";
             } else {
-                elements.engineStatus.textContent = "Not started";
+                elements.engineStatus.textContent = "Не начато";
                 document.getElementById('engine-btn').textContent = "Research";
             }
             
@@ -2612,16 +2389,10 @@ body.modal-open {
 
         // Запуск сканирования
         document.getElementById('scan-btn').addEventListener('click', () => {
-  const m = document.getElementById('scan-modal');
-  m.classList.add('active');
-
-  // сброс выбора сектора визуально и логически
-  let selectedSector = null;
-  document.querySelectorAll('#scan-modal .sector-item').forEach(s=>{
-    s.style.borderColor = '#3a3a5a';
-    s.style.background  = '#1a1a2f';
-  });
-});
+            if (updateResource('energy', -50)) {
+                document.getElementById('scan-modal').classList.add('active');
+            }
+        });
 
         // Закрытие модальных окон
         document.querySelectorAll('.close-modal').forEach(button => {
@@ -2652,7 +2423,7 @@ body.modal-open {
         // Начать сканирование
         document.getElementById('confirm-scan').addEventListener('click', function() {
             if (!selectedSector) {
-                showNotification("Select a sector to scan!", false);
+                showNotification("Выберите сектор для сканирования!", false);
                 return;
             }
             
@@ -2699,9 +2470,9 @@ body.modal-open {
                     // Случайные события
                     if (Math.random() < 0.02) {
                         const events = [
-                            "Rare resources found! +15 🧪",
-                            "Scanning interrupted by a radiation storm!",
-                            "Abandoned warehouse found! +25 🛠️"
+                            "Обнаружены редкие ресурсы! +15 🧪",
+                            "Сканирование прервано радиационной бурей!",
+                            "Обнаружен заброшенный склад! +25 🛠️"
                         ];
                         const event = events[Math.floor(Math.random() * events.length)];
                         
@@ -2711,16 +2482,13 @@ body.modal-open {
                             updateResource(resource, amount);
                         }
                         
-                        showNotification(event, !event.includes("interrupted"));
+                        showNotification(event, !event.includes("прервано"));
                     }
                 } else {
                     clearInterval(scanInterval);
-                    showNotification("Sector scanning complete!", true);
+                    showNotification("Сканирование сектора завершено!", true);
                     updateResource('oxygen', -5);
                     updateResource('bio', 1);
-                    clearInterval(scanInterval);
-gameState.missions.scanning = false; // готов к следующему скану
-
                     // Показать модальное окно с результатами сканирования
             showScanResultModal(sectorData, randomResource, amount);
                 }
@@ -2766,7 +2534,8 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
     // Форматируем стоимость с иконками
     const costInfo = `15 <span style="color: #00ccff;">O₂</span>, 70 <span style="color: #ffcc00;">⚡</span>`;
     
-    document.getElementById('result-resources').innerHTML = `${resourceAmount} ${resourceNames[resourceType] || resourceType}`;
+    document.getElementById('result-resources').innerHTML = 
+        `${resourceAmount} ${resourceNames[resourceType] || resourceType}`;
     
     document.getElementById('result-cost').innerHTML = costInfo;
     
@@ -2776,12 +2545,12 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
         // Отправка харвестера
         function sendHarvester() {
     if (!gameState.missions.scannedResources || gameState.missions.harvested) {
-        showNotification("No resources to harvest!", false);
+        showNotification("Нет ресурсов для добычи!", false);
         return;
     }
     
     if (gameState.missions.harvestCount >= gameState.missions.maxHarvests) {
-        showNotification("Harvester dispatch limit reached!", false);
+        showNotification("Достигнут лимит отправок харвестеров!", false);
         return;
     }
     
@@ -2793,7 +2562,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
         gameState.missions.harvestCount++;
         gameState.missions.harvested = true;
         
-        showNotification(`Harvester collected ${res.amount} ${getResourceName(res.type)}!`, true);
+        showNotification(`Харвестер добыл ${res.amount} ${getResourceName(res.type)}!`, true);
         updateUI();
     }
 }
@@ -2806,10 +2575,10 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                 if (updateResource('mvc', -120) && updateResource('parts', -40)) {
                     gameState.research.stealth++;
                     updateUI();
-                    showNotification("Stealth module research progressed!", true);
+                    showNotification("Исследование стелс-модулей продвинуто!", true);
                 }
             } else {
-                showNotification("Stealth module research completed!", true);
+                showNotification("Исследование стелс-модулей завершено!", true);
             }
         });
 
@@ -2819,10 +2588,10 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                 if (updateResource('mvc', -85) && updateResource('bio', -5)) {
                     gameState.research.radiation++;
                     updateUI();
-                    showNotification("Radiation adaptation research progressed!", true);
+                    showNotification("Исследование радиационной адаптации продвинуто!", true);
                 }
             } else {
-                showNotification("Radiation adaptation research completed!", true);
+                showNotification("Исследование радиационной адаптации завершено!", true);
             }
         });
 
@@ -2832,18 +2601,18 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                 if (updateResource('mvc', -200) && updateResource('parts', -25)) {
                     gameState.research.engines = true;
                     updateUI();
-                    showNotification("Engine research started!", true);
+                    showNotification("Исследование двигателей начато!", true);
                     
                     // Имитация исследования
                     setTimeout(() => {
                         gameState.research.engines = false;
-                        showNotification("Engine research completed! +15% to transport speed", true);
+                        showNotification("Исследование двигателей завершено! +15% к скорости транспорта", true);
                         updateUI();
                     }, 5000);
                 }
             } else {
                 if (updateResource('mvc', -100)) {
-                    showNotification("Engine research accelerated!", true);
+                    showNotification("Исследование двигателей ускорено!", true);
                 }
             }
         });
@@ -2853,7 +2622,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
             if (updateResource('mvc', -200) && updateResource('parts', -15)) {
                 gameState.drones = Math.min(3, gameState.drones + 1);
                 updateUI();
-                showNotification("Systems upgraded! Drones in repair: " + gameState.drones, true);
+                showNotification("Системы обновлены! Дроны в ремонте: " + gameState.drones, true);
             }
         });
 
@@ -2861,7 +2630,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
         document.getElementById('emergency-btn').addEventListener('click', function() {
             if (updateResource('mvc', -80)) {
                 updateResource('energy', 100);
-                showNotification("Emergency power activated! +100 ⚡", true);
+                showNotification("Экстренное питание активировано! +100 ⚡", true);
             }
         });
 
@@ -2879,7 +2648,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                     switch(resource) {
                         case "polymers":
                         case "rare":
-                            resourceName = resource === "polymers" ? "polymers" : "rare materials";
+                            resourceName = resource === "polymers" ? "полимеров" : "редкоземельных материалов";
                             break;
                         case "oxygen":
                             updateResource('oxygen', amount);
@@ -2888,12 +2657,12 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
                             break;
                         case "stealth":
                             gameState.slots--;
-                            resourceName = "stealth module";
+                            resourceName = "стелс-модуль";
                             resourceAmount = 1;
                             break;
                     }
                     
-                    showNotification(`Purchased: ${resourceAmount > 0 ? resourceAmount + ' ' : ''}${resourceName}`, true);
+                    showNotification(`Куплено: ${resourceAmount > 0 ? resourceAmount + ' ' : ''}${resourceName}`, true);
                     updateUI();
                 }
             });
@@ -2926,19 +2695,19 @@ document.getElementById('rest-button').addEventListener('click', startRest);
 
 function startRest() {
     if (gameState.player.isResting) {
-        showNotification("You are already resting!", false);
+        showNotification("Вы уже отдыхаете!", false);
         return;
     }
     
     if (gameState.resources.energy >= 1000) {
-        showNotification("Your energy is already full!", false);
+        showNotification("Ваша энергия уже полна!", false);
         return;
     }
     
     gameState.player.isResting = true;
     const restButton = document.getElementById('rest-button');
     restButton.disabled = true;
-    restButton.innerHTML = '<i class="fas fa-hourglass-half"></i> Resting...';
+    restButton.innerHTML = '<i class="fas fa-hourglass-half"></i> Отдых...';
     
     // Установим время отдыха: 8 секунд для демо
     const restTime = 8;
@@ -2952,11 +2721,12 @@ function startRest() {
         // Плавная анимация прогресса
         document.getElementById('rest-progress-fill').style.width = `${progress}%`;
         document.getElementById('rest-time').textContent = `${Math.round(progress)}%`;
-        document.getElementById('rest-status').textContent = `Rest: ${restTime - timeLeft}/${restTime} sec`;
+        document.getElementById('rest-status').textContent = `Отдых: ${restTime - timeLeft}/${restTime} сек`;
         
         // Пульсирующая анимация при завершении
         if (progress > 90) {
-            document.getElementById('rest-progress-fill').style.background = 'linear-gradient(90deg, #ffcc00, #ff9900)';
+            document.getElementById('rest-progress-fill').style.background = 
+                'linear-gradient(90deg, #ffcc00, #ff9900)';
         }
         
         if (timeLeft <= 0) {
@@ -2972,10 +2742,10 @@ function completeRest() {
     gameState.player.isResting = false;
     
     document.getElementById('rest-button').disabled = false;
-    document.getElementById('rest-button').innerHTML = '<i class="fas fa-bed"></i> Rest (8 hours)';
-    document.getElementById('rest-status').textContent = "Rest complete!";
+    document.getElementById('rest-button').innerHTML = '<i class="fas fa-bed"></i> Отдохнуть (8 часов)';
+    document.getElementById('rest-status').textContent = "Отдых завершен!";
     
-    showNotification("You are fully rested! Energy restored to 1000", true);
+    showNotification("Вы полностью отдохнули! Энергия восстановлена до 1000", true);
     updateUI();
     
     // Закрываем модальное окно через 3 секунды
@@ -2985,45 +2755,16 @@ function completeRest() {
 }
 // Потребление энергии с течением времени
 setInterval(() => {
-   // if (!gameState.player.isResting) {
-      //  updateResource('energy', -0.01);
+    if (!gameState.player.isResting) {
+        updateResource('energy', -1);
         
         // Если энергия ниже 20%, показываем предупреждение
         if (gameState.resources.energy < 200 && Math.random() > 0.8) {
-            showNotification("⚠️ Low energy level! Rest in the capsule", false);
+            showNotification("⚠️ Низкий уровень энергии! Отдохните в капсуле", false);
         }
-    
+    }
 }, 1000);
 
-
-function renderReputation(reps){
-  const grid = document.getElementById('rep-grid');
-  if(!grid) return;
-  grid.innerHTML = '';
-  reps.forEach(r=>{
-    const card = document.createElement('div');
-    card.className = 'rep-card';
-    card.innerHTML = `
-      <div class="rep-head">
-        <span>${r.name}</span>
-        <span class="rep-badge ${r.status}">${r.status[0].toUpperCase()+r.status.slice(1)}</span>
-      </div>
-      <div class="rep-value">${r.value>0?'+':''}${r.value}</div>
-      <div class="rep-bar"><div class="rep-fill" style="width:${Math.max(0,Math.min(100, r.percent||0))}%"></div></div>
-    `;
-    grid.appendChild(card);
-  });
-}
-
-// пример вызова — подставить  данные
-document.addEventListener('DOMContentLoaded', ()=>{
-  renderReputation([
-    { name:'Syndicate "Gloria"', value: 25, status:'friend',  percent:62 },
-    { name:'The Brotherhood of Steel', value: 0,  status:'neutral', percent:50 },
-    { name:'The Black Sun Raiders', value:-15, status:'enemy',  percent:30 },
-    { name:'Humanists Council', value:10, status:'friend', percent:55 },
-  ]);
-});
         // Голосование
         document.querySelectorAll('.vote-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -3032,17 +2773,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 let votes = parseInt(voteInput.value);
                 
                 if (isNaN(votes)) {
-                    showNotification("Enter a number of votes!", false);
+                    showNotification("Введите количество голосов!", false);
                     return;
                 }
                 
                 if (votes <= 0) {
-                    showNotification("Number of votes must be positive!", false);
+                    showNotification("Количество голосов должно быть положительным!", false);
                     return;
                 }
                 
                 if (gameState.userVotes < votes) {
-                    showNotification("Not enough votes to support the project!", false);
+                    showNotification("Недостаточно голосов для поддержки проекта!", false);
                     return;
                 }
                 
@@ -3061,13 +2802,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 }
                 
                 updateUI();
-                showNotification(`Your ${votes} votes have been counted for the project!`, true);
+                showNotification(`Ваши ${votes} голосов учтены для проекта!`, true);
             });
         });
 
         // Создание нового предложения
         document.getElementById('create-proposal-btn').addEventListener('click', function() {
-            showNotification("New proposal submitted for moderation", true);
+            showNotification("Новое предложение отправлено на модерацию", true);
         });
 
         // Принятие квеста
@@ -3079,24 +2820,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
                     if (awakeningQuest && !awakeningQuest.accepted) {
                         awakeningQuest.accepted = true;
                         awakeningQuest.status = "active";
-                        showNotification("Quest 'Awakening' accepted! Inspect the capsule to complete it.", true);
-                        updateUI();
-                    }
-                } else if (questId === "fragments") {
-                    const fragQuest = gameState.quests.find(q => q.id === 4);
-                    if (fragQuest && !fragQuest.accepted) {
-                        fragQuest.accepted = true;
-                        fragQuest.status = "active";
-                        showNotification("Quest 'Searching for chip fragments' accepted!", true);
+                        showNotification("Квест 'Пробуждение' принят! Осмотрите капсулу для выполнения.", true);
                         updateUI();
                     }
                 }
             });
         });
 
-  // === Квест "Awakening": открытие из меню, логика сцен ===
+  // === Квест "Пробуждение": открытие из меню, логика сцен ===
 (function(){
-  // Кнопка "Accept" в карточке квеста (data-quest="awakening")
+  // Кнопка "Принять" в карточке квеста (data-quest="awakening")
   const acceptBtn = document.querySelector('[data-quest="awakening"]');
   const modal = document.getElementById('quest-awake-modal');
   const closeBtn = document.getElementById('quest-awake-close');
@@ -3124,17 +2857,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   function sceneInspect(){
     body.innerHTML = `
-      <p>You carefully inspect the capsule. On the panel you notice:</p>
+      <p>Вы внимательно осматриваете капсулу. На панели замечаете:</p>
       <ul>
-        <li>Screen: «Activation complete. Awaiting exit»</li>
-        <li>Compartment with «Survival Guide»</li>
-        <li>Hidden pocket with an energy bar</li>
-        <li>A metal key stuck in a crack between panels</li>
+        <li>Экран: «Активация завершена. Ожидание выхода»</li>
+        <li>Отсек с «Инструкцией по выживанию»</li>
+        <li>Скрытый карман с энергетическим батончиком</li>
+        <li>Металлический ключ, застрявший в щели между панелями</li>
       </ul>
     `;
     choices.innerHTML = `
-      <button class="btn" id="awake-takekey">▶ Take the key</button>
-      <button class="btn" id="awake-skipkey">▶ Ignore the key</button>
+      <button class="btn" id="awake-takekey">▶ Взять ключ</button>
+      <button class="btn" id="awake-skipkey">▶ Проигнорировать ключ</button>
     `;
     document.getElementById('awake-takekey').onclick = () => {
       hasKey = true; rep += 1; refreshStats(); sceneOpen();
@@ -3146,13 +2879,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   function sceneOpen(){
     body.innerHTML = `
-      <p>You press the exit button. A hiss—the capsule opens slowly.</p>
-      <p>Cold hangar air surrounds you, dozens of capsules around, some empty.</p>
-      <p>A man in a shabby jacket approaches you – <strong>Boris</strong>.</p>
-      <p><strong>Boris</strong>: "Glad to see you in Metaville. I have a job... deliver this package to the coordinates."</p>
-      ${hasKey ? '<p>You clench the key you found – it might come in handy.</p>' : ''}
+      <p>Вы нажимаете кнопку выхода. Шипение — капсула медленно открывается.</p>
+      <p>Холодный воздух ангара, вокруг — десятки капсул, некоторые пусты.</p>
+      <p>К вам подходит мужчина в потрёпанной куртке — <strong>Борис</strong>.</p>
+      <p><strong>Борис</strong>: «Рад видеть тебя в Метавиле. Есть работёнка… доставь посылку по координатам».</p>
+      ${hasKey ? '<p>Вы сжимаете найденный ключ — может пригодиться.</p>' : ''}
     `;
-    choices.innerHTML = `<button class="btn btn-primary" id="awake-accept">▶ Accept the package</button>`;
+    choices.innerHTML = `<button class="btn btn-primary" id="awake-accept">▶ Принять посылку</button>`;
     document.getElementById('awake-accept').onclick = () => {
       // Закрываем модалку и мягко помечаем квест как принятый
       closeModal();
@@ -3161,7 +2894,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const card = acceptBtn.closest('.quest-card');
         if (card) {
           const status = card.querySelector('.quest-status span:last-child');
-          if (status) status.textContent = 'Status: Accepted';
+          if (status) status.textContent = 'Статус: Принят';
           const badge = card.querySelector('.quest-badge');
           if (badge) { badge.textContent = 'Active'; badge.className = 'quest-badge active-badge'; }
           const progress = card.querySelector('.quest-progress-fill');
@@ -3169,7 +2902,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         }
         // Вызов системного уведомления, если оно есть в проекте
         if (typeof showNotification === 'function') {
-          showNotification('Quest accepted: "Boris\'s package"', true);
+          showNotification('Квест принят: «Посылка Бориса»', true);
         }
       } catch(e) {}
     };
@@ -3196,15 +2929,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
         setInterval(() => {
             if (Math.random() < 0.1 && gameState.missions.scanning) {
                 const events = [
-                    "Radiation storm! Scanning slowed down",
-                    "Rare resources found! +10 🧪",
-                    "Raider attack! Resource losses"
+                    "Радиационная буря! Сканирование замедлено",
+                    "Обнаружены редкие ресурсы! +10 🧪",
+                    "Атака рейдеров! Потери ресурсов"
                 ];
                 const event = events[Math.floor(Math.random() * events.length)];
                 
                 if (event.includes("+")) {
                     updateResource('bio', 10);
-                } else if (event.includes("Losses")) {
+                } else if (event.includes("Потери")) {
                     updateResource('oxygen', -20);
                 }
                 
@@ -3233,21 +2966,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
         <div class="container">
             
             <div class="header">
-                <h1>O₂ Miner</h1>
-                <div class="subtitle">SECTOR 7G</div>
+                <h1>Майнер O2</h1>
+                <div class="subtitle">СЕКТОР 7G</div>
             </div>
             
             <div class="mining-container">
                 <div class="mining-header">
-                    <div class="mining-title">O₂ Extraction</div>
+                    <div class="mining-title">Добыча O₂</div>
                     <div class="timer" id="timer">03:59:45</div>
                 </div>
                 
                 <div class="progress-container">
                     <div class="progress-labels">
-                        <div>Start</div>
+                        <div>Начало</div>
                         <div id="progressPercentage">75%</div>
-                        <div>Claim</div>
+                        <div>Клейм</div>
                     </div>
                     <div class="o2-progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
@@ -3255,30 +2988,30 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 </div>
                 
                 <div class="o2-production">
-                    <div class="o2-label">Current yield</div>
+                    <div class="o2-label">Текущая Добыча</div>
                     <div class="o2-value" id="o2Value">8.73 O₂</div>
-                    <div class="o2-label">per cycle</div>
+                    <div class="o2-label">за цикл</div>
                 </div>
             </div>
             
             <div class="stats-container">
                 <div class="stat-box">
-                    <div class="stat-label">Active Miners</div>
+                    <div class="stat-label">Активные Майнеры</div>
                     <div class="stat-value" id="activeMiners">1,427</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Your Share</div>
+                    <div class="stat-label">Ваша Доля</div>
                     <div class="stat-value" id="yourShare">2.7%</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Next Claim</div>
+                    <div class="stat-label">Следующий Клейм</div>
                     <div class="stat-value" id="nextClaim">04:00:00</div>
                 </div>
             </div>
             
             <div class="status-container">
-                <div class="status-label">System Status</div>
-                <div class="status-value pulse" id="status">Extraction active</div>
+                <div class="status-label">Статус системы</div>
+                <div class="status-value pulse" id="status">Добыча активна</div>
             </div>
             
         </div>
@@ -3295,14 +3028,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
                 // Если время вышло, сбрасываем таймер
                 if (timeLeft <= 0) {
                     timeLeft = 4 * 60 * 60;
-                    document.getElementById('status').textContent = "O2 claim complete!";
+                    document.getElementById('status').textContent = "Клейм O2 завершен!";
                     document.getElementById('status').style.color = "#00ff99";
                     
                     // Добавляем кислород игроку
                     updateResource('oxygen', 10);
                     
                     setTimeout(() => {
-                        document.getElementById('status').textContent = "Extraction active";
+                        document.getElementById('status').textContent = "Добыча активна";
                         document.getElementById('status').style.color = "#00ff99";
                     }, 5000);
                 }
@@ -3380,7 +3113,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
             // Запуск генерации кислорода
             o2Interval = setInterval(updateO2Generation, 1000);
             
-            showNotification("Platform V.01.D activated! Good luck exploring METAVILLE", true);
+            showNotification("Платформа V.01.D активирована! Удачи в освоении METAVILLE", true);
         });
 
         // Инициализация интерфейса
@@ -3388,422 +3121,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
         
         // Стартовое уведомление
         setTimeout(() => {
-            showNotification("Welcome to METAVILLE on the V.01.D platform!", true);
+            showNotification("Добро пожаловать в METAVILLE на платформу V.01.D! ", true);
         }, 1000);
 
-/**
- * Показывает уведомление.
- * @param {string} message - текст
- * @param {boolean} isSuccess - true => зелёное, false => красное
- * @param {number} ms - время показа
- */
-function showNotification(message, isSuccess = true, ms = 6000) {
-  // ищем/создаём единственный элемент уведомления
-  let el = document.getElementById('app-notification');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'app-notification';
-    el.className = 'notification';
-    // добавим иконку слева по желанию
-    const icon = document.createElement('i');
-    el.appendChild(icon);
-    const textNode = document.createElement('span');
-    textNode.className = 'notification-text';
-    el.appendChild(textNode);
-    document.body.appendChild(el);
-  }
-
-  // сбрасываем классы и текст
-  el.classList.remove('success', 'error', 'show');
-  el.querySelector('.notification-text').textContent = message;
-
-  // применяем тип
-  el.classList.add(isSuccess ? 'success' : 'error');
-
-  // показываем
-  // (у тебя в CSS .notification.show поднимает и делает видимым)
-  // .notification { opacity:0; visibility:hidden; }
-  // .notification.show { opacity:1; visibility:visible; top:30px; }
-  requestAnimationFrame(() => el.classList.add('show'));
-
-  // автоскрытие
-  clearTimeout(el._hideTimer);
-  el._hideTimer = setTimeout(() => {
-    el.classList.remove('show');
-  }, ms);
-}
-
-// Примеры:
-// showNotification("Mission completed!", true);
-// showNotification("Not enough oxygen!", false);
-
-
-/* ==== ENERGY SYSTEM v1 ==== */
-
-/** Баланс */
-const E_CFG = {
-  max: 600,                                        // базовый максимум энергии
-  regenPassiveMsPerPoint: 3 * 60 * 1000,           // 1 ед / 3 мин
-  regenSleepMsPerPoint:   45 * 1000,               // 1 ед / 45 сек (x4)
-  nodeRestoreMs:          2 * 60 * 60 * 1000,      // узел: откат 2 часа
-  nodeReward:             50,                      // узел: +50 энергии
-  scanCost:  { low: 65,  medium: 110, high: 150 },
-  scanMult:  { low: 1.0, medium: 1.5, high: 2.0  },
-  scanChance:{ low: 0.9, medium: 0.7, high: 0.5  } // шанс успеха
-};
-
-const E_STORE_KEY = 'mv_energy_state_v1';
-const nowTs = () => Date.now();
-
-/** Состояние */
-let E = loadState() || {
-  energy: E_CFG.max,
-  lastTs: nowTs(),
-  sleepUntil: 0,
-  nodes: {
-    n1: { readyAt: 0 },
-    n2: { readyAt: 0 },
-    n3: { readyAt: 0 }
-  }
-};
-
-function saveState(){ localStorage.setItem(E_STORE_KEY, JSON.stringify(E)); }
-function loadState(){
-  try { return JSON.parse(localStorage.getItem(E_STORE_KEY)); } catch(e){ return null; }
-}
-
-/** Хелперы */
-function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
-function addEnergy(amount){
-  E.energy = clamp(E.energy + amount, 0, E_CFG.max);
-  updateEnergyUI();
-  saveState();
-}
-function spendEnergy(cost){
-  if (E.energy < cost) return false;
-  E.energy -= cost;
-  updateEnergyUI();
-  saveState();
-  return true;
-}
-function updateEnergyUI(){
-  const el = document.getElementById('energy-value');
-  if (el) el.textContent = Math.floor(E.energy);
-}
-
-/** Оффлайн/онлайн регенерация по времени */
-function regenSince(last, now){
-  if (now <= last) return 0;
-  const sleepU = E.sleepUntil || 0;
-
-  // базовая часть
-  let baseMs = now - last;
-  let sleepMs = 0;
-
-  // выделяем отрезок "сна"
-  if (sleepU > last){
-    const sFrom = last;
-    const sTo = Math.min(now, sleepU);
-    if (sTo > sFrom) {
-      sleepMs = sTo - sFrom;
-      baseMs -= sleepMs;
-    }
-  }
-
-  const basePts  = baseMs  / E_CFG.regenPassiveMsPerPoint;
-  const sleepPts = sleepMs / E_CFG.regenSleepMsPerPoint;
-
-  return Math.floor(basePts + sleepPts);
-}
-function tickRegen(){
-  const t = nowTs();
-  const pts = regenSince(E.lastTs, t);
-  if (pts > 0){
-    E.energy = clamp(E.energy + pts, 0, E_CFG.max);
-    E.lastTs = t;
-    // если «сон» закончился — обнулим флажок
-    if (E.sleepUntil && t >= E.sleepUntil) E.sleepUntil = 0;
-    updateEnergyUI();
-    saveState();
-  } else {
-    // просто обновим lastTs, чтобы не копилась дельта
-    E.lastTs = t;
-  }
-}
-
-/** Узлы электростанций */
-function formatCD(ms){
-  const s = Math.ceil(ms/1000);
-  const mm = Math.floor(s/60); const ss = s%60;
-  return mm + ':' + String(ss).padStart(2,'0');
-}
-function renderNodes(){
-  document.querySelectorAll('.power-node').forEach(btn=>{
-    const id = btn.dataset.nodeId;
-    const nd = E.nodes[id] || { readyAt: 0 };
-    const leftMs = nd.readyAt - nowTs();
-    let cd = btn.querySelector('.cd');
-    if (!cd){ cd = document.createElement('div'); cd.className='cd'; btn.appendChild(cd); }
-
-    if (leftMs > 0){
-      btn.classList.add('cooldown');
-      cd.textContent = formatCD(leftMs);
-    } else {
-      btn.classList.remove('cooldown');
-      cd.textContent = '+50';
-    }
-  });
-}
-function bindNodes(){
-  document.querySelectorAll('.power-node').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const id = btn.dataset.nodeId;
-      const nd = E.nodes[id] || (E.nodes[id] = { readyAt: 0 });
-      const leftMs = nd.readyAt - nowTs();
-      if (leftMs > 0){
-        showNotification('Node recharging: ' + formatCD(leftMs), false);
-        return;
-      }
-      addEnergy(E_CFG.nodeReward);
-      nd.readyAt = nowTs() + E_CFG.nodeRestoreMs;
-      saveState();
-      renderNodes();
-      showNotification('+50 Energy from node', true);
-    });
-  });
-}
-
-/** СОН (каюта) — кнопки в #rest-modal */
-function bindSleepButtons(){
-  const restModal = document.getElementById('rest-modal');
-  if (!restModal) return;
-  restModal.querySelectorAll('[data-sleep]').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      const hrs = parseInt(b.dataset.sleep,10)||1;
-      E.sleepUntil = nowTs() + hrs*3600000;
-      saveState();
-      showNotification(`Sleep started for ${hrs}h (regen ×4)`, true);
-    });
-  });
-}
-
-/** Сканирование: новая стоимость/риск/награда */
-const SCAN = {
-  // маппим data-risk → редкость
-  riskToKey(risk){ return (risk==='low'?'low':risk==='medium'?'medium':'high'); },
-  current: null // { sector, belt, risk }
-};
-
-function bindSectorPick(){
-  document.querySelectorAll('#scan-modal .sector-item').forEach(it=>{
-    it.addEventListener('click', ()=>{
-      // визуальный выбор
-      document.querySelectorAll('#scan-modal .sector-item').forEach(x=>x.style.outline='none');
-      it.style.outline = '2px solid #00ffcc';
-
-      const sector = it.dataset.sector;
-      const belt   = it.dataset.belt;
-      const risk   = it.dataset.risk;  // low/medium/high
-      SCAN.current = { sector, belt, risk };
-      // обновим цену в UI
-      const key = SCAN.riskToKey(risk);
-      const price = E_CFG.scanCost[key];
-      const costEl = document.getElementById('scan-cost');
-      if (costEl) costEl.textContent = String(price);
-    });
-  });
-}
-
-function bindScanConfirm(){
-  const btn = document.getElementById('confirm-scan');
-  if (!btn) return;
-  btn.addEventListener('click', ()=>{
-    if (!SCAN.current){
-      showNotification('Choose sector to scan', false);
-      return;
-    }
-    const key  = SCAN.riskToKey(SCAN.current.risk);
-    const cost = E_CFG.scanCost[key];
-    if (!spendEnergy(cost)){
-      showNotification('Not enough Energy', false);
-      return;
-    }
-
-    // запускаем миссию (оставляю твою существующую анимацию прогресса)
-    startMissionWithOutcome(key, cost);
-    closeModalById('scan-modal');
-  });
-}
-
-/** Итог миссии: шанс успеха, возврат половины при фейле */
-function startMissionWithOutcome(key, cost){
-  // Здесь используем твои элементы миссии (progress и т.д.)
-  const chance = E_CFG.scanChance[key];
-  // имитация завершения через 3 секунды (если у тебя уже есть таймер — используй его)
-  setTimeout(()=>{
-    const ok = Math.random() < chance;
-
-    if (ok){
-      const mult = E_CFG.scanMult[key];
-      // начисляем награду — подставь свою функцию лута/XP
-      const gainedMvc = Math.floor(10 * mult); // пример!
-      showNotification(`Scan success (+${gainedMvc} MVC, x${mult})`, true);
-      // TODO: тут вызови свою логику: добавить ресурсы по мультипликатору
-    } else {
-      // риск-энергия: теряем 50% стоимости (мы списали всё при старте — вернём половину)
-      addEnergy(Math.floor(cost * 0.5));
-      showNotification('Scan failed (refunded 50% energy)', false);
-    }
-  }, 3000);
-}
-
-/** Утилиты уведомлений/модалок (опираюсь на твои же классы) */
-function showNotification(text, ok=true){
-  // у тебя уже есть .notification.success и .notification.error — воспользуемся ими
-  let n = document.getElementById('mv-toast');
-  if (!n){
-    n = document.createElement('div');
-    n.id = 'mv-toast';
-    n.className = 'notification';
-    document.body.appendChild(n);
-  }
-  n.className = 'notification ' + (ok?'success':'error');
-  n.innerHTML = `<i class="fas ${ok?'fa-check-circle':'fa-exclamation-triangle'}"></i> ${text}`;
-  n.classList.add('show');
-  setTimeout(()=>n.classList.remove('show'), 2500);
-}
-
-function closeModalById(id){
-  const m = document.getElementById(id);
-  if (!m) return;
-  m.classList.remove('active');
-  m.style.visibility='hidden';
-  m.style.opacity='0';
-}
-
-/** Инициализация */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // оффлайн реген сразу при входе
-  const gained = regenSince(E.lastTs, nowTs());
-  if (gained>0){
-    E.energy = clamp(E.energy + gained, 0, E_CFG.max);
-    E.lastTs = nowTs();
-    saveState();
-  }
-  updateEnergyUI();
-
-  // таймеры
-  setInterval(()=>{ tickRegen(); renderNodes(); }, 30000); // каждые 30с
-  // первый рендер узлов
-  bindNodes(); renderNodes();
-
-  // сон
-  bindSleepButtons();
-
-  // сканирование
-  bindSectorPick();
-  bindScanConfirm();
-});
-
-  const avatarCard = document.getElementById('avatar-card');
-  const modal      = document.getElementById('profile-modal');
-  const overlay    = document.getElementById('profile-overlay');
-  const close1     = document.getElementById('profile-close');
-  const close2     = document.getElementById('profile-close-2');
-
-  function openProfile(){
-    overlay.classList.add('open');
-    modal.classList.add('open');
-    document.body.classList.add('modal-open');
-  }
-  function closeProfile(){
-    overlay.classList.remove('open');
-    modal.classList.remove('open');
-    document.body.classList.remove('modal-open');
-  }
-
-  if (avatarCard) avatarCard.addEventListener('click', openProfile);
-  [close1, close2, overlay].forEach(el => el && el.addEventListener('click', closeProfile));
-  window.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) closeProfile(); });
-       
-(function(){
-  const avatar  = document.getElementById('avatar-card');
-  const modal   = document.getElementById('profile-modal');
-  const overlay = document.getElementById('profile-overlay');
-  const c1 = document.getElementById('profile-close');
-  const c2 = document.getElementById('profile-close-2');
-
-  if (!avatar || !modal || !overlay) return;
-
-  const open = () => { overlay.classList.add('open'); modal.classList.add('open'); document.body.classList.add('modal-open'); };
-  const close = () => { overlay.classList.remove('open'); modal.classList.remove('open'); document.body.classList.remove('modal-open'); };
-
-  avatar.addEventListener('click', open);
-  overlay.addEventListener('click', close);
-  if (c1) c1.addEventListener('click', close);
-  if (c2) c2.addEventListener('click', close);
-  window.addEventListener('keydown', e => (e.key === 'Escape' && modal.classList.contains('open')) && close());
-})();
-
-
-(function(){
-  const tutorial = document.getElementById('tutorial-modal');
-  if (!tutorial) return;
-
-  // ПОКАЗЫВАТЬ ТОЛЬКО ОДИН РАЗ:
-  const seen = localStorage.getItem('tutorialSeen');
-  if (!seen) tutorial.classList.add('active');
-  else tutorial.classList.remove('active');
-
-  function closeTutorial(){
-    tutorial.classList.remove('active');
-    localStorage.setItem('tutorialSeen','1'); // закомментируй эту строку, если нужно показывать КАЖДЫЙ раз
-  }
-
-  // Кнопки закрытия (примерные id/атрибуты — подставь свои)
-  const startBtn = document.getElementById('start-game-btn');
-  const skipBtn  = document.getElementById('tutorial-skip');
-  startBtn && startBtn.addEventListener('click', closeTutorial);
-  skipBtn  && skipBtn.addEventListener('click', closeTutorial);
-
-  // Закрытие по ESC
-  window.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && tutorial.classList.contains('active')) closeTutorial();
-  });
-
-  // Если у туториала кликабельный фон:
-  tutorial.addEventListener('click', (e)=>{
-    if (e.target === tutorial) closeTutorial();
-  });
-})();
-
-document.addEventListener('DOMContentLoaded', () => {
-  const modal    = document.getElementById('tutorial-modal');
-  const startBtn = document.getElementById('start-game-btn');
-  if (!modal || !startBtn) return;
-
-  // показываем туториал каждый запуск
-  modal.classList.add('active');
-  document.body.classList.add('modal-open'); // блок скролла фона
-
-  // закрытие по кнопке
-  startBtn.addEventListener('click', () => {
-    modal.classList.remove('active');
-    document.body.classList.remove('modal-open');
-  }, { once: true });
-});
         // TON Connect
        document.addEventListener('DOMContentLoaded', async () => {
   const connectButton = document.getElementById('connect-wallet');
   const addressSpan = document.getElementById('wallet-address');
   
   // Используем демо-манифест для теста
-  const manifestUrl = 'https://metaville.github.io/v01d/manifest.json';
+  const manifestUrl = 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json';
   
   // Проверка загрузки библиотеки
   if (!window.TonConnectUI) {
     console.error('TON Connect UI not loaded');
-    showNotification("Error: TON Connect library not loaded", false);
+    showNotification("Ошибка: Библиотека TON Connect не загружена", false);
     return;
   }
   
@@ -3812,7 +3144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ui = window.TonConnectUI.create({
       manifestUrl,
       buttonRootId: 'wallet-container',
-      language: 'en'
+      language: 'ru'
     });
     
     // Функция обновления интерфейса кошелька
@@ -3823,7 +3155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addressSpan.textContent = shortAddr;
         connectButton.innerHTML = '<i class="fas fa-check"></i>';
         connectButton.classList.replace('btn-warning', 'btn-primary');
-        showNotification("TON wallet connected!", true);
+        showNotification("TON кошелек подключен!", true);
       } else {
         addressSpan.textContent = '';
         connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
@@ -3843,14 +3175,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ui.connected) {
           await ui.disconnect();
           updateWalletUI(null);
-          showNotification("TON wallet disconnected", true);
+          showNotification("TON кошелек отключен", true);
         } else {
           const wallet = await ui.connect();
           updateWalletUI(wallet);
         }
       } catch (err) {
         console.error('Connection failed:', err);
-        showNotification("Connection error: " + err.message, false);
+        showNotification("Ошибка подключения: " + err.message, false);
       }
     });
     
@@ -3861,7 +3193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
   } catch (error) {
     console.error('TON Connect initialization error:', error);
-    showNotification("TON Connect initialization error", false);
+    showNotification("Ошибка инициализации TON Connect", false);
   }
 });
     </script>
