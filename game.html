@@ -761,6 +761,54 @@
             border-left: 4px solid #00cc99;
         }
 
+        /* ===== Avatar card ===== */
+/* Пульсация как у капсулы, но красная */
+#avatar-card{
+  position: relative;
+  border: 1px solid rgba(255,77,77,0.5);
+  box-shadow: 0 0 15px rgba(255,77,77,0.3);
+  animation: pulse-red 2s infinite;
+}
+@keyframes pulse-red{
+  0%   { box-shadow: 0 0 5px  rgba(255,77,77,0.3); }
+  50%  { box-shadow: 0 0 20px rgba(255,77,77,0.7); }
+  100% { box-shadow: 0 0 5px  rgba(255,77,77,0.3); }
+}
+
+
+.avatar-card .avatar-row{
+  display:flex; align-items:center; gap:12px;
+}
+.avatar-img{
+  width:56px; height:56px; border-radius:50%;
+  object-fit:cover;
+  border:2px solid #00ffcc;
+  box-shadow:0 0 12px rgba(0,255,204,.25);
+}
+.avatar-info .avatar-meta{
+  font-size:12px; color:#a0a0d0; margin-top:4px;
+}
+/* Общий стиль аватара */
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ff4d4d; /* красная окантовка */
+}
+
+/* Красноватая подсветка карточки */
+.red-glow {
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.7),
+              inset 0 0 10px rgba(255, 77, 77, 0.3);
+  border: 1px solid rgba(255, 77, 77, 0.6);
+}
         /* Кошелек */
         #wallet-container {
             display: flex;
@@ -778,6 +826,33 @@
             text-overflow: ellipsis;
             max-width: 100px;
         }
+
+        /* Репутация: сетка и карточки */
+.rep-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* ← теперь всегда один столбец */
+  gap: 12px;
+}
+.rep-card{
+  background: rgba(20,25,40,0.6);
+  border:1px solid #2a3358;
+  border-radius:10px;
+  padding:10px 12px;
+}
+.rep-head{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
+  font-weight:600;font-size:14px;color:#e0e0ff;
+}
+.rep-badge{
+  font-size:11px; padding:2px 8px; border-radius:9999px; border:1px solid transparent;
+}
+.rep-badge.friend  { color:#00e6a8; border-color:#00e6a8; background:rgba(0,230,168,.08); }
+.rep-badge.neutral { color:#ffc400; border-color:#ffc400; background:rgba(255,196,0,.08); }
+.rep-badge.enemy   { color:#ff5b5b; border-color:#ff5b5b; background:rgba(255,91,91,.08); }
+
+.rep-value{ font-size:13px; color:#aab0ff; margin-bottom:8px; }
+.rep-bar{ height:6px; background:#141a2e; border-radius:4px; overflow:hidden; }
+.rep-fill{ height:100%; width:0%; border-radius:4px; background:linear-gradient(90deg,#00cc99,#00ffcc); }
 
 /* Стили для обучения */
 .tutorial-item {
@@ -1440,15 +1515,21 @@ body.modal-open {
                         </div>
                     </div>
                     
-                    <div class="status-card">
-                        <div class="status-title">
-                            <i class="fas fa-tint"></i> Water supply
-                        </div>
-                        <div class="status-value">1,200 L</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 64%"></div>
-                        </div>
-                    </div>
+ <!-- AVATAR -->
+<div class="status-card avatar-card red-glow" id="avatar-card">
+  <div class="avatar-row">
+   <!--  <img class="avatar-img" src="images/avatar.png" alt="Avatar">   -->
+    <div class="avatar-info">
+      <div class="status-title">
+        <i class="fas fa-user-astronaut"></i> Pilot
+      </div>
+      <div class="status-value" id="player-name">Citizen</div>
+      <div class="avatar-meta">
+        Rank: Citizen • ID: V01D-031
+      </div>
+    </div>
+  </div>
+</div>
                     
                     <!-- карточка генерации O₂ -->
                     <div class="status-card clickable" id="o2-generation-card">
