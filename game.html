@@ -12,9 +12,10 @@
 <script>
   window.addEventListener('DOMContentLoaded', () => {
     if (window.TonConnectUI) {
-      // инициализация
+      // init, если нужно
     } else {
-      console.error('TonConnect UI не загрузился (проверь сеть/URL/порядок скриптов)');
+      // локально/без сети — просто не шумим
+      // console.warn('TonConnect UI not loaded'); // можно оставить как warn
     }
   });
 </script>
@@ -77,18 +78,20 @@
 }
 
         
-        /* Верхняя панель ресурсов */
-        .resource-bar {
-            background: rgba(10, 15, 30, 0.9);
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-evenly;
-            flex-wrap: nowrap;
-            border-bottom: 2px solid #2a2a4a;
-            z-index: 10;
-            gap: 4px;
-            overflow-x: auto;
-        }
+        /* верхняя панель ресурсов */
+.resource-bar{
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  z-index: 100;
+  display: flex; align-items: center;
+  padding: 0 12px;
+  background: rgba(10,15,30,.9);
+  border-bottom: 2px solid #2a2a4a;
+  /* если нужно — можно добавить blur:
+  backdrop-filter: blur(6px);
+  */
+}
         
         .resource-item {
             display: flex;
@@ -453,13 +456,17 @@
             text-align: center;
         }
         
-        /* Навигация */
-        .nav-menu {
-            display: flex;
-            background: rgba(10, 15, 30, 0.95);
-            border-top: 1px solid #2a2a4a;
-            padding: 1px 0;
-        }
+        /* нижняя навигация */
+.nav-menu{
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--bottombar-h);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: space-around;
+  background: rgba(10,15,30,.95);
+  border-top: 2px solid #2a2a4a;
+  padding-bottom: env(safe-area-inset-bottom);
+}
         
         .nav-item {
             flex: 1;
@@ -1082,23 +1089,12 @@
     animation: pulse-rest 2s infinite;
 }
 
-/*@keyframes pulse-rest {
-    0% { box-shadow: 0 0 5px rgba(204, 102, 255, 0.3); }
-    50% { box-shadow: 0 0 20px rgba(204, 102, 255, 0.7); }
-    100% { box-shadow: 0 0 5px rgba(204, 102, 255, 0.3); }
-}*/
-
 #o2-generation-card{
   position: relative;
   border: 1px solid rgba(0,255,204,0.5);
   box-shadow: 0 0 15px rgba(0,255,204,0.3);
   animation: pulse-cyan 2s infinite;
 }
-/*@keyframes pulse-cyan{
-  0%   { box-shadow: 0 0 5px  rgba(0,255,204,0.3); }
-  50%  { box-shadow: 0 0 20px rgba(0,255,204,0.7); }
-  100% { box-shadow: 0 0 5px  rgba(0,255,204,0.3); }
-}*/
 #o2-generation-card:hover{
   transform: scale(1.03);
   box-shadow: 0 0 25px rgba(0,255,204,0.9);
@@ -1157,7 +1153,7 @@
 #rest-modal.modal,
 #quest-awake-modal.modal {
   /* сплошной тёмный фон без прозрачности */
-  background: #070914 !important; /* можно #0b1020 / на вкус */
+  background: #070914 !important; /* можно #0b1020 /  */
 }
 
 /* Мягкая дымка поверх картинки  */
@@ -1430,6 +1426,30 @@ body.modal-open {
   transform: translate(-50%,-50%) scale(1);
 }
 
+/* === фиксированные верх/низ + отступы контента === */
+:root{
+  --topbar-h: 56px;      /* фактическая высота .resource-bar */
+  --bottombar-h: 60px;   /* фактическая высота .nav-menu (под иконки) */
+}
+
+
+/* сам прокручиваемый контент — добавим отступы,
+   чтобы его не перекрывали бары */
+.main-content{
+  padding-top: calc(var(--topbar-h) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--bottombar-h) + env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+
+/* компактный режим для малых экранов (iPhone SE и т.п.) */
+@media (max-width: 390px){
+  :root{
+    --topbar-h: 52px;
+    --bottombar-h: 56px;
+  }
+  .resource-bar .resource-item{ font-size: 12px; gap: 4px; }
+  .nav-menu .nav-item{ font-size: 11px; }
+}
 
  </style>
 </head>
@@ -2727,9 +2747,9 @@ body.modal-open {
                     clearInterval(scanInterval);
                     document.getElementById('harvest-btn').disabled = 
                 gameState.missions.harvestCount >= gameState.missions.maxHarvests;
-gameState.missions.scanning = false; // готов к следующему скану
+                gameState.missions.scanning = false; // готов к следующему скану
 
-                    // Показать модальное окно с результатами сканирования
+                    // модальное окно с результатами сканирования
             showScanResultModal(sectorData, randomResource, amount);
                 }
                 updateUI();
