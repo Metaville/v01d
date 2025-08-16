@@ -1531,32 +1531,11 @@ body.modal-open {
 
 /* Footer actions */
 .o2m-foot{
-  display: flex;
-  flex-direction: column;      /* футер в колонку */
-  align-items: stretch;        /* дети растягиваются по ширине */
-  gap: 12px;
+  display:flex; justify-content:space-between; align-items:center;
+  gap:10px; flex-wrap:wrap;
 }
-}
-/* контейнер кнопок — тоже колонка, чтобы каждая была отдельной строкой */
-.o2m-actions{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-}
-
-/* сами кнопки: 100% ширины, без flex-деления места */
-.o2m-foot .btn{
-  width: 100%;
-  flex: none;                  /* переопределяет прежнее flex:1 1 auto */
-  height: 48px;                /* удобная высота для тача */
-  font-size: 16px;
-}
-
-/* (необязательно) чуть уменьшим высоту на очень узких экранах */
-@media (max-width: 360px){
-  .o2m-foot .btn{ height: 44px; font-size: 15px; }
-}
+.o2m-actions{ display:flex; gap:10px; }
+.btn[disabled]{ opacity:.5; cursor:not-allowed; filter: grayscale(.4); }
 
 /* Подсветка готового Claim */
 .btn.primary.is-ready{
@@ -1568,71 +1547,131 @@ body.modal-open {
   50%{ transform: translateY(-1px); }
   100%{ transform: translateY(0); }
 }
-/* ===== Scan Results — clean layout ===== */
+/* === Power nodes (bigger + clickable) === */
+#power-nodes { position: relative; }
 
-#scan-result-modal .modal-content{
+.power-node{
+  position:absolute;
+  width: 44px;                /* раньше было ~22px */
+  height: 44px;
+  border-radius: 999px;
+  background: radial-gradient(45% 45% at 50% 50%, #1fd8ff 0%, #0ea5e9 55%, rgba(14,165,233,0.15) 100%);
+  border: 1px solid #224b62;
+  box-shadow: 0 0 16px rgba(31,216,255,.55), inset 0 0 8px rgba(255,255,255,.25);
+  display:flex; align-items:center; justify-content:center;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+  /* ВАЖНО: координаты left/top остаются «как раньше» (по верхнему левому краю). */
+}
+
+.power-node:hover { transform: scale(1.07); box-shadow: 0 0 18px rgba(31,216,255,.7); }
+.power-node:active{ transform: scale(1.02); }
+
+.power-node .cd{
+  min-width: 26px;
+  padding: 2px 6px;
+  font-size: 12px; font-weight: 800;
+  color:#e6f7ff;
+  background: rgba(3,17,27,.6);
+  border:1px solid #224b62;
+  border-radius: 8px;
+  backdrop-filter: blur(2px);
+}
+
+/* Модалка узла — аккуратный контейнер */
+.energy-node-modal{
   max-width: 420px;
-  background:#0f1524;                 /* темнее фона, контрастнее */
+  background:#0f1524;
   border:1px solid #2a2a4a;
-  border-radius:14px;
+  border-radius: 14px;
 }
+.energy-node-modal .modal-body{ padding: 8px 16px 14px; }
+.enm-title{ font-weight: 800; margin-bottom: 4px; }
+.enm-text{ color:#93a3b8; margin: 0 0 10px; }
 
-#scan-result-modal .modal-header{
-  display:flex; align-items:center; gap:10px;
-  padding:14px 16px 8px;
-}
-#scan-result-modal .modal-title{
-  margin:0; font-weight:800; font-size:18px;
-}
-
-/* бейдж риска справа от заголовка */
-#scan-result-modal .risk-badge{
-  margin-left:auto;
-  padding:4px 8px; border-radius:999px; font-size:12px; font-weight:800;
-  border:1px solid transparent;
-}
-.risk-low   { background:#0b3b2f; color:#00d19a; border-color:rgba(0,209,154,.25); }
-.risk-medium{ background:#3b310b; color:#facc15; border-color:rgba(250,204,21,.25); }
-.risk-high  { background:#3b0b12; color:#ff6b6b; border-color:rgba(255,107,107,.25); }
-
-#scan-result-modal .modal-body{ padding:8px 16px 12px; }
-
-/* сетка меток/значений */
-#scan-result-modal .scan-result-info{ display:grid; gap:10px; }
-#scan-result-modal .result-row{
-  display:grid;
-  grid-template-columns: 120px 1fr;   /* колонка метки + колонка значения */
-  gap:8px; align-items:baseline;
-}
-#scan-result-modal .result-label{ color:#93a3b8; font-size:12px; }
-#scan-result-modal .result-value{ font-weight:800; font-size:15px; }
-
-/* чипы для ресурсов/стоимости */
-#scan-result-modal .chips{ display:flex; flex-wrap:wrap; gap:8px; }
-#scan-result-modal .chip{
+.chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.chip{
   font-weight:700; font-size:13px;
   padding:6px 10px; border-radius:999px;
   border:1px solid #2b2f45; background:#181c2f;
 }
-#scan-result-modal .chip-oxygen{ color:#00ccff; border-color:#224b62; background:#0d2430; }
-#scan-result-modal .chip-energy{ color:#ffcc00; border-color:#5a4b12; background:#231c07; }
-#scan-result-modal .chip-parts{  color:#a0aec0; }
-#scan-result-modal .chip-bio{    color:#86efac; }
-#scan-result-modal .chip-mvc{    color:#60a5fa; }
+.chip-energy{ color:#ffcc00; border-color:#5a4b12; background:#231c07; }
+.chip-cooldown{ color:#86efac; border-color:#24563c; background:#0d2c20; }
 
-#scan-result-modal .divider{ height:1px; background:#1f2937; margin:8px 0 10px; }
 
-#scan-result-modal .modal-actions{
-  display:flex; gap:10px; justify-content:space-between;
-  padding:0 16px 16px;
+/* === Power nodes (размер, интерактивность, редкость) === */
+:root{
+  --node-size: 44px; /* общий размер кружка */
 }
-#scan-result-modal .modal-actions .btn{ flex:1 1 auto; height:40px; border-radius:10px; }
-#scan-result-modal .btn.primary{ background:#0ea5e9; color:#061018; }
-#scan-result-modal .btn.ghost{ background:transparent; border:1px solid #374151; color:#cbd5e1; }
 
-@media (max-width:390px){
-  #scan-result-modal .modal-title{ font-size:16px; }
-  #scan-result-modal .result-value{ font-size:14px; }
+#power-nodes { position: relative; }
+
+.power-node{
+  position:absolute;
+  width: var(--node-size);
+  height: var(--node-size);
+  border-radius: 999px;
+  display:flex; align-items:center; justify-content:center;
+  cursor: pointer;
+  border: 1px solid #224b62;
+  transition: transform .15s ease, box-shadow .15s ease, opacity .2s ease;
+  will-change: transform, box-shadow;
+}
+
+/* базовый фон (если не указана редкость) — бирюза */
+.power-node{
+  background: radial-gradient(45% 45% at 50% 50%, #1fd8ff 0%, #0ea5e9 55%, rgba(14,165,233,0.12) 100%);
+  box-shadow: 0 0 16px rgba(31,216,255,.55), inset 0 0 8px rgba(255,255,255,.25);
+}
+.power-node:hover{ transform: scale(1.07); }
+.power-node:active{ transform: scale(1.02); }
+
+/* редкости через data-rarity */
+.power-node[data-rarity="low"]{
+  background: radial-gradient(45% 45%, #1fffe2 0%, #00e6b8 55%, rgba(0,230,184,0.12) 100%);
+  border-color:#1e6a5f;
+  box-shadow: 0 0 16px rgba(0,230,184,.55), inset 0 0 8px rgba(255,255,255,.2);
+}
+.power-node[data-rarity="medium"]{
+  background: radial-gradient(45% 45%, #ffd166 0%, #f59e0b 55%, rgba(245,158,11,0.12) 100%);
+  border-color:#5a4b12;
+  box-shadow: 0 0 16px rgba(245,158,11,.55), inset 0 0 8px rgba(255,255,255,.2);
+}
+.power-node[data-rarity="high"]{
+  background: radial-gradient(45% 45%, #ff7aa2 0%, #ef4444 55%, rgba(239,68,68,0.12) 100%);
+  border-color:#6b1a24;
+  box-shadow: 0 0 18px rgba(239,68,68,.55), inset 0 0 8px rgba(255,255,255,.2);
+}
+
+/* внутренний бейдж суммы */
+.power-node .cd{
+  min-width: 28px; padding: 2px 6px;
+  font-size: 12px; font-weight: 800;
+  color:#e6f7ff;
+  background: rgba(3,17,27,.55);
+  border:1px solid rgba(34,75,98,.8);
+  border-radius: 8px;
+  backdrop-filter: blur(2px);
+}
+
+/* «пульс» когда модалка открыта */
+.power-node.is-open{
+  animation: nodePing 0.9s ease-out 1;
+}
+@keyframes nodePing{
+  0%{ box-shadow: 0 0 0 0 rgba(255,255,255,.0); transform: scale(1); }
+  50%{ box-shadow: 0 0 24px 8px rgba(255,255,255,.08); transform: scale(1.06); }
+  100%{ box-shadow: 0 0 0 0 rgba(255,255,255,.0); transform: scale(1); }
+}
+
+/* вспышка при сборе */
+.power-node.is-collected{
+  animation: nodeCollect .45s ease both;
+}
+@keyframes nodeCollect{
+  0%  { transform: scale(1);   opacity:1; }
+  30% { transform: scale(1.12); box-shadow: 0 0 28px rgba(255,255,255,.35); }
+  100%{ transform: scale(0.85); opacity:.6; }
 }
 
  </style>
@@ -1746,12 +1785,35 @@ body.modal-open {
                     </div>
 
                 <!-- Energy Nodes (Power Stations) -->
-<div id="power-nodes">
-  <button class="power-node" data-node-id="n1" style="left:16%; top:38%;"></button>
-  <button class="power-node" data-node-id="n2" style="left:62%; top:22%;"></button>
-  <button class="power-node" data-node-id="n3" style="left:73%; top:68%;"></button>
-</div>
+<button class="power-node"
+        data-node-id="n1"
+        data-amount="50"
+        data-rarity="low"
+        data-title="Node N1"
+        data-desc="Stable node on abandoned lands"
+        style="left:16%; top:38%;">
+  <div class="cd">+50</div>
+</button>
 
+<button class="power-node"
+        data-node-id="n2"
+        data-amount="80"
+        data-rarity="medium"
+        data-title="Node N2"
+        data-desc="Unstable node near ring zone"
+        style="left:62%; top:22%;">
+  <div class="cd">+80</div>
+</button>
+
+<button class="power-node"
+        data-node-id="n3"
+        data-amount="120"
+        data-rarity="high"
+        data-title="Node N3"
+        data-desc="Dangerous volatile source"
+        style="left:73%; top:68%;">
+  <div class="cd">+120</div>
+</button>
                 </div>
                 
                 <!-- Упрощенное меню действий -->
@@ -2299,7 +2361,7 @@ body.modal-open {
     <!-- Модальное окно майнера кислорода -->
     <div class="modal" id="o2-miner-modal">
         <div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: #0f0f1a;">
-            <button class="close-modal" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #00f3ff; font-size: 24px; z-index: 100;">&times;</button>
+           <!--  <button class="close-modal" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #00f3ff; font-size: 24px; z-index: 100;">&times;</button>   -->
             <div id="o2-miner-content"></div>
         </div>
     </div>
@@ -2428,7 +2490,7 @@ body.modal-open {
                             </div>
                             <div class="status-value" id="current-health">87%</div>
                         </div>
-                        <div class="status-card">
+                       <!--  <div class="status-card">
                             <div class="status-title">
                                 <i class="fas fa-shield-alt"></i> Level
                             </div>
@@ -2439,7 +2501,7 @@ body.modal-open {
                                 <i class="fas fa-star"></i> XP
                             </div>
                             <div class="status-value" id="current-xp">1200/2000</div>
-                        </div>
+                        </div>  -->
                     </div>
                 </div>
             </div>
@@ -2485,7 +2547,7 @@ body.modal-open {
         
         <div class="modal-actions">
             <button class="btn btn-primary" id="rest-button" style="width: 100%;">
-                <i class="fas fa-bed"></i> Rest (8 hours)
+                <i class="fas fa-bed"></i> Rest 
             </button>
         </div>
     </div>
@@ -2566,7 +2628,27 @@ body.modal-open {
   </footer>
 </div>
 
-
+<!-- Energy node modal -->
+<div id="energy-node-modal" class="modal">
+  <div class="modal-content energy-node-modal">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-bolt"></i> Energy node</h3>
+      <button class="close-modal" data-close="energy-node-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="enm-title" id="en-node-title">Node</div>
+      <p class="enm-text" id="en-node-text">Concentrated energy near the platform ring.</p>
+      <div class="chips">
+        <span class="chip chip-energy" id="en-node-amount">+50 ⚡</span>
+        <span class="chip chip-cooldown" id="en-node-cooldown" hidden>Cooldown</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" data-close="energy-node-modal">Close</button>
+      <button class="btn primary" id="en-collect-btn">Collect</button>
+    </div>
+  </div>
+</div>
     <script>
         // Состояние игры (исправленное)
         const gameState = {
@@ -3769,6 +3851,8 @@ function updateEnergyUI(){
   if (el) el.textContent = Math.floor(E.energy);
 }
 
+
+
 /** Оффлайн/онлайн регенерация по времени */
 function regenSince(last, now){
   if (now <= last) return 0;
@@ -3935,6 +4019,126 @@ function startMissionWithOutcome(key, cost){
   }, 3000);
 }
 
+
+(() => {
+  const $  = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+
+  function openModal(id){
+    const m = document.getElementById(id);
+    if (!m) return;
+    m.classList.add('active');
+    m.style.removeProperty('visibility');
+    m.style.removeProperty('opacity');
+    m.style.removeProperty('display');
+  }
+  function closeModal(id){ document.getElementById(id)?.classList.remove('active'); }
+  document.addEventListener('click', e=>{
+    const btn = e.target.closest('[data-close]');
+    if (!btn) return;
+    closeModal(btn.getAttribute('data-close'));
+  });
+
+  function getNodeData(el){
+    return {
+      id:     el.dataset.nodeId || el.id || 'node',
+      title:  el.dataset.title  || 'Energy node',
+      text:   el.dataset.desc   || 'Concentrated energy near the platform.',
+      amount: parseInt(el.dataset.amount || el.querySelector('.cd')?.textContent.replace(/[^\d]/g,'') || '50', 10),
+    };
+  }
+
+  // (опционально) кулдаун
+  const COOLDOWN_MIN = 0; // поставь 15, если нужен
+  const lsKey = id => `enode_${id}_ts`;
+  function isOnCooldown(id){
+    if (!COOLDOWN_MIN) return 0;
+    const ts = +localStorage.getItem(lsKey(id)) || 0;
+    const left = (ts + COOLDOWN_MIN*60*1000) - Date.now();
+    return left > 0 ? Math.ceil(left/60000) : 0;
+  }
+  function startCooldown(id){ if (COOLDOWN_MIN) localStorage.setItem(lsKey(id), String(Date.now())); }
+
+  // открытие модалки
+  function openEnergyNodeModal(el){
+    const data = getNodeData(el);
+
+    // легкий «пульс» на ноде, которую открыли
+    el.classList.add('is-open');
+    setTimeout(()=> el.classList.remove('is-open'), 400);
+
+    $('#en-node-title').textContent  = data.title;
+    $('#en-node-text').textContent   = data.text;
+    $('#en-node-amount').textContent = `+${data.amount} ⚡`;
+
+    const cdMin = isOnCooldown(data.id);
+    const cdEl  = $('#en-node-cooldown');
+    const collectBtn = $('#en-collect-btn');
+
+    collectBtn.dataset.nodeId = data.id;
+    collectBtn.dataset.amount = String(data.amount);
+    collectBtn.dataset.selector = getNodeSelector(el); // чтобы подсветить собранную ноду
+
+    if (cdMin){
+      cdEl.hidden = false; cdEl.textContent = `Cooldown ${cdMin} min`;
+      collectBtn.disabled = true;
+    } else {
+      cdEl.hidden = true; collectBtn.disabled = false;
+    }
+
+    openModal('energy-node-modal');
+  }
+
+  // найти селектор элемента (для анимации «собрана»)
+  function getNodeSelector(el){
+    if (el.id) return `#${CSS.escape(el.id)}`;
+    // попробуем по data-node-id
+    if (el.dataset.nodeId) return `.power-node[data-node-id="${el.dataset.nodeId}"]`;
+    // fallback — nth-child в контейнере
+    const parent = el.parentElement;
+    const index = [...parent.children].indexOf(el) + 1;
+    return `#power-nodes > :nth-child(${index})`;
+  }
+
+  // клик «Collect»
+  function bindCollect(){
+    const btn = document.getElementById('en-collect-btn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      const amount = parseInt(btn.dataset.amount || '0', 10) || 0;
+      const nodeSel = btn.dataset.selector || null;
+      const nodeId  = btn.dataset.nodeId || 'node';
+
+      if (typeof addEnergy === 'function') addEnergy(amount);
+      if (typeof showNotification === 'function') showNotification(`+${amount} ⚡ collected`, true);
+
+      // анимация «собрана» на самой ноде
+      if (nodeSel){
+        const el = document.querySelector(nodeSel);
+        if (el){
+          el.classList.add('is-collected');
+          setTimeout(()=> el.classList.remove('is-collected'), 450);
+        }
+      }
+
+      startCooldown(nodeId);
+      closeModal('energy-node-modal');
+    });
+  }
+
+  function bindPowerNodes(){
+    $$('#power-nodes .power-node').forEach(el=>{
+      el.style.pointerEvents = 'auto';
+      el.addEventListener('click', () => openEnergyNodeModal(el));
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    bindPowerNodes();
+    bindCollect();
+  });
+})();
 /** Утилиты уведомлений/модалок (опираюсь на твои же классы) */
 function showNotification(text, ok=true){
   // у тебя уже есть .notification.success и .notification.error — воспользуемся ими
@@ -4069,86 +4273,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.remove('modal-open');
   }, { once: true });
 });
-
-
-// вызывать после того, как ты заполнил #result-risk, ресурсы и стоимость
-function enhanceScanResultUI(){
-  const modal = document.getElementById('scan-result-modal');
-  if (!modal) return;
-
-  // --- бейдж риска в header ---
-  const header = modal.querySelector('.modal-header');
-  if (header && !header.querySelector('.risk-badge')){
-    const badge = document.createElement('span');
-    badge.className = 'risk-badge';
-    header.insertBefore(badge, header.querySelector('.close-modal'));
-  }
-  const riskVal = (modal.querySelector('#result-risk')?.textContent || '0%').replace('%','').trim();
-  const riskNum = Number(riskVal);
-  const badge = header.querySelector('.risk-badge');
-  if (badge){
-    const cls = riskNum <= 33 ? 'risk-low' : riskNum <= 66 ? 'risk-medium' : 'risk-high';
-    badge.textContent = riskNum <= 33 ? 'LOW' : riskNum <= 66 ? 'MEDIUM' : 'HIGH';
-    badge.classList.remove('risk-low','risk-medium','risk-high');
-    badge.classList.add(cls);
-  }
-
-  // --- ресурсы в «чипы» ---
-  // ищем строку, где у тебя "Resources: ..."
-  const resRow = [...modal.querySelectorAll('.result-row')]
-    .find(r => r.querySelector('.result-label')?.textContent?.toLowerCase().includes('resource'));
-  if (resRow){
-    const val = resRow.querySelector('.result-value');
-    if (val && !val.querySelector('.chips')){
-      const txt = val.textContent.trim();         // напр. "17 Biomaterials"
-      const chips = document.createElement('div');
-      chips.className = 'chips';
-      const chip = document.createElement('span');
-      // подбери тип: biomaterials → bio, parts → parts и т.д.
-      const t = /bio|biomaterial/i.test(txt) ? 'bio'
-              : /part/i.test(txt) ? 'parts'
-              : /mvc/i.test(txt) ? 'mvc' : '';
-      chip.className = `chip ${t ? 'chip-'+t : ''}`;
-      chip.textContent = txt;
-      chips.appendChild(chip);
-      val.textContent = '';
-      val.appendChild(chips);
-    }
-  }
-
-  // --- стоимость в «чипы» ---
-  // ищем строку "Harvest cost: 15 O₂, 70 ⚡"
-  const costRow = [...modal.querySelectorAll('.result-row')]
-    .find(r => r.querySelector('.result-label')?.textContent?.toLowerCase().includes('harvest'));
-  if (costRow){
-    const val = costRow.querySelector('.result-value');
-    if (val && !val.querySelector('.chips')){
-      const chips = document.createElement('div');
-      chips.className = 'chips';
-      const text = val.textContent.replace(/\s+/g,' ').trim();
-      // пытаемся выделить числа для O2 и энергии
-      const o2 = (text.match(/(\d+)\s*O₂/i) || [])[1];
-      const en = (text.match(/(\d+)\s*⚡/i) || [])[1];
-
-      if (o2){ const c=document.createElement('span'); c.className='chip chip-oxygen'; c.textContent=`${o2} O₂`; chips.appendChild(c); }
-      if (en){ const c=document.createElement('span'); c.className='chip chip-energy'; c.textContent=`${en} ⚡`;   chips.appendChild(c); }
-
-      if (!chips.children.length){ const c=document.createElement('span'); c.className='chip'; c.textContent=text; chips.appendChild(c); }
-
-      val.textContent=''; val.appendChild(chips);
-    }
-  }
-
-  // --- делитель перед кнопками (если хочешь) ---
-  const body = modal.querySelector('.modal-body');
-  if (body && !body.querySelector('.divider')){
-    const div = document.createElement('div');
-    div.className = 'divider';
-    body.appendChild(div);
-  }
-}
-
-enhanceScanResultUI();
         // TON Connect
        document.addEventListener('DOMContentLoaded', async () => {
   const connectButton = document.getElementById('connect-wallet');
