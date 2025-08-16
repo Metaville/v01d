@@ -1528,6 +1528,47 @@ body.modal-open {
   .o2m-grid{ grid-template-columns: 1fr; }
 }
 
+
+/* Footer actions */
+.o2m-foot{
+  display: flex;
+  flex-direction: column;      /* футер в колонку */
+  align-items: stretch;        /* дети растягиваются по ширине */
+  gap: 12px;
+}
+}
+/* контейнер кнопок — тоже колонка, чтобы каждая была отдельной строкой */
+.o2m-actions{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+/* сами кнопки: 100% ширины, без flex-деления места */
+.o2m-foot .btn{
+  width: 100%;
+  flex: none;                  /* переопределяет прежнее flex:1 1 auto */
+  height: 48px;                /* удобная высота для тача */
+  font-size: 16px;
+}
+
+/* (необязательно) чуть уменьшим высоту на очень узких экранах */
+@media (max-width: 360px){
+  .o2m-foot .btn{ height: 44px; font-size: 15px; }
+}
+
+/* Подсветка готового Claim */
+.btn.primary.is-ready{
+  box-shadow: 0 0 16px rgba(14,165,233,.45);
+  animation: o2mPulse 1.4s ease-in-out infinite;
+}
+@keyframes o2mPulse{
+  0%{ transform: translateY(0); }
+  50%{ transform: translateY(-1px); }
+  100%{ transform: translateY(0); }
+}
+
  </style>
 </head>
 <body>
@@ -3331,7 +3372,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         }
         
         // Майнер кислорода
-       // ==== O₂ Miner (styled) ====
+       // ==== O₂ Miner (with footer actions: Claim + Close) ====
 function initO2Miner() {
   const wrap = document.getElementById('o2-miner-content');
   if (!wrap) return;
@@ -3360,6 +3401,7 @@ function initO2Miner() {
               <span>Claim</span>
             </div>
           </div>
+
           <div class="o2m-topcol o2m-compact">
             <div class="o2m-timer">
               <span class="o2m-label">Next claim</span>
@@ -3371,7 +3413,7 @@ function initO2Miner() {
             <div class="o2m-yield">
               <span class="o2m-label">Current yield</span>
               <div class="o2m-yield-box">
-                <strong id="o2m-yield">8.73 O₂</strong>
+                <strong id="o2m-yield">0.00 O₂</strong>
               </div>
               <small class="o2m-muted">per cycle</small>
             </div>
@@ -3399,60 +3441,111 @@ function initO2Miner() {
           <i class="fas fa-info-circle"></i>
           Yield scales with <b>O₂ generation rate</b> and network activity.
         </div>
+        <div class="o2m-actions">
+          <button id="o2m-close" class="btn ghost">Close miner</button>
+          <button id="o2m-claim" class="btn primary" disabled>Claim</button>
+        </div>
       </div>
     </div>
   `;
 
-  // ===== Инициализация данных/таймера (как у тебя было)
-  let timeLeft = 4 * 60 * 60;   // 4 часа
+  // ====== Состояние и утилиты
+  const cycleSecs = 4 * 60 * 60; // 4 часа
+  let timeLeft    = cycleSecs;
   let activeMiners = 1427;
 
-  function formatTime(seconds) {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
+  const $ = id => document.getElementById(id);
+  const statusEl = $('o2m-status');
+  const fillEl   = $('o2m-progress-fill');
+  const percEl   = $('o2m-progress-percent');
+  const timerEl  = $('o2m-timer');
+  const nextEl   = $('o2m-next-claim');
+  const minersEl = $('o2m-active-miners');
+  const shareEl  = $('o2m-your-share');
+  const yieldEl  = $('o2m-yield');
+  const claimBtn = $('o2m-claim');
+  const closeBtn = $('o2m-close');
+
+  function fmt(sec){
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   }
 
+  function setClaimReady(ready){
+    claimBtn.disabled = !ready;
+    claimBtn.classList.toggle('is-ready', ready);
+    statusEl.textContent = ready ? 'Ready to claim' : 'Extraction active';
+    statusEl.classList.toggle('o2m-badge--ok', !ready);
+    statusEl.classList.toggle('o2m-badge--green', ready);
+  }
+
+  // ====== Рендер цикла
   function updateMinerData() {
-    // тикаем время
-    timeLeft--;
+    // если уже готовы к клейму — не тикаем дальше, просто держим 100%
+    if (timeLeft > 0) timeLeft--;
 
-    if (timeLeft <= 0) {
-      timeLeft = 4 * 60 * 60;
-      const st = document.getElementById('o2m-status');
-      st.textContent = "O₂ claim complete!";
-      st.classList.remove('o2m-badge--ok');
-      st.classList.add('o2m-badge--green');
-
-      // награда
-      updateResource('oxygen', 10);
-
-      setTimeout(() => {
-        st.textContent = "Extraction active";
-        st.classList.remove('o2m-badge--green');
-        st.classList.add('o2m-badge--ok');
-      }, 3000);
-    }
-
-    // активные майнеры (легкая "живая" динамика)
+    // «живая» динамика числа майнеров
     const delta = Math.floor(Math.random() * 21) - 10;
     activeMiners = Math.max(1000, activeMiners + delta);
 
-    // расчёты
-    const progressPercent = ((4 * 60 * 60 - timeLeft) / (4 * 60 * 60)) * 100;
+    const progress = ((cycleSecs - Math.max(timeLeft,0)) / cycleSecs) * 100;
     const yourShare = (1 / activeMiners * 100).toFixed(2);
-    const yieldNow = (gameState.o2Generation.rate / 10).toFixed(2);
+    const yieldNow = (gameState?.o2Generation?.rate ? gameState.o2Generation.rate : 0) / 10;
 
-    // обновление UI
-    document.getElementById('o2m-progress-fill').style.width = `${progressPercent}%`;
-    document.getElementById('o2m-progress-percent').textContent = `${Math.round(progressPercent)}%`;
-    document.getElementById('o2m-timer').textContent = formatTime(timeLeft);
-    document.getElementById('o2m-next-claim').textContent = formatTime(timeLeft);
-    document.getElementById('o2m-active-miners').textContent = activeMiners.toLocaleString();
-    document.getElementById('o2m-your-share').textContent = `${yourShare}%`;
-    document.getElementById('o2m-yield').textContent = `${yieldNow} O₂`;
+    // UI
+    fillEl.style.width = `${Math.min(progress, 100)}%`;
+    percEl.textContent = `${Math.round(Math.min(progress,100))}%`;
+    timerEl.textContent = fmt(Math.max(timeLeft,0));
+    nextEl.textContent  = fmt(Math.max(timeLeft,0));
+    minersEl.textContent = activeMiners.toLocaleString();
+    shareEl.textContent  = `${yourShare}%`;
+    yieldEl.textContent  = `${yieldNow.toFixed(2)} O₂`;
+
+    // готовность к клейму?
+    if (timeLeft <= 0) {
+      timeLeft = 0;          // зафиксировать ноль
+      setClaimReady(true);   // включить кнопку, подсветить статус
+    } else {
+      setClaimReady(false);
+    }
   }
+
+  // ====== Обработчики
+  claimBtn.addEventListener('click', () => {
+    if (claimBtn.disabled) return;
+
+    // награда: можно под свою формулу; берём текущий yieldNow:
+    const reward = +( (gameState?.o2Generation?.rate || 0) / 10 ).toFixed(2);
+
+    if (typeof updateResource === 'function') {
+      updateResource('oxygen', reward);
+    } else if (window.gameState?.resources) {
+      // запасной путь, если у тебя ресурсы в gameState.resources
+      gameState.resources.oxygen = (gameState.resources.oxygen || 0) + reward;
+    }
+
+    if (typeof showNotification === 'function') {
+      showNotification(`Claimed ${reward} O₂`, true);
+    } else {
+      console.log('Claimed O₂', reward);
+    }
+
+    // сброс цикла
+    timeLeft = cycleSecs;
+    setClaimReady(false);
+    updateMinerData();
+  });
+
+  closeBtn.addEventListener('click', () => {
+    clearInterval(minerInterval);
+    if (typeof closeModalById === 'function') {
+      closeModalById('o2-miner-modal');
+    } else {
+      // запасной вариант закрытия
+      const m = document.getElementById('o2-miner-modal');
+      if (m) { m.classList.remove('active'); m.style.visibility='hidden'; m.style.opacity='0'; }
+    }
+  });
 
   // первичный рендер + запуск интервала
   updateMinerData();
@@ -3796,8 +3889,7 @@ function closeModalById(id){
   const m = document.getElementById(id);
   if (!m) return;
   m.classList.remove('active');
-  m.style.visibility='hidden';
-  m.style.opacity='0';
+ 
 }
 
 /** Инициализация */
