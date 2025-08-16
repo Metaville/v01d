@@ -1568,6 +1568,72 @@ body.modal-open {
   50%{ transform: translateY(-1px); }
   100%{ transform: translateY(0); }
 }
+/* ===== Scan Results — clean layout ===== */
+
+#scan-result-modal .modal-content{
+  max-width: 420px;
+  background:#0f1524;                 /* темнее фона, контрастнее */
+  border:1px solid #2a2a4a;
+  border-radius:14px;
+}
+
+#scan-result-modal .modal-header{
+  display:flex; align-items:center; gap:10px;
+  padding:14px 16px 8px;
+}
+#scan-result-modal .modal-title{
+  margin:0; font-weight:800; font-size:18px;
+}
+
+/* бейдж риска справа от заголовка */
+#scan-result-modal .risk-badge{
+  margin-left:auto;
+  padding:4px 8px; border-radius:999px; font-size:12px; font-weight:800;
+  border:1px solid transparent;
+}
+.risk-low   { background:#0b3b2f; color:#00d19a; border-color:rgba(0,209,154,.25); }
+.risk-medium{ background:#3b310b; color:#facc15; border-color:rgba(250,204,21,.25); }
+.risk-high  { background:#3b0b12; color:#ff6b6b; border-color:rgba(255,107,107,.25); }
+
+#scan-result-modal .modal-body{ padding:8px 16px 12px; }
+
+/* сетка меток/значений */
+#scan-result-modal .scan-result-info{ display:grid; gap:10px; }
+#scan-result-modal .result-row{
+  display:grid;
+  grid-template-columns: 120px 1fr;   /* колонка метки + колонка значения */
+  gap:8px; align-items:baseline;
+}
+#scan-result-modal .result-label{ color:#93a3b8; font-size:12px; }
+#scan-result-modal .result-value{ font-weight:800; font-size:15px; }
+
+/* чипы для ресурсов/стоимости */
+#scan-result-modal .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+#scan-result-modal .chip{
+  font-weight:700; font-size:13px;
+  padding:6px 10px; border-radius:999px;
+  border:1px solid #2b2f45; background:#181c2f;
+}
+#scan-result-modal .chip-oxygen{ color:#00ccff; border-color:#224b62; background:#0d2430; }
+#scan-result-modal .chip-energy{ color:#ffcc00; border-color:#5a4b12; background:#231c07; }
+#scan-result-modal .chip-parts{  color:#a0aec0; }
+#scan-result-modal .chip-bio{    color:#86efac; }
+#scan-result-modal .chip-mvc{    color:#60a5fa; }
+
+#scan-result-modal .divider{ height:1px; background:#1f2937; margin:8px 0 10px; }
+
+#scan-result-modal .modal-actions{
+  display:flex; gap:10px; justify-content:space-between;
+  padding:0 16px 16px;
+}
+#scan-result-modal .modal-actions .btn{ flex:1 1 auto; height:40px; border-radius:10px; }
+#scan-result-modal .btn.primary{ background:#0ea5e9; color:#061018; }
+#scan-result-modal .btn.ghost{ background:transparent; border:1px solid #374151; color:#cbd5e1; }
+
+@media (max-width:390px){
+  #scan-result-modal .modal-title{ font-size:16px; }
+  #scan-result-modal .result-value{ font-size:14px; }
+}
 
  </style>
 </head>
@@ -4003,6 +4069,86 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.remove('modal-open');
   }, { once: true });
 });
+
+
+// вызывать после того, как ты заполнил #result-risk, ресурсы и стоимость
+function enhanceScanResultUI(){
+  const modal = document.getElementById('scan-result-modal');
+  if (!modal) return;
+
+  // --- бейдж риска в header ---
+  const header = modal.querySelector('.modal-header');
+  if (header && !header.querySelector('.risk-badge')){
+    const badge = document.createElement('span');
+    badge.className = 'risk-badge';
+    header.insertBefore(badge, header.querySelector('.close-modal'));
+  }
+  const riskVal = (modal.querySelector('#result-risk')?.textContent || '0%').replace('%','').trim();
+  const riskNum = Number(riskVal);
+  const badge = header.querySelector('.risk-badge');
+  if (badge){
+    const cls = riskNum <= 33 ? 'risk-low' : riskNum <= 66 ? 'risk-medium' : 'risk-high';
+    badge.textContent = riskNum <= 33 ? 'LOW' : riskNum <= 66 ? 'MEDIUM' : 'HIGH';
+    badge.classList.remove('risk-low','risk-medium','risk-high');
+    badge.classList.add(cls);
+  }
+
+  // --- ресурсы в «чипы» ---
+  // ищем строку, где у тебя "Resources: ..."
+  const resRow = [...modal.querySelectorAll('.result-row')]
+    .find(r => r.querySelector('.result-label')?.textContent?.toLowerCase().includes('resource'));
+  if (resRow){
+    const val = resRow.querySelector('.result-value');
+    if (val && !val.querySelector('.chips')){
+      const txt = val.textContent.trim();         // напр. "17 Biomaterials"
+      const chips = document.createElement('div');
+      chips.className = 'chips';
+      const chip = document.createElement('span');
+      // подбери тип: biomaterials → bio, parts → parts и т.д.
+      const t = /bio|biomaterial/i.test(txt) ? 'bio'
+              : /part/i.test(txt) ? 'parts'
+              : /mvc/i.test(txt) ? 'mvc' : '';
+      chip.className = `chip ${t ? 'chip-'+t : ''}`;
+      chip.textContent = txt;
+      chips.appendChild(chip);
+      val.textContent = '';
+      val.appendChild(chips);
+    }
+  }
+
+  // --- стоимость в «чипы» ---
+  // ищем строку "Harvest cost: 15 O₂, 70 ⚡"
+  const costRow = [...modal.querySelectorAll('.result-row')]
+    .find(r => r.querySelector('.result-label')?.textContent?.toLowerCase().includes('harvest'));
+  if (costRow){
+    const val = costRow.querySelector('.result-value');
+    if (val && !val.querySelector('.chips')){
+      const chips = document.createElement('div');
+      chips.className = 'chips';
+      const text = val.textContent.replace(/\s+/g,' ').trim();
+      // пытаемся выделить числа для O2 и энергии
+      const o2 = (text.match(/(\d+)\s*O₂/i) || [])[1];
+      const en = (text.match(/(\d+)\s*⚡/i) || [])[1];
+
+      if (o2){ const c=document.createElement('span'); c.className='chip chip-oxygen'; c.textContent=`${o2} O₂`; chips.appendChild(c); }
+      if (en){ const c=document.createElement('span'); c.className='chip chip-energy'; c.textContent=`${en} ⚡`;   chips.appendChild(c); }
+
+      if (!chips.children.length){ const c=document.createElement('span'); c.className='chip'; c.textContent=text; chips.appendChild(c); }
+
+      val.textContent=''; val.appendChild(chips);
+    }
+  }
+
+  // --- делитель перед кнопками (если хочешь) ---
+  const body = modal.querySelector('.modal-body');
+  if (body && !body.querySelector('.divider')){
+    const div = document.createElement('div');
+    div.className = 'divider';
+    body.appendChild(div);
+  }
+}
+
+enhanceScanResultUI();
         // TON Connect
        document.addEventListener('DOMContentLoaded', async () => {
   const connectButton = document.getElementById('connect-wallet');
