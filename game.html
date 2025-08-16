@@ -2616,7 +2616,7 @@ body.modal-open {
   m.classList.add('active');
 
   // сброс выбора сектора визуально и логически
-  let selectedSector = null;
+  selectedSector = null;
   document.querySelectorAll('#scan-modal .sector-item').forEach(s=>{
     s.style.borderColor = '#3a3a5a';
     s.style.background  = '#1a1a2f';
@@ -2671,6 +2671,10 @@ body.modal-open {
 
         // Функция сканирования сектора
         function startScanning(sectorData) {
+             // Сброс состояния миссии перед началом нового сканирования
+    gameState.missions.scanning = true;
+    gameState.missions.harvested = false; // Добавлено
+    gameState.missions.harvestCount = 0; // Добавлено
             // Генерация случайных ресурсов
             const resourceTypes = ['bio', 'parts', 'mvc',];
             const randomResource = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
@@ -2715,10 +2719,14 @@ body.modal-open {
                     }
                 } else {
                     clearInterval(scanInterval);
+                    scanInterval = null; // обнуляем ссылку
+
                     showNotification("Sector scanning complete!", true);
                     updateResource('oxygen', -5);
                     updateResource('bio', 1);
                     clearInterval(scanInterval);
+                    document.getElementById('harvest-btn').disabled = 
+                gameState.missions.harvestCount >= gameState.missions.maxHarvests;
 gameState.missions.scanning = false; // готов к следующему скану
 
                     // Показать модальное окно с результатами сканирования
