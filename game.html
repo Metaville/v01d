@@ -1450,6 +1450,83 @@ body.modal-open {
   .resource-bar .resource-item{ font-size: 12px; gap: 4px; }
   .nav-menu .nav-item{ font-size: 11px; }
 }
+/* ==== O₂ Miner — game style ==== */
+.o2m{
+  display:flex; flex-direction:column; gap:12px;
+}
+.o2m-head{
+  display:flex; align-items:center; gap:10px;
+}
+.o2m-title{
+  display:flex; align-items:center; gap:10px;
+  font-weight:800; letter-spacing:.2px;
+}
+.o2m-title i{ color:#00ccff; }
+.o2m-sub{
+  margin-left:8px; padding:2px 8px; border-radius:999px;
+  font-size:12px; color:#9fb3c8; background:#0f1524; border:1px solid #26324a;
+}
+
+.o2m-badge{
+  margin-left:auto; font-size:12px; font-weight:800;
+  padding:6px 10px; border-radius:999px; border:1px solid transparent;
+}
+.o2m-badge--ok{ background:#0b3b2f; color:#00d19a; border-color:rgba(0,209,154,.25); }
+.o2m-badge--green{ background:#10361f; color:#4ade80; border-color:#265e34; }
+
+.o2m-card{
+  background:#111827; border:1px solid #2a2a4a;
+  border-radius:14px; padding:14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.o2m-toprow{
+  display:grid; grid-template-columns: 1.3fr .9fr; gap:14px;
+}
+.o2m-topcol{ display:flex; flex-direction:column; gap:10px; }
+.o2m-compact .o2m-timer, .o2m-compact .o2m-yield{ background:#0f1524; border:1px solid #26324a; border-radius:12px; padding:10px; }
+
+.o2m-label{ color:#93a3b8; font-size:12px; }
+
+.o2m-progress{
+  height:16px; border-radius:999px; overflow:hidden;
+  background:#0f1524; border:1px solid #26324a; position:relative;
+}
+.o2m-progress__fill{
+  height:100%; width:0%;
+  background: linear-gradient(90deg,#00ccff,#00ffcc);
+  box-shadow:0 0 12px rgba(0,204,255,.6);
+  transition: width .35s ease;
+}
+.o2m-progress-meta{
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:12px; color:#93a3b8;
+}
+.o2m-progress-meta strong{ color:#e5f0ff; font-size:14px; }
+
+.o2m-timer-box{
+  display:flex; align-items:center; gap:8px;
+  font-weight:800; font-size:18px;
+}
+.o2m-yield-box{
+  font-weight:900; font-size:18px; color:#00ccff;
+}
+
+.o2m-grid{
+  display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:8px;
+}
+.o2m-stat{
+  background:#0f1524; border:1px solid #26324a; border-radius:12px; padding:10px;
+}
+.o2m-stat__label{ color:#93a3b8; font-size:12px; }
+.o2m-stat__value{ font-weight:800; font-size:16px; }
+
+.o2m-foot{ display:flex; justify-content:space-between; align-items:center; }
+.o2m-hint{ color:#93a3b8; font-size:12px; display:flex; gap:6px; align-items:center; }
+
+@media (max-width: 420px){
+  .o2m-toprow{ grid-template-columns: 1fr; }
+  .o2m-grid{ grid-template-columns: 1fr; }
+}
 
  </style>
 </head>
@@ -3254,121 +3331,135 @@ document.addEventListener('DOMContentLoaded', ()=>{
         }
         
         // Майнер кислорода
-       function initO2Miner() {
-    const o2MinerContent = document.getElementById('o2-miner-content');
-    o2MinerContent.innerHTML = `
-        <div class="scan-line"></div>
-        <div class="container">
-            
-            <div class="header">
-                <h1>O₂ Miner</h1>
-                <div class="subtitle">SECTOR 7G</div>
-            </div>
-            
-            <div class="mining-container">
-                <div class="mining-header">
-                    <div class="mining-title">O₂ Extraction</div>
-                    <div class="timer" id="timer">03:59:45</div>
-                </div>
-                
-                <div class="progress-container">
-                    <div class="progress-labels">
-                        <div>Start</div>
-                        <div id="progressPercentage">75%</div>
-                        <div>Claim</div>
-                    </div>
-                    <div class="o2-progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                </div>
-                
-                <div class="o2-production">
-                    <div class="o2-label">Current yield</div>
-                    <div class="o2-value" id="o2Value">8.73 O₂</div>
-                    <div class="o2-label">per cycle</div>
-                </div>
-            </div>
-            
-            <div class="stats-container">
-                <div class="stat-box">
-                    <div class="stat-label">Active Miners</div>
-                    <div class="stat-value" id="activeMiners">1,427</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Your Share</div>
-                    <div class="stat-value" id="yourShare">2.7%</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Next Claim</div>
-                    <div class="stat-value" id="nextClaim">04:00:00</div>
-                </div>
-            </div>
-            
-            <div class="status-container">
-                <div class="status-label">System Status</div>
-                <div class="status-value pulse" id="status">Extraction active</div>
-            </div>
-            
+       // ==== O₂ Miner (styled) ====
+function initO2Miner() {
+  const wrap = document.getElementById('o2-miner-content');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
+    <div class="o2m">
+      <div class="o2m-head">
+        <div class="o2m-title">
+          <i class="fas fa-wind"></i>
+          <span>O₂ Miner</span>
+          <small class="o2m-sub">Sector 7G</small>
         </div>
-            `;
-            
-            // Инициализация данных майнера
-            let timeLeft = 4 * 60 * 60;
-            let activeMiners = 1427;
-            
-            function updateMinerData() {
-                // Обновление таймера
-                timeLeft--;
-                
-                // Если время вышло, сбрасываем таймер
-                if (timeLeft <= 0) {
-                    timeLeft = 4 * 60 * 60;
-                    document.getElementById('status').textContent = "O2 claim complete!";
-                    document.getElementById('status').style.color = "#00ff99";
-                    
-                    // Добавляем кислород игроку
-                    updateResource('oxygen', 10);
-                    
-                    setTimeout(() => {
-                        document.getElementById('status').textContent = "Extraction active";
-                        document.getElementById('status').style.color = "#00ff99";
-                    }, 5000);
-                }
-                
-                // Обновление количества майнеров
-                const minerChange = Math.floor(Math.random() * 21) - 10;
-                activeMiners = Math.max(1000, activeMiners + minerChange);
-                
-                // Расчет доли пользователя
-                const yourShare = (1 / activeMiners * 100).toFixed(2);
-                
-                // Расчет прогресса
-                const progressPercent = ((4 * 60 * 60 - timeLeft) / (4 * 60 * 60)) * 100;
-                
-                // Обновление элементов
-                document.getElementById('timer').textContent = formatTime(timeLeft);
-                document.getElementById('nextClaim').textContent = formatTime(timeLeft);
-                document.getElementById('progressFill').style.width = `${progressPercent}%`;
-                document.getElementById('progressPercentage').textContent = `${Math.round(progressPercent)}%`;
-                document.getElementById('activeMiners').textContent = activeMiners.toLocaleString();
-                document.getElementById('yourShare').textContent = `${yourShare}%`;
-                document.getElementById('o2Value').textContent = `${(gameState.o2Generation.rate / 10).toFixed(2)} O2`;
-            }
-            
-            // Форматирование времени
-            function formatTime(seconds) {
-                const hrs = Math.floor(seconds / 3600);
-                const mins = Math.floor((seconds % 3600) / 60);
-                const secs = seconds % 60;
-                return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            }
-            
-            // Инициализация данных
-            updateMinerData();
-            
-            // Запуск обновления
-            minerInterval = setInterval(updateMinerData, 1000);
-        }
+        <span id="o2m-status" class="o2m-badge o2m-badge--ok">Extraction active</span>
+      </div>
+
+      <div class="o2m-card">
+        <div class="o2m-toprow">
+          <div class="o2m-topcol">
+            <div class="o2m-label">Cycle progress</div>
+            <div class="o2m-progress">
+              <div id="o2m-progress-fill" class="o2m-progress__fill"></div>
+            </div>
+            <div class="o2m-progress-meta">
+              <span>Start</span>
+              <strong id="o2m-progress-percent">0%</strong>
+              <span>Claim</span>
+            </div>
+          </div>
+          <div class="o2m-topcol o2m-compact">
+            <div class="o2m-timer">
+              <span class="o2m-label">Next claim</span>
+              <div class="o2m-timer-box">
+                <i class="far fa-clock"></i>
+                <strong id="o2m-timer">04:00:00</strong>
+              </div>
+            </div>
+            <div class="o2m-yield">
+              <span class="o2m-label">Current yield</span>
+              <div class="o2m-yield-box">
+                <strong id="o2m-yield">8.73 O₂</strong>
+              </div>
+              <small class="o2m-muted">per cycle</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="o2m-grid">
+          <div class="o2m-stat">
+            <span class="o2m-stat__label">Active miners</span>
+            <span id="o2m-active-miners" class="o2m-stat__value">1,427</span>
+          </div>
+          <div class="o2m-stat">
+            <span class="o2m-stat__label">Your share</span>
+            <span id="o2m-your-share" class="o2m-stat__value">2.7%</span>
+          </div>
+          <div class="o2m-stat">
+            <span class="o2m-stat__label">Cycle length</span>
+            <span id="o2m-next-claim" class="o2m-stat__value">04:00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="o2m-foot">
+        <div class="o2m-hint">
+          <i class="fas fa-info-circle"></i>
+          Yield scales with <b>O₂ generation rate</b> and network activity.
+        </div>
+      </div>
+    </div>
+  `;
+
+  // ===== Инициализация данных/таймера (как у тебя было)
+  let timeLeft = 4 * 60 * 60;   // 4 часа
+  let activeMiners = 1427;
+
+  function formatTime(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  function updateMinerData() {
+    // тикаем время
+    timeLeft--;
+
+    if (timeLeft <= 0) {
+      timeLeft = 4 * 60 * 60;
+      const st = document.getElementById('o2m-status');
+      st.textContent = "O₂ claim complete!";
+      st.classList.remove('o2m-badge--ok');
+      st.classList.add('o2m-badge--green');
+
+      // награда
+      updateResource('oxygen', 10);
+
+      setTimeout(() => {
+        st.textContent = "Extraction active";
+        st.classList.remove('o2m-badge--green');
+        st.classList.add('o2m-badge--ok');
+      }, 3000);
+    }
+
+    // активные майнеры (легкая "живая" динамика)
+    const delta = Math.floor(Math.random() * 21) - 10;
+    activeMiners = Math.max(1000, activeMiners + delta);
+
+    // расчёты
+    const progressPercent = ((4 * 60 * 60 - timeLeft) / (4 * 60 * 60)) * 100;
+    const yourShare = (1 / activeMiners * 100).toFixed(2);
+    const yieldNow = (gameState.o2Generation.rate / 10).toFixed(2);
+
+    // обновление UI
+    document.getElementById('o2m-progress-fill').style.width = `${progressPercent}%`;
+    document.getElementById('o2m-progress-percent').textContent = `${Math.round(progressPercent)}%`;
+    document.getElementById('o2m-timer').textContent = formatTime(timeLeft);
+    document.getElementById('o2m-next-claim').textContent = formatTime(timeLeft);
+    document.getElementById('o2m-active-miners').textContent = activeMiners.toLocaleString();
+    document.getElementById('o2m-your-share').textContent = `${yourShare}%`;
+    document.getElementById('o2m-yield').textContent = `${yieldNow} O₂`;
+  }
+
+  // первичный рендер + запуск интервала
+  updateMinerData();
+  clearInterval(minerInterval);
+  minerInterval = setInterval(updateMinerData, 1000);
+}
+
         
         // Открытие майнера кислорода
         document.getElementById('o2-generation-card').addEventListener('click', function() {
