@@ -1747,6 +1747,16 @@ body.modal-open {
 #scan-modal .zone-title{ font-weight:700; }
 #scan-modal .zone-range{ font-size:12px; opacity:.85; }
 </style>
+
+/* === FIX: make nodes definitely clickable and prevent hidden modals from intercepting clicks === */
+<style id="nodes-fix-css">
+  .map-circle { pointer-events: none !important; }
+  .power-node { z-index: 10 !important; pointer-events: auto !important; }
+  /* If some CSS somewhere leaves modals "display:flex" but invisible, don't let them block clicks */
+  .modal:not(.active){ pointer-events: none !important; }
+  .modal.active{ pointer-events: auto !important; }
+</style>
+
 </head>
 <body>
 <div class="container" id="app">
@@ -4248,5 +4258,83 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
     </script>
+
+<!-- === FIX: robust click binding for power nodes (delegated) === -->
+<script id="nodes-fix-js">
+(function(){
+  // Safely parse int
+  function toInt(x, d){ var n = parseInt(x,10); return isNaN(n) ? (d||0) : n; }
+  // Fill energy-node modal from a node element
+  function fillEnergyNodeModal(el){
+    var id     = el.dataset.nodeId || el.id || 'node';
+    var title  = el.dataset.title  || 'Energy node';
+    var text   = el.dataset.desc   || 'Concentrated energy near the platform.';
+    var amount = toInt(el.dataset.amount || (el.querySelector('.cd') && el.querySelector('.cd').textContent.replace(/[^\d]/g,'')) || '50', 50);
+    var titleEl = document.getElementById('en-node-title');
+    var textEl  = document.getElementById('en-node-text');
+    var amtEl   = document.getElementById('en-node-amount');
+    if (titleEl) titleEl.textContent = title;
+    if (textEl)  textEl.textContent  = text;
+    if (amtEl)   amtEl.textContent   = '+' + amount + ' ⚡';
+    // cooldown
+    var left = 0;
+    try{ left = (window.E && window.E.nodes && window.E.nodes[id] && window.E.nodes[id].readyAt ? window.E.nodes[id].readyAt : 0) - Date.now(); }catch(e){ left = 0; }
+    var cdEl = document.getElementById('en-node-cooldown');
+    var btn  = document.getElementById('en-collect-btn');
+    if (btn){
+      btn.dataset.nodeId = id;
+      btn.dataset.amount = String(amount);
+      if (left > 0){
+        if (cdEl){ cdEl.hidden = false; cdEl.textContent = 'Cooldown ' + Math.ceil(left/60000) + ' min'; }
+        btn.disabled = true;
+      } else {
+        if (cdEl){ cdEl.hidden = true; }
+        btn.disabled = false;
+      }
+    }
+  }
+  // Open modal by id (works with existing CSS)
+  function openModalById(id){
+    var m = document.getElementById(id);
+    if (m){ m.classList.add('active'); }
+  }
+  // Delegated click handler for .power-node
+  document.addEventListener('click', function(e){
+    var node = e.target.closest && e.target.closest('.power-node');
+    if (!node) return;
+    // If the original global function exists, prefer it
+    if (typeof window.openEnergyNodeModal === 'function'){
+      try { return window.openEnergyNodeModal(node); } catch(err){ /* fallback below */ }
+    }
+    fillEnergyNodeModal(node);
+    openModalById('energy-node-modal');
+  }, true); // capture to be robust
+
+  // Also ensure clicking the Collect button updates cooldown using the shared E state if present
+  var collectBtn = document.getElementById('en-collect-btn');
+  if (collectBtn){
+    collectBtn.addEventListener('click', function(){
+      if (collectBtn.disabled) return;
+      var id = collectBtn.dataset.nodeId || 'node';
+      var amount = toInt(collectBtn.dataset.amount || '0', 0);
+      if (window.addEnergy) try { window.addEnergy(amount); } catch(e){}
+      if (window.E){
+        if (!window.E.nodes) window.E.nodes = {};
+        if (!window.E.nodes[id]) window.E.nodes[id] = { readyAt: 0 };
+        if (window.E_CFG && window.E_CFG.nodeRestoreMs){
+          window.E.nodes[id].readyAt = Date.now() + window.E_CFG.nodeRestoreMs;
+        } else {
+          window.E.nodes[id].readyAt = Date.now() + 2*60*60*1000;
+        }
+        if (window.saveState) try { window.saveState(); } catch(e){}
+        if (window.renderNodes) try { window.renderNodes(); } catch(e){}
+      }
+      var modal = document.getElementById('energy-node-modal');
+      if (modal) modal.classList.remove('active');
+    });
+  }
+})();
+</script>
+
 </body>
 </html>
