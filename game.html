@@ -1,14 +1,14 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>METAVILLE: V.01.D / Genesis Platform</title>
-
-     <!-- TON Connect UI Kit -->
-    <script defer src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="yes" name="mobile-web-app-capable"/>
+<title>METAVILLE: V.01.D / Genesis Platform</title>
+<!-- TON Connect UI Kit -->
+<script defer="" src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
 <script>
   window.addEventListener('DOMContentLoaded', () => {
     if (window.TonConnectUI) {
@@ -19,10 +19,9 @@
     }
   });
 </script>
- 
-    <link rel="tonconnect" href="https://metaville.github.io/v01d/manifest.json">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+<link href="https://metaville.github.io/v01d/manifest.json" rel="tonconnect"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -557,19 +556,6 @@
         #scan-modal {
   background-color: rgba(20, 20, 30, 1); /* плотный тёмный фон */
   backdrop-filter: none; /* убираем размытие */
-}
-
-/* Для модалки сканирования */
-#scan-modal,
-#scan-result-modal {
-  background-color: #14141E; /* полностью непрозрачный фон */
-  backdrop-filter: none; /* убираем размытие, если было */
-}
-
-/* Для содержимого, чтобы не просвечивало */
-#scan-modal .modal-content,
-#scan-result-modal .modal-content {
-  background-color: #14141E;
 }
 
 /* === Scan Results — обновлённый вид === */
@@ -1176,18 +1162,6 @@
   box-shadow: 0 12px 40px rgba(0,0,0,0.6) !important;
 }
 
-/* если внутри .modal-content встречаются <p> с собственным фоном — убираем его,
-   чтобы всё выглядело единообразно */
-#tutorial-modal .modal-content > p,
-#rest-modal .modal-content > p,
-#quest-awake-modal .modal-content > p {
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  margin-bottom: 16px !important;
-}
-
 /* Кнопка закрытия на тёмном фоне выглядит лучше ярче */
 #tutorial-modal .close-modal,
 #rest-modal .close-modal,
@@ -1252,25 +1226,44 @@ body.modal-open {
 }
 
 /* Узлы электростанций на карте */
+/* Кольца карты не перехватывают клики */
+.map-circle { pointer-events: none; }
+
+/* Контейнер нод */
+#power-nodes { position: relative; z-index: 5; }
+
+/* Ноды — поверх всего, крупнее и кликабельные */
 .power-node {
   position: absolute;
-  width: 22px; height: 22px;
+  z-index: 10;                /* <-- ключевое */
+  width: 44px;                /* было 22px */
+  height: 44px;
   border-radius: 50%;
-  border: 2px solid #00e6a8;
-  background: radial-gradient(circle at 40% 40%, #14ffec, #008b8b);
-  box-shadow: 0 0 10px rgba(20,255,236,.6), inset 0 0 6px rgba(0,0,0,.6);
+  border: 1px solid #224b62;
+  background: radial-gradient(45% 45% at 50% 50%, #1fd8ff 0%, #0ea5e9 55%, rgba(14,165,233,0.12) 100%);
+  box-shadow: 0 0 16px rgba(31,216,255,.55), inset 0 0 8px rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
+.power-node:hover { transform: scale(1.07); }
+.power-node:active{ transform: scale(1.02); }
+
 .power-node.cooldown {
   border-color: #444c6a;
   background: radial-gradient(circle at 40% 40%, #2a3358, #1a2038);
   box-shadow: none;
   cursor: not-allowed;
 }
-.power-node .cd {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; color: #cde7ff; text-shadow: 0 1px 2px #000;
+
+.power-node .cd{
+  min-width: 28px; padding: 2px 6px;
+  font-size: 12px; font-weight: 800;
+  color:#e6f7ff;
+  background: rgba(3,17,27,.55);
+  border:1px solid rgba(34,75,98,.8);
+  border-radius: 8px;
+  backdrop-filter: blur(2px);
 }
 
 /* Кнопки сна в модалке каюты */
@@ -1597,6 +1590,45 @@ body.modal-open {
 }
 .chip-energy{ color:#ffcc00; border-color:#5a4b12; background:#231c07; }
 .chip-cooldown{ color:#86efac; border-color:#24563c; background:#0d2c20; }
+/* Шапка модалки в две строки */
+#scan-modal .scan-header { padding-bottom: 8px; }
+#scan-modal .scan-header-row{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+
+
+/* Чипы легенды */
+#scan-modal .ring-label{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px; border-radius:999px;
+  font-size:12px; font-weight:700; line-height:1.2;
+  border:1px solid #2b2f45; background:#181c2f; color:#d7e2f0;
+}
+
+/* Цветовая кодировка зон + «точка» слева */
+#scan-modal .ring-label::before{
+  content:""; width:8px; height:8px; border-radius:50%;
+  box-shadow:0 0 8px currentColor;
+}
+#scan-modal .inner-label{
+  color:#00d19a; border-color:rgba(0,209,154,.3); background:rgba(0,209,154,.08);
+}
+#scan-modal .inner-label::before{ background:#00d19a; }
+
+#scan-modal .middle-label{
+  color:#facc15; border-color:rgba(250,204,21,.3); background:rgba(250,204,21,.08);
+}
+#scan-modal .middle-label::before{ background:#facc15; }
+
+#scan-modal .outer-label{
+  color:#ff6b6b; border-color:rgba(255,107,107,.3); background:rgba(255,107,107,.08);
+}
+#scan-modal .outer-label::before{ background:#ff6b6b; }
+
+/* адаптив: уменьшить размер на узких экранах */
+@media (max-width:390px){
+  #scan-modal .ring-label{ font-size:11px; padding:5px 8px; }
+}
 
 
 /* === Power nodes (размер, интерактивность, редкость) === */
@@ -1674,982 +1706,901 @@ body.modal-open {
   100%{ transform: scale(0.85); opacity:.6; }
 }
 
- </style>
+ 
+/* === Stack legend and zones vertically & center === */
+#scan-modal .scan-header-row{
+  flex-direction: column !important;
+  align-items: stretch !important;
+}
+#scan-modal .scan-header-row > *{
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+}
+#scan-modal .scan-legend{
+  justify-content: center;
+  margin-top: 12px;
+}
+/* Zones block always vertical */
+#scan-modal .scan-zones-info{
+  background:#0f1524;
+  border:1px solid #2b2f45;
+  border-radius:12px;
+  padding:12px 14px;
+  margin:10px 0 12px;
+}
+#scan-modal .zones-row{
+  display:flex; flex-direction: column; gap:10px;
+}
+#scan-modal .zone-item{
+  display:flex; align-items:center; gap:10px;
+  padding:10px; border-radius:10px;
+  background:#181c2f; border:1px solid #2b2f45;
+}
+#scan-modal .zone-item .dot{
+  width:10px; height:10px; border-radius:50%;
+  box-shadow:0 0 8px currentColor; background:currentColor;
+}
+#scan-modal .zone-item.inner  { color:#00d19a; border-color:rgba(0,209,154,.3); background:rgba(0,209,154,.08); }
+#scan-modal .zone-item.middle { color:#facc15; border-color:rgba(250,204,21,.3); background:rgba(250,204,21,.08); }
+#scan-modal .zone-item.outer  { color:#ff6b6b; border-color:rgba(255,107,107,.3); background:rgba(255,107,107,.08); }
+#scan-modal .zone-title{ font-weight:700; }
+#scan-modal .zone-range{ font-size:12px; opacity:.85; }
+</style>
 </head>
 <body>
-    <div id="app" class="container">
-        <!-- Верхняя панель ресурсов -->
-        <div class="resource-bar">
-            <div class="resource-item" id="oxygen-resource">
-                <span>O₂: <span id="oxygen-value">250</span></span>
-            </div>
-            <div class="resource-item" id="energy-resource">
-                <span>⚡ <span id="energy-value">500</span></span>
-            </div>
-            <div class="resource-item" id="mvc-resource">
-                <span>MVC: <span id="mvc-value">500</span></span>
-            </div>
-            <div class="resource-item" id="bio-resource">
-                <span>🧪 <span id="bio-value">100</span></span>
-            </div>
-            <div class="resource-item" id="parts-resource">
-                <span>🛠️ <span id="parts-value">100</span></span>
-            </div>
-        </div>
-        
-        <!-- Модальное окно обучения -->
-        <div class="modal" id="tutorial-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title">Welcome to METAVILLE!</h3>
-                </div>
-                
-                <div class="modal-body">
-                    <p>You are a resident of the V.01.D platform in a post-apocalyptic world. Basic Mechanics:</p>
-                    
-                    <div class="tutorial-item">
-                        <i class="fas fa-globe-americas"></i>
-                        <div>
-                            <strong>MAP</strong>
-                            <p>Scan sectors to find resources and missions.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="tutorial-item">
-                        <i class="fas fa-hard-hat"></i>
-                        <div>
-                            <strong>BASE</strong>
-                            <p>Manage survival systems and upgrade the platform</p>
-                        </div>
-                    </div>
-                    
-                    <div class="tutorial-item">
-                        <i class="fas fa-flask"></i>
-                        <div>
-                            <strong>Technology research</strong>
-                            <p>Develop new technologies to take advantage</p>
-                        </div>
-                    </div>
-                    
-                    <div class="tutorial-item">
-                        <i class="fas fa-shopping-cart"></i>
-                        <div>
-                            <strong>MARKET</strong>
-                            <p>Trade resources with other survivors</p>
-                        </div>
-                    </div>
-                    
-                    <div class="tutorial-item">
-                        <i class="fas fa-vote-yea"></i>
-                        <div>
-                            <strong>DAO VOTE</strong>
-                            <p>Participate in the management of the platform through the DAO</p>
-                        </div>
-                    </div>
-                    
-                    <div class="tutorial-item">
-                        <i class="fas fa-tasks"></i>
-                        <div>
-                            <strong>QUESTS</strong>
-                            <p>Complete tasks to get resources and access</p>
-                        </div>
-                    </div>
-                    
-                    <div class="tutorial-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
+<div class="container" id="app">
+<!-- Верхняя панель ресурсов -->
+<div class="resource-bar">
+<div class="resource-item" id="oxygen-resource">
+<span>O₂: <span id="oxygen-value">250</span></span>
+</div>
+<div class="resource-item" id="energy-resource">
+<span>⚡ <span id="energy-value">500</span></span>
+</div>
+<div class="resource-item" id="mvc-resource">
+<span>MVC: <span id="mvc-value">500</span></span>
+</div>
+<div class="resource-item" id="bio-resource">
+<span>🧪 <span id="bio-value">100</span></span>
+</div>
+<div class="resource-item" id="parts-resource">
+<span>🛠️ <span id="parts-value">100</span></span>
+</div>
+</div>
+<!-- Модальное окно обучения -->
+<div class="modal" id="tutorial-modal">
+<div class="modal-content">
+<div class="modal-header">
+<h3 class="modal-title">Welcome to METAVILLE!</h3>
+</div>
+<div class="modal-body">
+<p>You are a resident of the V.01.D platform in a post-apocalyptic world. Basic Mechanics:</p>
+<div class="tutorial-item">
+<i class="fas fa-globe-americas"></i>
+<div>
+<strong>MAP</strong>
+<p>Scan sectors to find resources and missions.</p>
+</div>
+</div>
+<div class="tutorial-item">
+<i class="fas fa-hard-hat"></i>
+<div>
+<strong>BASE</strong>
+<p>Manage survival systems and upgrade the platform</p>
+</div>
+</div>
+<div class="tutorial-item">
+<i class="fas fa-flask"></i>
+<div>
+<strong>Technology research</strong>
+<p>Develop new technologies to take advantage</p>
+</div>
+</div>
+<div class="tutorial-item">
+<i class="fas fa-shopping-cart"></i>
+<div>
+<strong>MARKET</strong>
+<p>Trade resources with other survivors</p>
+</div>
+</div>
+<div class="tutorial-item">
+<i class="fas fa-vote-yea"></i>
+<div>
+<strong>DAO VOTE</strong>
+<p>Participate in the management of the platform through the DAO</p>
+</div>
+</div>
+<div class="tutorial-item">
+<i class="fas fa-tasks"></i>
+<div>
+<strong>QUESTS</strong>
+<p>Complete tasks to get resources and access</p>
+</div>
+</div>
+<div class="tutorial-warning">
+<i class="fas fa-exclamation-triangle"></i>
                         Keep an eye on your oxygen and energy levels - your survival depends on them!
                     </div>
-                </div>
-                
-                <div class="modal-actions">
-                    <button class="btn btn-primary" id="start-game-btn">Start the game</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Основной контент -->
-        <div class="main-content">
-            <!-- Экран Карта -->
-            <div id="map-screen" class="screen active">
-                <h2 class="section-title">Scan radius of the platform</h2>
-                
-                <div class="map-container">
-                    <div class="map-circle inner-ring">
-                        <span class="ring-label inner-label">The radius of the abandoned lands (0-50 km)</span>
-                    </div>
-                    <div class="map-circle middle-ring">
-                        <span class="ring-label middle-label">The average level of intelligence (50-100 km)</span>
-                    </div>
-                    <div class="map-circle outer-ring">
-                        <span class="ring-label outer-label">Area that is dangerous (100-150 km)</span>
-                    </div>
-
-                <!-- Energy Nodes (Power Stations) -->
-<button class="power-node"
-        data-node-id="n1"
-        data-amount="50"
-        data-rarity="low"
-        data-title="Node N1"
-        data-desc="Stable node on abandoned lands"
-        style="left:16%; top:38%;">
-  <div class="cd">+50</div>
+</div>
+<div class="modal-actions">
+<button class="btn btn-primary" id="start-game-btn">Start the game</button>
+</div>
+</div>
+</div>
+<!-- Основной контент -->
+<div class="main-content">
+<!-- Экран Карта -->
+<div class="screen active" id="map-screen">
+<h2 class="section-title">Scan radius of the platform</h2>
+<div class="map-container">
+<div class="map-circle inner-ring">
+</div>
+<div class="map-circle middle-ring">
+</div>
+<div class="map-circle outer-ring">
+</div>
+<!-- Energy Nodes (Power Stations) -->
+<button class="power-node" data-amount="50" data-desc="Stable node on abandoned lands" data-node-id="n1" data-rarity="low" data-title="Node N1" style="left:16%; top:38%;">
+<div class="cd">+50</div>
 </button>
-
-<button class="power-node"
-        data-node-id="n2"
-        data-amount="80"
-        data-rarity="medium"
-        data-title="Node N2"
-        data-desc="Unstable node near ring zone"
-        style="left:62%; top:22%;">
-  <div class="cd">+80</div>
+<button class="power-node" data-amount="80" data-desc="Unstable node near ring zone" data-node-id="n2" data-rarity="medium" data-title="Node N2" style="left:62%; top:22%;">
+<div class="cd">+80</div>
 </button>
-
-<button class="power-node"
-        data-node-id="n3"
-        data-amount="120"
-        data-rarity="high"
-        data-title="Node N3"
-        data-desc="Dangerous volatile source"
-        style="left:73%; top:68%;">
-  <div class="cd">+120</div>
+<button class="power-node" data-amount="120" data-desc="Dangerous volatile source" data-node-id="n3" data-rarity="high" data-title="Node N3" style="left:73%; top:68%;">
+<div class="cd">+120</div>
 </button>
-                </div>
-                
-                <!-- Упрощенное меню действий -->
-                <div class="action-buttons">
-                    <button class="btn btn-primary" id="scan-btn">
-                        <i class="fas fa-satellite"></i> Scanning 
+</div>
+<!-- Упрощенное меню действий -->
+<div class="action-buttons">
+<button class="btn btn-primary" id="scan-btn">
+<i class="fas fa-satellite"></i> Scanning 
                     </button>
-                    <button class="btn" id="harvest-btn" disabled>
-                        <i class="fas fa-tractor"></i> Send harvester
+<button class="btn" disabled="" id="harvest-btn">
+<i class="fas fa-tractor"></i> Send harvester
                     </button>
-                </div>
-                
-                <h3 class="section-title" style="margin-top: 10px;">Active missions</h3>
-                <div class="mission-card" id="probe-mission">
-                    <div class="mission-progress" id="probe-progress" style="width: 0%"></div>
-                    <div class="status-title">
-                        <i class="fas fa-satellite-dish"></i> Drone 1: Terrain Survey
+</div>
+<h3 class="section-title" style="margin-top: 10px;">Active missions</h3>
+<div class="mission-card" id="probe-mission">
+<div class="mission-progress" id="probe-progress" style="width: 0%"></div>
+<div class="status-title">
+<i class="fas fa-satellite-dish"></i> Drone 1: Terrain Survey
                     </div>
-                    <div>Sector <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="mission-progress" style="width: 0%"></div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                        <span id="mission-time">0%</span>
-                        <span id="mission-harvest">HARVESTER: 0/2</span>
-                        <span id="scanned-resources">Resourse: -</span> 
-                        <span id="mission-risk" style="color: #ffcc00;">RISK: 0% ⚠️</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Экран База -->
-            <div id="base-screen" class="screen">
-                <h2 class="section-title">Platform status</h2>
-                
-                <div class="status-grid">
-                    <div class="status-card">
-                        <div class="status-title">
-                            <i class="fas fa-solar-panel"></i> Solar panels
+<div>Sector <span id="mission-sector">-</span> | <span id="mission-belt">-</span></div>
+<div class="progress-bar">
+<div class="progress-fill" id="mission-progress" style="width: 0%"></div>
+</div>
+<div style="display: flex; justify-content: space-between; margin-top: 20px;">
+<span id="mission-time">0%</span>
+<span id="mission-harvest">HARVESTER: 0/2</span>
+<span id="scanned-resources">Resourse: -</span>
+<span id="mission-risk" style="color: #ffcc00;">RISK: 0% ⚠️</span>
+</div>
+</div>
+</div>
+<!-- Экран База -->
+<div class="screen" id="base-screen">
+<h2 class="section-title">Platform status</h2>
+<div class="status-grid">
+<div class="status-card">
+<div class="status-title">
+<i class="fas fa-solar-panel"></i> Solar panels
                         </div>
-                        <div class="status-value">87%</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 87%"></div>
-                        </div>
-                    </div>
-                    
- <!-- AVATAR CARD (кликабельно) -->
-<div class="status-card red-glow" id="avatar-card" role="button" aria-label="Open profile">
-  <div class="avatar-row">
-   <!-- <img class="avatar-img" src="images/avatar.png" alt="Avatar">  -->
-    <div class="avatar-info">
-      <div class="status-title"><i class="fas fa-user-astronaut"></i> Pilot</div>
-      <div class="status-value" id="player-name">Citizen</div>
-      <div class="avatar-meta">Rank: Citizen • ID: V01D-031</div>
-    </div>
-  </div>
-</div>            
-                    <!-- карточка генерации O₂ -->
-
-                   <div class="status-card clickable highlight-oxygen" id="o2-generation-card">
-  <div class="status-title">
-    <i class="fas fa-wind"></i> Generation O₂
+<div class="status-value">87%</div>
+<div class="progress-bar">
+<div class="progress-fill" style="width: 87%"></div>
+</div>
+</div>
+<!-- AVATAR CARD (кликабельно) -->
+<div aria-label="Open profile" class="status-card red-glow" id="avatar-card" role="button">
+<div class="avatar-row">
+<!-- <img class="avatar-img" src="images/avatar.png" alt="Avatar">  -->
+<div class="avatar-info">
+<div class="status-title"><i class="fas fa-user-astronaut"></i> Pilot</div>
+<div class="status-value" id="player-name">ZAGADKA</div>
+<div class="avatar-meta">Rank: Citizen • ID: V01D-031</div>
+</div>
+</div>
+</div>
+<!-- карточка генерации O₂ -->
+<div class="status-card clickable highlight-oxygen" id="o2-generation-card">
+<div class="status-title">
+<i class="fas fa-wind"></i> Generation O₂
     <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
-  </div>
-  <div class="status-value" id="o2-generation-value">5/h</div>
-  <div class="progress-bar">
-    <div class="progress-fill" id="o2-progress" style="width: 0%"></div>
-  </div>
 </div>
-                    
-                    <div class="status-card">
-                        <div class="status-title">
-                            <i class="fas fa-hard-hat"></i> Mehanics
+<div class="status-value" id="o2-generation-value">5/h</div>
+<div class="progress-bar">
+<div class="progress-fill" id="o2-progress" style="width: 0%"></div>
+</div>
+</div>
+<div class="status-card">
+<div class="status-title">
+<i class="fas fa-hard-hat"></i> Mehanics
                         </div>
-                        <div class="status-value"><span id="drones-value">0</span> drone</div>
-                        <div>Renovating</div>
-                    </div>
-                    
-                    <div class="status-card">
-                        <div class="status-title">
-                            <i class="fas fa-microchip"></i> Modules
+<div class="status-value"><span id="drones-value">0</span> drone</div>
+<div>Renovating</div>
+</div>
+<div class="status-card">
+<div class="status-title">
+<i class="fas fa-microchip"></i> Modules
                         </div>
-                        <div class="status-value"><span id="slots-value">2</span> слота</div>
-                        <div>Free</div>
-                    </div>
-                    
-                   <div class="status-card clickable" id="rest-capsule-card">
-    <div class="status-title">
-        <i class="fas fa-bed"></i> Rest capsules
+<div class="status-value"><span id="slots-value">2</span> слота</div>
+<div>Free</div>
+</div>
+<div class="status-card clickable" id="rest-capsule-card">
+<div class="status-title">
+<i class="fas fa-bed"></i> Rest capsules
         <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
-    </div>
-    <div class="status-value" id="capsule-status">To recuperate.</div>
-    <div>Visit the capsule</div>
 </div>
-                    
-                    <div class="status-card">
-                        <div class="status-title">
-                            <i class="fas fa-seedling"></i> Greenhouse
+<div class="status-value" id="capsule-status">To recuperate.</div>
+<div>Visit the capsule</div>
+</div>
+<div class="status-card">
+<div class="status-title">
+<i class="fas fa-seedling"></i> Greenhouse
                         </div>
-                        <div class="status-value">+3%</div>
-                        <div>Recovery</div>
-                    </div>
-                    
-                    <div class="status-card">
-                        <div class="status-title">
-                            <i class="fas fa-shield-alt"></i> Shields
+<div class="status-value">+3%</div>
+<div>Recovery</div>
+</div>
+<div class="status-card">
+<div class="status-title">
+<i class="fas fa-shield-alt"></i> Shields
                         </div>
-                        <div class="status-value">92%</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 92%"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="action-buttons" style="margin-top: 20px;">
-                    <button class="btn btn-primary" id="upgrade-btn">
-                        <i class="fas fa-sync-alt"></i> Upgrade systems
+<div class="status-value">92%</div>
+<div class="progress-bar">
+<div class="progress-fill" style="width: 92%"></div>
+</div>
+</div>
+</div>
+<div class="action-buttons" style="margin-top: 20px;">
+<button class="btn btn-primary" id="upgrade-btn">
+<i class="fas fa-sync-alt"></i> Upgrade systems
                     </button>
-                    <button class="btn btn-warning" id="emergency-btn">
-                        <i class="fas fa-bolt"></i> Emergency energy
+<button class="btn btn-warning" id="emergency-btn">
+<i class="fas fa-bolt"></i> Emergency energy
                     </button>
-                </div>
-            </div>
-            
-            <!-- Экран Исследования -->
-            <div id="research-screen" class="screen">
-                <h2 class="section-title">Technology tree</h2>
-                
-                <div class="research-node">
-                    <div class="node-title">
-                        <span>Stealth modules</span>
-                        <span>Drones</span>
-                    </div>
-                    <div class="node-progress">
-                        <span>Progress:</span>
-                        <div class="progress-dots" id="stealth-dots">
-                            <div class="dot filled"></div>
-                            <div class="dot filled"></div>
-                            <div class="dot filled"></div>
-                            <div class="dot filled"></div>
-                            <div class="dot filled"></div>
-                            <div class="dot filled"></div>
-                            <div class="dot filled"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
-                    </div>
-                    <p>Reduces the risk of detection of drones by 25%</p>
-                    <div class="node-cost">
-                        <div class="cost-item">
-                            <i class="fas fa-coins" style="color: #00ccff;"></i>
-                            <span>120 MVC</span>
-                        </div>
-                        <div class="cost-item">
-                            <i class="fas fa-cog" style="color: #a0a0d0;"></i>
-                            <span>40 🛠️</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" id="stealth-btn">
-                        <i class="fas fa-flask"></i> Research
+</div>
+</div>
+<!-- Экран Исследования -->
+<div class="screen" id="research-screen">
+<h2 class="section-title">Technology tree</h2>
+<div class="research-node">
+<div class="node-title">
+<span>Stealth modules</span>
+<span>Drones</span>
+</div>
+<div class="node-progress">
+<span>Progress:</span>
+<div class="progress-dots" id="stealth-dots">
+<div class="dot filled"></div>
+<div class="dot filled"></div>
+<div class="dot filled"></div>
+<div class="dot filled"></div>
+<div class="dot filled"></div>
+<div class="dot filled"></div>
+<div class="dot filled"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+</div>
+</div>
+<p>Reduces the risk of detection of drones by 25%</p>
+<div class="node-cost">
+<div class="cost-item">
+<i class="fas fa-coins" style="color: #00ccff;"></i>
+<span>120 MVC</span>
+</div>
+<div class="cost-item">
+<i class="fas fa-cog" style="color: #a0a0d0;"></i>
+<span>40 🛠️</span>
+</div>
+</div>
+<button class="btn btn-primary" id="stealth-btn" style="width: 100%; margin-top: 10px;">
+<i class="fas fa-flask"></i> Research
                     </button>
-                </div>
-                
-                <div class="research-node">
-                    <div class="node-title">
-                        <span>Adaptation to radiation</span>
-                        <span>Safety</span>
-                    </div>
-                    <div class="node-progress">
-                        <span>Progress:</span>
-                        <div class="progress-dots" id="radiation-dots">
-                            <div class="dot filled"></div>
-                            <div class="dot filled"></div>
-                            <div class="dot filled"></div>
-                            <div class="dot filled"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
-                    </div>
-                    <p>Allows the drone to operate in areas with high radiation levels.</p>
-                    <div class="node-cost">
-                        <div class="cost-item">
-                            <i class="fas fa-dna" style="color: #cc66ff;"></i>
-                            <span>5 🧪</span>
-                        </div>
-                        <div class="cost-item">
-                            <i class="fas fa-coins" style="color: #00ccff;"></i>
-                            <span>85 MVC</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" id="radiation-btn">
-                        <i class="fas fa-flask"></i> Research
+</div>
+<div class="research-node">
+<div class="node-title">
+<span>Adaptation to radiation</span>
+<span>Safety</span>
+</div>
+<div class="node-progress">
+<span>Progress:</span>
+<div class="progress-dots" id="radiation-dots">
+<div class="dot filled"></div>
+<div class="dot filled"></div>
+<div class="dot filled"></div>
+<div class="dot filled"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+<div class="dot"></div>
+</div>
+</div>
+<p>Allows the drone to operate in areas with high radiation levels.</p>
+<div class="node-cost">
+<div class="cost-item">
+<i class="fas fa-dna" style="color: #cc66ff;"></i>
+<span>5 🧪</span>
+</div>
+<div class="cost-item">
+<i class="fas fa-coins" style="color: #00ccff;"></i>
+<span>85 MVC</span>
+</div>
+</div>
+<button class="btn btn-primary" id="radiation-btn" style="width: 100%; margin-top: 10px;">
+<i class="fas fa-flask"></i> Research
                     </button>
-                </div>
-                
-                <div class="research-node">
-                    <div class="node-title">
-                        <span>Improved engines</span>
-                        <span>Transport</span>
-                    </div>
-                    <div class="node-progress">
-                        <span>Progress:</span>
-                        <div id="engine-status" style="color: #00ffcc;">Not started</div>
-                    </div>
-                    <p>Increases the speed of transport by 15%</p>
-                    <div class="node-cost">
-                        <div class="cost-item">
-                            <i class="fas fa-coins" style="color: #00ccff;"></i>
-                            <span>200 MVC</span>
-                        </div>
-                        <div class="cost-item">
-                            <i class="fas fa-cog" style="color: #a0a0d0;"></i>
-                            <span>25 🛠️</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" id="engine-btn">
-                        <i class="fas fa-flask"></i> Start the research
+</div>
+<div class="research-node">
+<div class="node-title">
+<span>Improved engines</span>
+<span>Transport</span>
+</div>
+<div class="node-progress">
+<span>Progress:</span>
+<div id="engine-status" style="color: #00ffcc;">Not started</div>
+</div>
+<p>Increases the speed of transport by 15%</p>
+<div class="node-cost">
+<div class="cost-item">
+<i class="fas fa-coins" style="color: #00ccff;"></i>
+<span>200 MVC</span>
+</div>
+<div class="cost-item">
+<i class="fas fa-cog" style="color: #a0a0d0;"></i>
+<span>25 🛠️</span>
+</div>
+</div>
+<button class="btn btn-primary" id="engine-btn" style="width: 100%; margin-top: 10px;">
+<i class="fas fa-flask"></i> Start the research
                     </button>
-                </div>
-            </div>
-            
-            <!-- Экран Маркет -->
-            <div id="market-screen" class="screen">
-                <h2 class="section-title">Market V.01.D</h2>
-
-                <div class="market-tabs">
-                    <div class="tab active">Resources</div>
-                    <div class="tab">Equipment</div>
-                    <div class="tab">Contracts</div>
-                </div>
-                
-                <div class="offer-card">
-                    <div class="offer-header">
-                        <div class="offer-vendor">GLORY</div>
-                        <div class="offer-rating">★★★★☆</div>
+</div>
+</div>
+<!-- Экран Маркет -->
+<div class="screen" id="market-screen">
+<h2 class="section-title">Market V.01.D</h2>
+<div class="market-tabs">
+<div class="tab active">Resources</div>
+<div class="tab">Equipment</div>
+<div class="tab">Contracts</div>
+</div>
+<div class="offer-card">
+<div class="offer-header">
+<div class="offer-vendor">GLORY</div>
+<div class="offer-rating">★★★★☆</div>
+</div>
+<div style="margin-bottom: 10px;">Polymers • 85 units </div>
+<div class="offer-details">
+<div class="offer-price">12 MVC/unit</div>
+<button class="btn buy-btn" data-amount="85" data-price="12" data-resource="polymers" style="padding: 8px 12px;">BUY</button>
+<button class="btn btn-secondary">SELL</button>
+</div>
+</div>
+<div class="offer-card">
+<div class="offer-header">
+<div class="offer-vendor">SYNDICATE-7</div>
+<div class="offer-rating">★★★☆☆</div>
+</div>
+<div style="margin-bottom: 10px;">Rare earths • 12 unit</div>
+<div class="offer-details">
+<div class="offer-price">28 MVC/unit</div>
+<button class="btn buy-btn" data-amount="12" data-price="28" data-resource="rare" style="padding: 8px 12px;">BUY</button>
+<button class="btn btn-secondary">SELL</button>
+</div>
+</div>
+<div class="offer-card">
+<div class="offer-header">
+<div class="offer-vendor">JOE'S BAR</div>
+<div class="offer-rating">★★★★★</div>
+</div>
+<div style="margin-bottom: 10px;">O₂ • 150 unit</div>
+<div class="offer-details">
+<div class="offer-price">10 MVC/unit</div>
+<button class="btn buy-btn" data-amount="150" data-price="10" data-resource="oxygen" style="padding: 8px 12px;">BUY</button>
+<button class="btn btn-secondary">SELL</button>
+</div>
+</div>
+<div class="offer-card">
+<div class="offer-header">
+<div class="offer-vendor">MODULE SHOP</div>
+<div class="offer-rating">★★★★☆</div>
+</div>
+<div style="margin-bottom: 10px;">Stealth module for a drone</div>
+<div class="offer-details">
+<div class="offer-price">450 MVC</div>
+<button class="btn buy-btn" data-amount="1" data-price="450" data-resource="stealth" style="padding: 8px 12px;">BUY</button>
+</div>
+</div>
+</div>
+<!-- Экран Голосования -->
+<div class="screen" id="vote-screen">
+<h2 class="section-title">DAO voting</h2>
+<div class="vote-card">
+<div class="vote-title">Orion Project: Building a new platform</div>
+<div class="vote-progress">
+<div class="vote-fill" id="orion-progress" style="width: 12%"></div>
+</div>
+<div class="vote-info">
+<div>Progress: <span id="orion-percent">72</span>%</div>
+<div>Cost: 120,000 MVC</div>
+</div>
+<div style="margin-top: 10px; color: #00ffcc;">
+<i class="fas fa-check-circle"></i> Your vote: <span id="user-votes">150</span> tokens
                     </div>
-                    <div style="margin-bottom: 10px;">Polymers • 85 units </div>
-                    <div class="offer-details">
-                        <div class="offer-price">12 MVC/unit</div>
-                        <button class="btn buy-btn" data-resource="polymers" data-price="12" data-amount="85" style="padding: 8px 12px;">BUY</button>
-                        <button class="btn btn-secondary">SELL</button>
-                    </div>
-                </div>
-                
-                <div class="offer-card">
-                    <div class="offer-header">
-                        <div class="offer-vendor">SYNDICATE-7</div>
-                        <div class="offer-rating">★★★☆☆</div>
-                    </div>
-                    <div style="margin-bottom: 10px;">Rare earths • 12 unit</div>
-                    <div class="offer-details">
-                        <div class="offer-price">28 MVC/unit</div>
-                        <button class="btn buy-btn" data-resource="rare" data-price="28" data-amount="12" style="padding: 8px 12px;">BUY</button>
-                        <button class="btn btn-secondary">SELL</button>
-                    </div>
-                </div>
-                
-                <div class="offer-card">
-                    <div class="offer-header">
-                        <div class="offer-vendor">JOE'S BAR</div>
-                        <div class="offer-rating">★★★★★</div>
-                    </div>
-                    <div style="margin-bottom: 10px;">O₂ • 150 unit</div>
-                    <div class="offer-details">
-                        <div class="offer-price">10 MVC/unit</div>
-                        <button class="btn buy-btn" data-resource="oxygen" data-price="10" data-amount="150" style="padding: 8px 12px;">BUY</button>
-                        <button class="btn btn-secondary">SELL</button>
-                    </div>
-                </div>
-                
-                <div class="offer-card">
-                    <div class="offer-header">
-                        <div class="offer-vendor">MODULE SHOP</div>
-                        <div class="offer-rating">★★★★☆</div>
-                    </div>
-                    <div style="margin-bottom: 10px;">Stealth module for a drone</div>
-                    <div class="offer-details">
-                        <div class="offer-price">450 MVC</div>
-                        <button class="btn buy-btn" data-resource="stealth" data-price="450" data-amount="1" style="padding: 8px 12px;">BUY</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Экран Голосования -->
-            <div id="vote-screen" class="screen">
-                <h2 class="section-title">DAO voting</h2>
-                
-                <div class="vote-card">
-                    <div class="vote-title">Orion Project: Building a new platform</div>
-                    <div class="vote-progress">
-                        <div class="vote-fill" id="orion-progress" style="width: 12%"></div>
-                    </div>
-                    <div class="vote-info">
-                        <div>Progress: <span id="orion-percent">72</span>%</div>
-                        <div>Cost: 120,000 MVC</div>
-                    </div>
-                    <div style="margin-top: 10px; color: #00ffcc;">
-                        <i class="fas fa-check-circle"></i> Your vote: <span id="user-votes">150</span> tokens
-                    </div>
-                    <div class="vote-controls">
-                        <input type="number" min="1" max="150" value="5" class="vote-input" id="orion-votes">
-                        <button class="btn btn-primary vote-btn" data-project="orion">
-                            <i class="fas fa-vote-yea"></i> Vote
+<div class="vote-controls">
+<input class="vote-input" id="orion-votes" max="150" min="1" type="number" value="5"/>
+<button class="btn btn-primary vote-btn" data-project="orion">
+<i class="fas fa-vote-yea"></i> Vote
                         </button>
-                    </div>
-                </div>
-                
-                <div class="vote-card">
-                    <div class="vote-title">Updating security systems</div>
-                    <div class="vote-progress">
-                        <div class="vote-fill" id="security-progress" style="width: 45%"></div>
-                    </div>
-                    <div class="vote-info">
-                        <div>Progress: <span id="security-percent">45</span>%</div>
-                        <div>Cost: 85,000 MVC</div>
-                    </div>
-                    <div class="vote-controls">
-                        <input type="number" min="1" max="150" value="5" class="vote-input" id="security-votes">
-                        <button class="btn btn-primary vote-btn" data-project="security">
-                            <i class="fas fa-vote-yea"></i> Vote
+</div>
+</div>
+<div class="vote-card">
+<div class="vote-title">Updating security systems</div>
+<div class="vote-progress">
+<div class="vote-fill" id="security-progress" style="width: 45%"></div>
+</div>
+<div class="vote-info">
+<div>Progress: <span id="security-percent">45</span>%</div>
+<div>Cost: 85,000 MVC</div>
+</div>
+<div class="vote-controls">
+<input class="vote-input" id="security-votes" max="150" min="1" type="number" value="5"/>
+<button class="btn btn-primary vote-btn" data-project="security">
+<i class="fas fa-vote-yea"></i> Vote
                         </button>
-                    </div>
-                </div>
-                
-                <div class="vote-card">
-                    <div class="vote-title">Yamantau Bunker Expedition</div>
-                    <div class="vote-progress">
-                        <div class="vote-fill" id="moon-progress" style="width: 28%"></div>
-                    </div>
-                    <div class="vote-info">
-                        <div>Progress: <span id="moon-percent">28</span>%</div>
-                        <div>Cost: 95,000 MVC</div>
-                    </div>
-                    <div class="vote-controls">
-                        <input type="number" min="1" max="150" value="5" class="vote-input" id="moon-votes">
-                        <button class="btn btn-primary vote-btn" data-project="moon">
-                            <i class="fas fa-vote-yea"></i> Vote
+</div>
+</div>
+<div class="vote-card">
+<div class="vote-title">Yamantau Bunker Expedition</div>
+<div class="vote-progress">
+<div class="vote-fill" id="moon-progress" style="width: 28%"></div>
+</div>
+<div class="vote-info">
+<div>Progress: <span id="moon-percent">28</span>%</div>
+<div>Cost: 95,000 MVC</div>
+</div>
+<div class="vote-controls">
+<input class="vote-input" id="moon-votes" max="150" min="1" type="number" value="5"/>
+<button class="btn btn-primary vote-btn" data-project="moon">
+<i class="fas fa-vote-yea"></i> Vote
                         </button>
-                    </div>
-                </div>
-                
-                <div class="vote-card">
-                    <div class="vote-title">Create a new offer</div>
-                    <p style="margin: 10px 0;">Propose a new project for community voting.</p>
-                    <div class="vote-controls">
-                        <input type="text" placeholder="Название проекта" class="vote-input">
-                        <button class="btn btn-primary" id="create-proposal-btn">
-                            <i class="fas fa-plus"></i> Create
+</div>
+</div>
+<div class="vote-card">
+<div class="vote-title">Create a new offer</div>
+<p style="margin: 10px 0;">Propose a new project for community voting.</p>
+<div class="vote-controls">
+<input class="vote-input" placeholder="Название проекта" type="text"/>
+<button class="btn btn-primary" id="create-proposal-btn">
+<i class="fas fa-plus"></i> Create
                         </button>
-                    </div>
-                </div>
-            </div>
-             <!-- Экран Квестов -->
-<div id="quest-screen" class="screen">
-  <h2 class="section-title">Active Quests</h2>
-            <!-- Экран Квестов -->
-           <div class="quest-card new">
-  <div class="quest-badge new-badge">New!</div>
-  <div class="quest-title">
-    <i class="fas fa-star"></i> Awakening
+</div>
+</div>
+</div>
+<!-- Экран Квестов -->
+<div class="screen" id="quest-screen">
+<h2 class="section-title">Active Quests</h2>
+<!-- Экран Квестов -->
+<div class="quest-card new">
+<div class="quest-badge new-badge">New!</div>
+<div class="quest-title">
+<i class="fas fa-star"></i> Awakening
   </div>
-  <div class="quest-description">
+<div class="quest-description">
     Explore your capsule and find a way out. Check all compartments – there may be useful items.
   </div>
-  <div class="quest-reward">
-    <i class="fas fa-gift"></i> Reward: 100 MVC, Metaville Map
+<div class="quest-reward">
+<i class="fas fa-gift"></i> Reward: 100 MVC, Metaville Map
   </div>
-  <div class="quest-progress">
-    <div class="quest-progress-fill" style="width: 0%"></div>
-  </div>
-  <div class="quest-status">
-    <span>Progress: 0%</span>
-    <span>Status: Not accepted</span>
-  </div>
-  <div class="quest-actions">
-    <button class="btn btn-primary" data-quest="awakening">Accept</button>
-  </div>
+<div class="quest-progress">
+<div class="quest-progress-fill" style="width: 0%"></div>
 </div>
-
-                
-                <div class="quest-card">
-                    <div class="quest-badge active-badge">Active</div>
-                    <div class="quest-title">
-                        <i class="fas fa-satellite"></i> Surface scanning
+<div class="quest-status">
+<span>Progress: 0%</span>
+<span>Status: Not accepted</span>
+</div>
+<div class="quest-actions">
+<button class="btn btn-primary" data-quest="awakening">Accept</button>
+</div>
+</div>
+<div class="quest-card">
+<div class="quest-badge active-badge">Active</div>
+<div class="quest-title">
+<i class="fas fa-satellite"></i> Surface scanning
                     </div>
-                    <div class="quest-description">
+<div class="quest-description">
                         Select the sector you want to scan and launch the probes to collect data. Use the data collected for further research.
                     </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Rewards: 250 MVC, 5 biomaterials
+<div class="quest-reward">
+<i class="fas fa-gift"></i> Rewards: 250 MVC, 5 biomaterials
                     </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 45%"></div>
-                    </div>
-                    <div class="quest-status">
-                        <span>Progress: 45%</span>
-                        <span>Finish: Map > Scan</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn" disabled>
+<div class="quest-progress">
+<div class="quest-progress-fill" style="width: 45%"></div>
+</div>
+<div class="quest-status">
+<span>Progress: 45%</span>
+<span>Finish: Map &gt; Scan</span>
+</div>
+<div class="quest-actions">
+<button class="btn" disabled="">
                             In progress
                         </button>
-                        <button class="btn btn-danger">
+<button class="btn btn-danger">
                             Abort
                         </button>
+</div>
+</div>
+<div class="quest-card completed">
+<div class="quest-badge completed-badge">Completed</div>
+<div class="quest-title">
+<i class="fas fa-truck"></i> First job
                     </div>
-                </div>
-                
-                <div class="quest-card completed">
-                    <div class="quest-badge completed-badge">Completed</div>
-                    <div class="quest-title">
-                        <i class="fas fa-truck"></i> First job
-                    </div>
-                    <div class="quest-description">
+<div class="quest-description">
                        Deliver the package to Boris at the central location. Avoid dangerous areas and monitor the energy level carefully.
                     </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Rewards: 150 MVC, Survival Instructions
+<div class="quest-reward">
+<i class="fas fa-gift"></i> Rewards: 150 MVC, Survival Instructions
                     </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 100%"></div>
-                    </div>
-                    <div class="quest-status">
-                        <span>Progress: 100%</span>
-                        <span>Status: Completed</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn btn-primary" disabled>
+<div class="quest-progress">
+<div class="quest-progress-fill" style="width: 100%"></div>
+</div>
+<div class="quest-status">
+<span>Progress: 100%</span>
+<span>Status: Completed</span>
+</div>
+<div class="quest-actions">
+<button class="btn btn-primary" disabled="">
                             Get a reward
                         </button>
+</div>
+</div>
+<div class="quest-card">
+<div class="quest-title">
+<i class="fas fa-microchip"></i> Searching for chip fragments
                     </div>
-                </div>
-                
-                <div class="quest-card">
-                    <div class="quest-title">
-                        <i class="fas fa-microchip"></i> Searching for chip fragments
-                    </div>
-                    <div class="quest-description">
+<div class="quest-description">
                         Find 5 pieces of the Origin chip scattered throughout the Metaville area. Collecting each piece unlocks new features on the platform.
                     </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Rewards: 500 MVC, Improved scanner
+<div class="quest-reward">
+<i class="fas fa-gift"></i> Rewards: 500 MVC, Improved scanner
                     </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 20%"></div>
+<div class="quest-progress">
+<div class="quest-progress-fill" style="width: 20%"></div>
+</div>
+<div class="quest-status">
+<span>Progress: 1/5 fragments</span>
+<span>Status: Available</span>
+</div>
+<div class="quest-actions">
+<button class="btn btn-primary" data-quest="fragments">Accept quest</button>
+</div>
+</div>
+<div class="quest-card">
+<div class="quest-title">
+<i class="fas fa-cogs"></i> Activating the Genesis Machine
                     </div>
-                    <div class="quest-status">
-                        <span>Progress: 1/5 fragments</span>
-                        <span>Status: Available</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn btn-primary" data-quest="fragments">Accept quest</button>
-                    </div>
-                </div>
-                
-                <div class="quest-card">
-                    <div class="quest-title">
-                        <i class="fas fa-cogs"></i> Activating the Genesis Machine
-                    </div>
-                    <div class="quest-description">
+<div class="quest-description">
                         After collecting all the fragments of the chip, please activate the Genesis Machine in the central laboratory. This will unlock access to new technologies.
                     </div>
-                    <div class="quest-reward">
-                        <i class="fas fa-gift"></i> Rewards: 1000 MVC, Access to V.01.D
+<div class="quest-reward">
+<i class="fas fa-gift"></i> Rewards: 1000 MVC, Access to V.01.D
                     </div>
-                    <div class="quest-progress">
-                        <div class="quest-progress-fill" style="width: 0%"></div>
-                    </div>
-                    <div class="quest-status">
-                        <span>Progress: 0%</span>
-                        <span>Status: Unavailable</span>
-                    </div>
-                    <div class="quest-actions">
-                        <button class="btn" disabled>
+<div class="quest-progress">
+<div class="quest-progress-fill" style="width: 0%"></div>
+</div>
+<div class="quest-status">
+<span>Progress: 0%</span>
+<span>Status: Unavailable</span>
+</div>
+<div class="quest-actions">
+<button class="btn" disabled="">
                             Requires 5 fragments
                         </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
-        <!-- Нижнее меню навигации -->
-        <div class="nav-menu">
-            <div class="nav-item active" data-screen="map-screen">
-                <i class="fas fa-globe-americas"></i>
-                <span>MAP</span>
-            </div>
-            <div class="nav-item" data-screen="base-screen">
-                <i class="fas fa-hard-hat"></i>
-                <span>BASE</span>
-            </div>
-            <div class="nav-item" data-screen="research-screen">
-                <i class="fas fa-flask"></i>
-                <span>CRAFT</span>
-            </div>
-            <div class="nav-item" data-screen="market-screen">
-                <i class="fas fa-shopping-cart"></i>
-                <span>MARKET</span>
-            </div>
-            <div class="nav-item" data-screen="vote-screen">
-                <i class="fas fa-vote-yea"></i>
-                <span>VOTE</span>
-            </div>
-            <div class="nav-item" data-screen="quest-screen">
-                <i class="fas fa-tasks"></i>
-                <span>QUESTS</span>
-            </div>
-            <div id="wallet-container">
-                <button id="connect-wallet" class="btn btn-warning">
-                    <i class="fas fa-wallet"></i>
-                </button>
-                <span id="wallet-address"></span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модалка квеста "Awakening" -->
-<div id="quest-awake-modal" class="modal" aria-hidden="true">
-  <div class="modal-content" style="max-width: 620px;">
-    <button class="close-modal" id="quest-awake-close" aria-label="Закрыть">&times;</button>
-    <h2 class="modal-title">AWAKENING</h2>
-
-    <div class="quest-body" id="quest-awake-body">
-      <p>You slowly regain consciousness. Around you are smooth metal walls of the capsule. A cold blue light on a screen flashes: 'System activated'.</p>
-      <p>A voice from the speakers: 'Welcome to Metaville, subject 7-delta. Follow the instructions to exit the capsule.'</p>
-      <p>Through the fogged glass you see a huge hangar with hundreds of identical capsules. Some are already open.</p>
-    </div>
-
-    <div class="quest-choices" id="quest-awake-choices" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
-      <button class="btn" id="quest-awake-inspect">▶ Inspect the capsule</button>
-      <button class="btn" id="quest-awake-open">▶ Try to open the capsule</button>
-    </div>
-
-    <div class="quest-stats" style="margin-top:10px;font-size:12px;color:#a0a0d0;text-align:center;">
-      Health: <span id="quest-awake-health">100</span> | Reputation: <span id="quest-awake-rep">0</span>
-    </div>
-  </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Нижнее меню навигации -->
+<div class="nav-menu">
+<div class="nav-item active" data-screen="map-screen">
+<i class="fas fa-globe-americas"></i>
+<span>MAP</span>
+</div>
+<div class="nav-item" data-screen="base-screen">
+<i class="fas fa-hard-hat"></i>
+<span>BASE</span>
+</div>
+<div class="nav-item" data-screen="research-screen">
+<i class="fas fa-flask"></i>
+<span>CRAFT</span>
+</div>
+<div class="nav-item" data-screen="market-screen">
+<i class="fas fa-shopping-cart"></i>
+<span>MARKET</span>
+</div>
+<div class="nav-item" data-screen="vote-screen">
+<i class="fas fa-vote-yea"></i>
+<span>VOTE</span>
+</div>
+<div class="nav-item" data-screen="quest-screen">
+<i class="fas fa-tasks"></i>
+<span>QUESTS</span>
+</div>
+<div id="wallet-container">
+<button class="btn btn-warning" id="connect-wallet">
+<i class="fas fa-wallet"></i>
+</button>
+<span id="wallet-address"></span>
+</div>
 </div>
 
-    <!-- Модальное окно майнера кислорода -->
-    <div class="modal" id="o2-miner-modal">
-        <div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: #0f0f1a;">
-           <!--  <button class="close-modal" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #00f3ff; font-size: 24px; z-index: 100;">&times;</button>   -->
-            <div id="o2-miner-content"></div>
-        </div>
-    </div>
+<!-- Модалка квеста "Awakening" -->
+<div aria-hidden="true" class="modal" id="quest-awake-modal">
+<div class="modal-content" style="max-width: 620px;">
+<button aria-label="Закрыть" class="close-modal" id="quest-awake-close">×</button>
+<h2 class="modal-title">AWAKENING</h2>
+<div class="quest-body" id="quest-awake-body">
+<p>You slowly regain consciousness. Around you are smooth metal walls of the capsule. A cold blue light on a screen flashes: 'System activated'.</p>
+<p>A voice from the speakers: 'Welcome to Metaville, subject 7-delta. Follow the instructions to exit the capsule.'</p>
+<p>Through the fogged glass you see a huge hangar with hundreds of identical capsules. Some are already open.</p>
+</div>
+<div class="quest-choices" id="quest-awake-choices" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+<button class="btn" id="quest-awake-inspect">▶ Inspect the capsule</button>
+<button class="btn" id="quest-awake-open">▶ Try to open the capsule</button>
+</div>
+<div class="quest-stats" style="margin-top:10px;font-size:12px;color:#a0a0d0;text-align:center;">
+      Health: <span id="quest-awake-health">100</span> | Reputation: <span id="quest-awake-rep">0</span>
+</div>
+</div>
+</div>
+<!-- Модальное окно майнера кислорода -->
+<div class="modal" id="o2-miner-modal">
+<div class="modal-content" style="width: 95%; max-width: 500px; height: 90vh; padding: 0; background: #0f0f1a;">
+<!--  <button class="close-modal" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: #00f3ff; font-size: 24px; z-index: 100;">&times;</button>   -->
+<div id="o2-miner-content"></div>
+</div>
+</div>
+<!-- Модальное окно сканирования -->
+<div class="modal" id="scan-modal">
+<div class="modal-content">
+<div class="modal-header scan-header">
+<div class="scan-header-row">
+<h3 class="modal-title">Sector scanning</h3>
+<button aria-label="Close" class="close-modal">×</button>
+</div>
+<!-- читабельная легенда зон -->
 
-    <!-- Модальное окно сканирования -->
-    <div class="modal" id="scan-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Sector scanning</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            
-            <p>Select to scan (cost: <span id="scan-cost">50</span> ⚡):</p>
-            
-            <div class="sectors-grid">
-                <div class="sector-item" data-sector="3" data-belt="0-50 km" data-risk="low">
-                    <div class="sector-name">SECOR 3</div>
-                    <div class="sector-risk low">RISK: LOW</div>
-                </div>
-                <div class="sector-item" data-sector="7" data-belt="50-100 km" data-risk="medium">
-                    <div class="sector-name">SECTOR 7</div>
-                    <div class="sector-risk medium">RISK: MEDIUM</div>
-                </div>
-                <div class="sector-item" data-sector="9" data-belt="100-150 km" data-risk="high">
-                    <div class="sector-name">SECTOR 9</div>
-                    <div class="sector-risk">RISK: HIGH</div>
-                </div>
-                <div class="sector-item" data-sector="12" data-belt="100-150 km" data-risk="high">
-                    <div class="sector-name">SECTOR 12</div>
-                    <div class="sector-risk">RISK: HIGH</div>
-                </div>
-                <div class="sector-item" data-sector="15" data-belt="50-100 km" data-risk="medium">
-                    <div class="sector-name">SECTOR 15</div>
-                    <div class="sector-risk medium">RISK: MEDIUM</div>
-                </div>
-                <div class="sector-item" data-sector="18" data-belt="0-50 km" data-risk="low">
-                    <div class="sector-name">SECTOR 18</div>
-                    <div class="sector-risk low">RISK: LOW</div>
-                </div>
-            </div>
-            
-            <div class="modal-actions">
-                <button class="btn btn-danger" id="break-btn">ABORT</button>
-                <button class="btn btn-primary" id="confirm-scan">SCAN</button>
-            </div>
-        </div>
-    </div>
+</div>
+<p>Select to scan (cost: <span id="scan-cost">—</span> ⚡):</p>
+<div class="scan-legend">
 
+</div><div class="scan-zones-info"><div class="zones-row"><div class="zone-item outer"><span class="dot"></span><div class="zone-text"><div class="zone-title">Area that is dangerous</div><div class="zone-range">100–150 km (Risk: HIGH)</div></div></div><div class="zone-item middle"><span class="dot"></span><div class="zone-text"><div class="zone-title">The average level of intelligence</div><div class="zone-range">50–100 km (Risk: MEDIUM)</div></div></div><div class="zone-item inner"><span class="dot"></span><div class="zone-text"><div class="zone-title">The radius of the abandoned lands</div><div class="zone-range">0–50 km (Risk: LOW)</div></div></div></div></div><div class="sectors-grid">
+<div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="3">
+<div class="sector-name">SECOR 3</div>
+<div class="sector-risk low">RISK: LOW</div>
+</div>
+<div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="7">
+<div class="sector-name">SECTOR 7</div>
+<div class="sector-risk medium">RISK: MEDIUM</div>
+</div>
+<div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="9">
+<div class="sector-name">SECTOR 9</div>
+<div class="sector-risk">RISK: HIGH</div>
+</div>
+<div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="12">
+<div class="sector-name">SECTOR 12</div>
+<div class="sector-risk">RISK: HIGH</div>
+</div>
+<div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="15">
+<div class="sector-name">SECTOR 15</div>
+<div class="sector-risk medium">RISK: MEDIUM</div>
+</div>
+<div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="18">
+<div class="sector-name">SECTOR 18</div>
+<div class="sector-risk low">RISK: LOW</div>
+</div>
+</div>
+<div class="modal-actions">
+<button class="btn btn-danger" id="break-btn">ABORT</button>
+<button class="btn btn-primary" id="confirm-scan">SCAN</button>
+</div>
+</div>
+</div>
 <!-- Модальное окно результатов сканирования -->
 <div class="modal" id="scan-result-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">Scan results</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        
-        <div class="modal-body">
-            <div class="scan-result-info">
-                <div class="result-row">
-                    <span class="result-label">Sector:</span>
-                    <span class="result-value" id="result-sector">-</span>
-                </div>
-                <div class="result-row">
-                    <span class="result-label">Belt:</span>
-                    <span class="result-value" id="result-belt">-</span>
-                </div>
-                <div class="result-row">
-                    <span class="result-label">Risk level:</span>
-                    <span class="result-value" id="result-risk">-</span>
-                </div>
-                
-                <!-- Отдельный блок для ресурсов -->
-                <div class="resource-block">
-                    <div class="result-row">
-                        <span class="result-label">Resources:</span>
-                        <span class="result-value" id="result-resources">-</span>
-                    </div>
-                </div>
-                
-                <!-- Отдельный блок для стоимости -->
-                <div class="cost-block">
-                    <div class="result-row">
-                        <span class="result-label">Harvest cost:</span>
-                        <span class="result-value" id="result-cost">-</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="modal-actions">
-            <button class="btn btn-danger" id="cancel-harvest">Cancel</button>
-            <button class="btn btn-primary" id="start-harvest">Send harvester</button>
-        </div>
-    </div>
+<div class="modal-content">
+<div class="modal-header">
+<h3 class="modal-title">Scan results</h3>
+<button class="close-modal">×</button>
 </div>
-
+<div class="modal-body">
+<div class="scan-result-info">
+<div class="result-row">
+<span class="result-label">Sector:</span>
+<span class="result-value" id="result-sector">-</span>
+</div>
+<div class="result-row">
+<span class="result-label">Belt:</span>
+<span class="result-value" id="result-belt">-</span>
+</div>
+<div class="result-row">
+<span class="result-label">Risk level:</span>
+<span class="result-value" id="result-risk">-</span>
+</div>
+<!-- Отдельный блок для ресурсов -->
+<div class="resource-block">
+<div class="result-row">
+<span class="result-label">Resources:</span>
+<span class="result-value" id="result-resources">-</span>
+</div>
+</div>
+<!-- Отдельный блок для стоимости -->
+<div class="cost-block">
+<div class="result-row">
+<span class="result-label">Harvest cost:</span>
+<span class="result-value" id="result-cost">-</span>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-actions">
+<button class="btn btn-danger" id="cancel-harvest">Cancel</button>
+<button class="btn btn-primary" id="start-harvest">Send harvester</button>
+</div>
+</div>
+</div>
 <div class="modal" id="rest-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">The Rest capsule</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        
-        <!-- оберткa -->
-        <div class="modal-body-container">
-            <div class="modal-body" style="display: flex; flex-direction: column; gap: 20px;">
-
-            <!-- Аватар и характеристики -->
-            <div style="display: flex; align-items: center; gap: 20px;">
-               
-                    
-                </div>
-                
-                <div>
-                    <h4 style="color: #00ffcc; margin-bottom: 10px;">Operator</h4>
-                    <div class="status-grid" style="grid-template-columns: repeat(2, 1fr);">
-                        <div class="status-card">
-                            <div class="status-title">
-                                <i class="fas fa-bolt"></i> Energy level
-                            </div>
-                            <div class="status-value" id="current-energy">500</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-title">
-                                <i class="fas fa-heart"></i> Health
-                            </div>
-                            <div class="status-value" id="current-health">87%</div>
-                        </div>
-                       <!--  <div class="status-card">
-                            <div class="status-title">
-                                <i class="fas fa-shield-alt"></i> Level
-                            </div>
-                            <div class="status-value" id="current-level">5</div>
-                        </div>
-                        <div class="status-card">
-                            <div class="status-title">
-                                <i class="fas fa-star"></i> XP
-                            </div>
-                            <div class="status-value" id="current-xp">1200/2000</div>
-                        </div>  -->
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Репутация -->
-            <h3 class="section-title">Reputation</h3>
-<div class="rep-grid" id="rep-grid">
-  <!-- Карточки создадим из JS (см. ниже). 
-       Если хочешь статично, пример:
-  <div class="rep-card" data-faction="Syndicate Gloria">
-    <div class="rep-head">
-      <span>Syndicate "Gloria"</span>
-      <span class="rep-badge friend">Friend</span>
-    </div>
-    <div class="rep-value">+25</div>
-    <div class="rep-bar"><div class="rep-fill" style="width:62%"></div></div>
-  </div>
-  -->
+<div class="modal-content">
+<div class="modal-header">
+<h3 class="modal-title">The Rest capsule</h3>
+<button class="close-modal">×</button>
 </div>
-            
-            <!-- Прогресс отдыха -->
-            <div class="progress-container" style="margin-top: 15px;">
-    <div id="rest-progress">
-        <div id="rest-progress-fill"></div>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-        <span id="rest-time">0%</span>
-        <span id="rest-status">Ready to rest</span>
-    </div>
+<!-- оберткa -->
+<div class="modal-body-container">
+<div class="modal-body" style="display: flex; flex-direction: column; gap: 20px;">
+<!-- Аватар и характеристики -->
+<div style="display: flex; align-items: center; gap: 20px;">
+</div>
+<div>
+<h4 style="color: #00ffcc; margin-bottom: 10px;">Operator</h4>
+<div class="status-grid" style="grid-template-columns: repeat(2, 1fr);">
+<div class="status-card">
+<div class="status-title">
+<i class="fas fa-bolt"></i> Energy level
+                            </div>
+<div class="status-value" id="current-energy">500</div>
+</div>
+<div class="status-card">
+<div class="status-title">
+<i class="fas fa-heart"></i> Health
+                            </div>
+<div class="status-value" id="current-health">87%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Репутация -->
+<h3 class="section-title">Reputation</h3>
+<div class="rep-grid" id="rep-grid">
+</div>
+<!-- Прогресс отдыха -->
+<div class="progress-container" style="margin-top: 15px;">
+<div id="rest-progress">
+<div id="rest-progress-fill"></div>
+</div>
+<div style="display: flex; justify-content: space-between; margin-top: 5px;">
+<span id="rest-time">0%</span>
+<span id="rest-status">Ready to rest</span>
+</div>
 <div class="section-title">Sleep (energy regen ×4)</div>
 <div class="sleep-grid">
-  <button class="btn" data-sleep="1">1h</button>
-  <button class="btn" data-sleep="2">2h</button>
-  <button class="btn" data-sleep="4">4h</button>
-  <button class="btn" data-sleep="8">8h</button>
+<button class="btn" data-sleep="1">1h</button>
+<button class="btn" data-sleep="2">2h</button>
+<button class="btn" data-sleep="4">4h</button>
+<button class="btn" data-sleep="8">8h</button>
 </div>
 <div style="margin-top:8px; font-size:12px; color:#a0a0d0">
   While sleeping: ~80 energy per hour (base).
 </div>
-
 </div>
-        </div>
-        
-        <div class="modal-actions">
-            <button class="btn btn-primary" id="rest-button" style="width: 100%;">
-                <i class="fas fa-bed"></i> Rest 
+</div>
+<div class="modal-actions">
+<button class="btn btn-primary" id="rest-button" style="width: 100%;">
+<i class="fas fa-bed"></i> Rest 
             </button>
-        </div>
-    </div>
 </div>
-    
-    <!-- Уведомление -->
-    <div class="notification" id="notification">
-        <i class="fas fa-exclamation-triangle"></i>
-        <div id="notification-text">Transport-7 is under attack by raiders! Losses: 35 resources</div>
-    </div>
-    
+</div>
+</div>
+<!-- Уведомление -->
+<div class="notification" id="notification">
+<i class="fas fa-exclamation-triangle"></i>
+<div id="notification-text">Transport-7 is under attack by raiders! Losses: 35 resources</div>
+</div>
 <!-- ===== Profile modal (единственный экземпляр) ===== -->
-<div id="profile-overlay" class="profile-overlay"></div>
-
-<div id="profile-modal" class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
-  <button class="modal-close" id="profile-close" aria-label="Close">✕</button>
-
-  <header class="modal-header">
-    <div class="profile-header">
-     <!-- <img class="profile-avatar" src="images/avatar.png" alt="Avatar">    -->
-      <div>
-        <h2 id="profileTitle">ZAGADKA</h2>
-        <div class="profile-sub">Status: Citizen • ID: V01D-031 • Sector 7G</div>
-      </div>
-    </div>
-  </header>
-
-    <!-- ваши карточки статов здесь -->
+<div class="profile-overlay" id="profile-overlay"></div>
+<div aria-labelledby="profileTitle" aria-modal="true" class="profile-modal" id="profile-modal" role="dialog">
+<button aria-label="Close" class="modal-close" id="profile-close">✕</button>
+<header class="modal-header">
+<div class="profile-header">
+<div>
+<h2 id="profileTitle">Citizen</h2>
+<div class="profile-sub">Status: Citizen • ID: V01D-031 • Sector 7G</div>
+</div>
+</div>
+</header>
+<!-- ваши карточки статов здесь -->
 <section class="stats-grid">
-    <!-- один элемент -->
-    <article class="stat-card">
-      <div class="stat-title">Огневая мощь (FP)</div>
-      <div class="stat-value">139</div>
-      <div class="progress"><div class="bar" style="--p:62%"></div></div>
-      <div class="stat-desc">Эффективность в боевых сценариях, защита караванов</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Статус (HT)</div>
-      <div class="stat-value">Titan [3]</div>
-      <div class="progress"><div class="bar" style="--p:55%"></div></div>
-      <div class="stat-desc">Доступ к закрытым зонам, дипломатия с фракциями</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Энергия (EN)</div>
-      <div class="stat-value">143/160</div>
-      <div class="progress"><div class="bar" style="--p:89%"></div></div>
-      <div class="stat-desc">Количество действий за ход, работа в токсичных зонах</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Защита (ED)</div>
-      <div class="stat-value">151</div>
-      <div class="progress"><div class="bar" style="--p:75%"></div></div>
-      <div class="stat-desc">Устойчивость к радиации/токсинам, сохранность груза</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Здоровье (HP)</div>
-      <div class="stat-value">137/200</div>
-      <div class="progress"><div class="bar" style="--p:68%"></div></div>
-      <div class="stat-desc">Выживаемость и скорость восстановления</div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-title">Опыт (XP)</div>
-      <div class="stat-value">150/200</div>
-      <div class="progress"><div class="bar" style="--p:75%"></div></div>
-      <div class="stat-desc">Прокачка характеристик</div>
-    </article>
-
-  </section>
-
-  <footer class="modal-actions">
-    <button class="btn primary">Edit profile</button>
-    <button class="btn ghost" id="profile-close-2">Close</button>
-  </footer>
+<!-- один элемент -->
+<article class="stat-card">
+<div class="stat-title">Огневая мощь (FP)</div>
+<div class="stat-value">139</div>
+<div class="progress"><div class="bar" style="--p:62%"></div></div>
+<div class="stat-desc">Эффективность в боевых сценариях, защита караванов</div>
+</article>
+<article class="stat-card">
+<div class="stat-title">Статус (HT)</div>
+<div class="stat-value">Titan [3]</div>
+<div class="progress"><div class="bar" style="--p:55%"></div></div>
+<div class="stat-desc">Доступ к закрытым зонам, дипломатия с фракциями</div>
+</article>
+<article class="stat-card">
+<div class="stat-title">Энергия (EN)</div>
+<div class="stat-value">143/160</div>
+<div class="progress"><div class="bar" style="--p:89%"></div></div>
+<div class="stat-desc">Количество действий за ход, работа в токсичных зонах</div>
+</article>
+<article class="stat-card">
+<div class="stat-title">Защита (ED)</div>
+<div class="stat-value">151</div>
+<div class="progress"><div class="bar" style="--p:75%"></div></div>
+<div class="stat-desc">Устойчивость к радиации/токсинам, сохранность груза</div>
+</article>
+<article class="stat-card">
+<div class="stat-title">Здоровье (HP)</div>
+<div class="stat-value">137/200</div>
+<div class="progress"><div class="bar" style="--p:68%"></div></div>
+<div class="stat-desc">Выживаемость и скорость восстановления</div>
+</article>
+<article class="stat-card">
+<div class="stat-title">Опыт (XP)</div>
+<div class="stat-value">150/200</div>
+<div class="progress"><div class="bar" style="--p:75%"></div></div>
+<div class="stat-desc">Прокачка характеристик</div>
+</article>
+</section>
+<footer class="modal-actions">
+<button class="btn primary">Edit profile</button>
+<button class="btn ghost" id="profile-close-2">Close</button>
+</footer>
 </div>
-
 <!-- Energy node modal -->
-<div id="energy-node-modal" class="modal">
-  <div class="modal-content energy-node-modal">
-    <div class="modal-header">
-      <h3 class="modal-title"><i class="fas fa-bolt"></i> Energy node</h3>
-      <button class="close-modal" data-close="energy-node-modal">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="enm-title" id="en-node-title">Node</div>
-      <p class="enm-text" id="en-node-text">Concentrated energy near the platform ring.</p>
-      <div class="chips">
-        <span class="chip chip-energy" id="en-node-amount">+50 ⚡</span>
-        <span class="chip chip-cooldown" id="en-node-cooldown" hidden>Cooldown</span>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn ghost" data-close="energy-node-modal">Close</button>
-      <button class="btn primary" id="en-collect-btn">Collect</button>
-    </div>
-  </div>
+<div class="modal" id="energy-node-modal">
+<div class="modal-content" style="max-width:420px">
+<div class="modal-header">
+<h3 class="modal-title"><i class="fas fa-bolt"></i> Energy node</h3>
+<button class="close-modal" data-close="energy-node-modal">×</button>
 </div>
-    <script>
+<div class="modal-body">
+<div id="en-node-title" style="font-weight:800;margin-bottom:4px">Node</div>
+<p id="en-node-text" style="color:#93a3b8;margin:0 0 10px">
+        Concentrated energy near the platform.
+      </p>
+<div>
+<span id="en-node-amount" style="display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid #2b2f45;background:#181c2f;font-weight:700;">+50 ⚡</span>
+<span hidden="" id="en-node-cooldown" style="display:inline-block;margin-left:8px;padding:6px 10px;border-radius:999px;border:1px solid #24563c;background:#0d2c20;font-weight:700;color:#86efac;">Cooldown</span>
+</div>
+</div>
+<div class="modal-actions">
+<button class="btn ghost" data-close="energy-node-modal">Close</button>
+<button class="btn primary" id="en-collect-btn">Collect</button>
+</div>
+</div>
+</div>
+<script>
         // Состояние игры (исправленное)
         const gameState = {
             resources: {
@@ -3649,7 +3600,9 @@ function initO2Miner() {
     shareEl.textContent  = `${yourShare}%`;
     yieldEl.textContent  = `${yieldNow.toFixed(2)} O₂`;
 
-    // готовность к клейму?
+    // готовность к клейму
+
+
     if (timeLeft <= 0) {
       timeLeft = 0;          // зафиксировать ноль
       setClaimReady(true);   // включить кнопку, подсветить статус
@@ -3793,11 +3746,6 @@ function showNotification(message, isSuccess = true, ms = 6000) {
   }, ms);
 }
 
-// Примеры:
-// showNotification("Mission completed!", true);
-// showNotification("Not enough oxygen!", false);
-
-
 /* ==== ENERGY SYSTEM v1 ==== */
 
 /** Баланс */
@@ -3914,25 +3862,15 @@ function renderNodes(){
       btn.classList.remove('cooldown');
       cd.textContent = '+50';
     }
+
   });
 }
-function bindNodes(){
-  document.querySelectorAll('.power-node').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const id = btn.dataset.nodeId;
-      const nd = E.nodes[id] || (E.nodes[id] = { readyAt: 0 });
-      const leftMs = nd.readyAt - nowTs();
-      if (leftMs > 0){
-        showNotification('Node recharging: ' + formatCD(leftMs), false);
-        return;
-      }
-      addEnergy(E_CFG.nodeReward);
-      nd.readyAt = nowTs() + E_CFG.nodeRestoreMs;
-      saveState();
-      renderNodes();
-      showNotification('+50 Energy from node', true);
-    });
-  });
+function getNodeSelector(el){
+  if (el.id) return `#${CSS.escape(el.id)}`;
+  if (el.dataset.nodeId) return `.power-node[data-node-id="${el.dataset.nodeId}"]`;
+  const parent = el.parentElement;
+  const index = Array.from(parent.children).indexOf(el) + 1; // ← исправлено
+  return `#power-nodes > :nth-child(${index})`;
 }
 
 /** СОН (каюта) — кнопки в #rest-modal */
@@ -4024,19 +3962,10 @@ function startMissionWithOutcome(key, cost){
   const $  = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
 
-  function openModal(id){
-    const m = document.getElementById(id);
-    if (!m) return;
-    m.classList.add('active');
-    m.style.removeProperty('visibility');
-    m.style.removeProperty('opacity');
-    m.style.removeProperty('display');
-  }
+  function openModal(id){ document.getElementById(id)?.classList.add('active'); }
   function closeModal(id){ document.getElementById(id)?.classList.remove('active'); }
   document.addEventListener('click', e=>{
-    const btn = e.target.closest('[data-close]');
-    if (!btn) return;
-    closeModal(btn.getAttribute('data-close'));
+    const b = e.target.closest('[data-close]'); if (b) closeModal(b.getAttribute('data-close'));
   });
 
   function getNodeData(el){
@@ -4044,101 +3973,66 @@ function startMissionWithOutcome(key, cost){
       id:     el.dataset.nodeId || el.id || 'node',
       title:  el.dataset.title  || 'Energy node',
       text:   el.dataset.desc   || 'Concentrated energy near the platform.',
-      amount: parseInt(el.dataset.amount || el.querySelector('.cd')?.textContent.replace(/[^\d]/g,'') || '50', 10),
+      amount: parseInt(el.dataset.amount || el.querySelector('.cd')?.textContent.replace(/[^\d]/g,'') || '50', 10)
     };
   }
 
-  // (опционально) кулдаун
-  const COOLDOWN_MIN = 0; // поставь 15, если нужен
-  const lsKey = id => `enode_${id}_ts`;
-  function isOnCooldown(id){
-    if (!COOLDOWN_MIN) return 0;
-    const ts = +localStorage.getItem(lsKey(id)) || 0;
-    const left = (ts + COOLDOWN_MIN*60*1000) - Date.now();
-    return left > 0 ? Math.ceil(left/60000) : 0;
-  }
-  function startCooldown(id){ if (COOLDOWN_MIN) localStorage.setItem(lsKey(id), String(Date.now())); }
-
-  // открытие модалки
   function openEnergyNodeModal(el){
     const data = getNodeData(el);
-
-    // легкий «пульс» на ноде, которую открыли
-    el.classList.add('is-open');
-    setTimeout(()=> el.classList.remove('is-open'), 400);
-
     $('#en-node-title').textContent  = data.title;
     $('#en-node-text').textContent   = data.text;
     $('#en-node-amount').textContent = `+${data.amount} ⚡`;
 
-    const cdMin = isOnCooldown(data.id);
-    const cdEl  = $('#en-node-cooldown');
-    const collectBtn = $('#en-collect-btn');
+    // cooldown из твоего состояния E
+    const left = (E.nodes[data.id]?.readyAt || 0) - Date.now();
+    const cdEl = $('#en-node-cooldown');
+    const btn  = $('#en-collect-btn');
+    btn.dataset.nodeId = data.id;
+    btn.dataset.amount = String(data.amount);
 
-    collectBtn.dataset.nodeId = data.id;
-    collectBtn.dataset.amount = String(data.amount);
-    collectBtn.dataset.selector = getNodeSelector(el); // чтобы подсветить собранную ноду
-
-    if (cdMin){
-      cdEl.hidden = false; cdEl.textContent = `Cooldown ${cdMin} min`;
-      collectBtn.disabled = true;
+    if (left > 0){
+      cdEl.hidden = false;
+      cdEl.textContent = `Cooldown ${Math.ceil(left/60000)} min`;
+      btn.disabled = true;
     } else {
-      cdEl.hidden = true; collectBtn.disabled = false;
+      cdEl.hidden = true;
+      btn.disabled = false;
     }
-
     openModal('energy-node-modal');
   }
 
-  // найти селектор элемента (для анимации «собрана»)
-  function getNodeSelector(el){
-    if (el.id) return `#${CSS.escape(el.id)}`;
-    // попробуем по data-node-id
-    if (el.dataset.nodeId) return `.power-node[data-node-id="${el.dataset.nodeId}"]`;
-    // fallback — nth-child в контейнере
-    const parent = el.parentElement;
-    const index = [...parent.children].indexOf(el) + 1;
-    return `#power-nodes > :nth-child(${index})`;
-  }
-
-  // клик «Collect»
-  function bindCollect(){
-    const btn = document.getElementById('en-collect-btn');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      const amount = parseInt(btn.dataset.amount || '0', 10) || 0;
-      const nodeSel = btn.dataset.selector || null;
-      const nodeId  = btn.dataset.nodeId || 'node';
-
-      if (typeof addEnergy === 'function') addEnergy(amount);
-      if (typeof showNotification === 'function') showNotification(`+${amount} ⚡ collected`, true);
-
-      // анимация «собрана» на самой ноде
-      if (nodeSel){
-        const el = document.querySelector(nodeSel);
-        if (el){
-          el.classList.add('is-collected');
-          setTimeout(()=> el.classList.remove('is-collected'), 450);
-        }
-      }
-
-      startCooldown(nodeId);
-      closeModal('energy-node-modal');
-    });
-  }
-
   function bindPowerNodes(){
-    $$('#power-nodes .power-node').forEach(el=>{
-      el.style.pointerEvents = 'auto';
+    $$('.power-node').forEach(el=>{
       el.addEventListener('click', () => openEnergyNodeModal(el));
     });
   }
 
+  function bindCollect(){
+    const btn = document.getElementById('en-collect-btn');
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      const id     = btn.dataset.nodeId || 'node';
+      const amount = parseInt(btn.dataset.amount || '0', 10);
+
+      // начисляем твоей энергосистемой
+      addEnergy(amount);
+      E.nodes[id] = E.nodes[id] || { readyAt: 0 };
+      E.nodes[id].readyAt = Date.now() + E_CFG.nodeRestoreMs;
+      saveState();
+      renderNodes();
+
+      if (typeof showNotification === 'function') showNotification(`+${amount} ⚡ collected`, true);
+      closeModal('energy-node-modal');
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    bindPowerNodes();
-    bindCollect();
+    renderNodes();     // оставить
+    bindPowerNodes();  // новое
+    bindCollect();     // новое
   });
 })();
+
 /** Утилиты уведомлений/модалок (опираюсь на твои же классы) */
 function showNotification(text, ok=true){
   // у тебя уже есть .notification.success и .notification.error — воспользуемся ими
@@ -4161,31 +4055,17 @@ function closeModalById(id){
   m.classList.remove('active');
  
 }
-
-/** Инициализация */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // оффлайн реген сразу при входе
-  const gained = regenSince(E.lastTs, nowTs());
-  if (gained>0){
-    E.energy = clamp(E.energy + gained, 0, E_CFG.max);
-    E.lastTs = nowTs();
-    saveState();
-  }
-  updateEnergyUI();
-
-  // таймеры
-  setInterval(()=>{ tickRegen(); renderNodes(); }, 30000); // каждые 30с
-  // первый рендер узлов
-  bindNodes(); renderNodes();
-
-  // сон
-  bindSleepButtons();
-
-  // сканирование
-  bindSectorPick();
-  bindScanConfirm();
+  // оффлайн-реген, UI и т.д.
+  setInterval(()=>{ tickRegen(); renderNodes(); }, 30000);
+  renderNodes();                // оставить
+  bindPowerNodes();             // новое
+  bindCollect();                // новое
 });
-
+document.querySelectorAll('.power-node').forEach(el => {
+  el.style.pointerEvents = 'auto';
+  el.addEventListener('click', () => openEnergyNodeModal(el));
+});
   const avatarCard = document.getElementById('avatar-card');
   const modal      = document.getElementById('profile-modal');
   const overlay    = document.getElementById('profile-overlay');
@@ -4272,6 +4152,28 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.classList.remove('active');
     document.body.classList.remove('modal-open');
   }, { once: true });
+});
+document.addEventListener('DOMContentLoaded', () => {
+  // Энерго-система
+  const gained = regenSince(E.lastTs, nowTs());
+  if (gained > 0) {
+    E.energy = clamp(E.energy + gained, 0, E_CFG.max);
+    E.lastTs = nowTs();
+    saveState();
+  }
+  updateEnergyUI();
+  setInterval(() => { tickRegen(); renderNodes(); }, 30000);
+
+  // Ноды
+  bindPowerNodes();
+  renderNodes();
+
+  // Сон (если используешь модалку каюты)
+  bindSleepButtons();
+
+  // Сканирование
+  bindSectorPick();
+  bindScanConfirm();
 });
         // TON Connect
        document.addEventListener('DOMContentLoaded', async () => {
