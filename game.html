@@ -599,10 +599,11 @@
   padding: 10px 4px 2px;
 }
 .sr-row {
-  display: grid; grid-template-columns: 1fr auto;
-  align-items: center; gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   padding: 10px 12px;
-  background: rgba(22, 28, 55, .55);
+  background: rgba(22, 28, 55, 0.55);
   border: 1px solid #2a3358;
   border-radius: 10px;
 }
@@ -1221,9 +1222,7 @@ body.modal-open {
   position: relative;
   pointer-events: auto;
 }
-#scanned-resources { 
-  display: none !important; 
-}
+
 
 /* Узлы электростанций на карте */
 /* Кольца карты не перехватывают клики */
@@ -1595,7 +1594,9 @@ body.modal-open {
 #scan-modal .scan-header-row{
   display:flex; align-items:center; justify-content:space-between; gap:8px;
 }
-
+#scan-modal .scan-legend{
+  display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;
+}
 
 /* Чипы легенды */
 #scan-modal .ring-label{
@@ -1705,57 +1706,99 @@ body.modal-open {
   30% { transform: scale(1.12); box-shadow: 0 0 28px rgba(255,255,255,.35); }
   100%{ transform: scale(0.85); opacity:.6; }
 }
+/* === Полная переработка стилей для вертикального расположения === */
+#scan-modal .modal-header.scan-header{
+  display: flex;          /* переопределяем общий .modal-header */
+  flex-direction: column; /* в колонку */
+  align-items: stretch;
+  gap: 12px;
+}
 
- 
-/* === Stack legend and zones vertically & center === */
-#scan-modal .scan-header-row{
+/* на всякий случай фиксируем порядок сверху-вниз */
+#scan-modal .scan-zones-info { order: 1; }
+#scan-modal .sectors-grid    { order: 2; }
+
+#scan-modal .scan-zones-info {
+  display: flex !important; /* Принудительное применение */
+  flex-direction: column !important; /* Вертикальное направление */
+  gap: 12px; /* Расстояние между карточками */
+  margin: 15px 0; /* Отступы сверху/снизу */
+  padding: 10px; /* Внутренние отступы */
+  background: rgba(22, 28, 55, 0.5);
+  border: 1px solid #2a3358;
+  border-radius: 10px;
+}
+
+/* Отключаем любые горизонтальные стили */
+#scan-modal .scan-zones-info[style*="flex-direction:row"],
+#scan-modal .scan-zones-info[style*="flex-direction: row"] {
   flex-direction: column !important;
-  align-items: stretch !important;
 }
-#scan-modal .scan-header-row > *{
-  width: 100%;
-  max-width: 820px;
-  margin: 0 auto;
-}
-#scan-modal .scan-legend{
-  justify-content: center;
-  margin-top: 12px;
-}
-/* Zones block always vertical */
-#scan-modal .scan-zones-info{
-  background:#0f1524;
-  border:1px solid #2b2f45;
-  border-radius:12px;
-  padding:12px 14px;
-  margin:10px 0 12px;
-}
-#scan-modal .zones-row{
-  display:flex; flex-direction: column; gap:10px;
-}
-#scan-modal .zone-item{
-  display:flex; align-items:center; gap:10px;
-  padding:10px; border-radius:10px;
-  background:#181c2f; border:1px solid #2b2f45;
-}
-#scan-modal .zone-item .dot{
-  width:10px; height:10px; border-radius:50%;
-  box-shadow:0 0 8px currentColor; background:currentColor;
-}
-#scan-modal .zone-item.inner  { color:#00d19a; border-color:rgba(0,209,154,.3); background:rgba(0,209,154,.08); }
-#scan-modal .zone-item.middle { color:#facc15; border-color:rgba(250,204,21,.3); background:rgba(250,204,21,.08); }
-#scan-modal .zone-item.outer  { color:#ff6b6b; border-color:rgba(255,107,107,.3); background:rgba(255,107,107,.08); }
-#scan-modal .zone-title{ font-weight:700; }
-#scan-modal .zone-range{ font-size:12px; opacity:.85; }
-</style>
 
-/* === FIX: make nodes definitely clickable and prevent hidden modals from intercepting clicks === */
-<style id="nodes-fix-css">
-  .map-circle { pointer-events: none !important; }
-  .power-node { z-index: 10 !important; pointer-events: auto !important; }
-  /* If some CSS somewhere leaves modals "display:flex" but invisible, don't let them block clicks */
-  .modal:not(.active){ pointer-events: none !important; }
-  .modal.active{ pointer-events: auto !important; }
-</style>
+/* Каждая карточка зоны */
+#scan-modal .zone-card {
+  display: block !important; /* Убираем flex внутри карточки */
+  width: 100% !important; /* Полная ширина */
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(18, 24, 48, 0.6);
+  margin-bottom: 8px; /* Отступ между карточками */
+  border: 1px solid #3a3a5a;
+}
+
+/* Заголовок карточки */
+#scan-modal .zone-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+/* Значок зоны */
+#scan-modal .zone-badge {
+  display: inline-block;
+  min-width: 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* Название зоны */
+#scan-modal .zone-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #c9d4ff;
+}
+
+/* Диапазон зоны */
+#scan-modal .zone-range {
+  font-size: 12px;
+  color: #93a3b8;
+  padding-left: 22px; /* Выравнивание под названием */
+}
+
+/* Цвета для зон */
+#scan-modal .inner-badge { background: #00d19a; box-shadow: 0 0 8px #00d19a; }
+#scan-modal .middle-badge { background: #facc15; box-shadow: 0 0 8px #facc15; }
+#scan-modal .outer-badge { background: #ff6b6b; box-shadow: 0 0 8px #ff6b6b; }
+
+/* Адаптив для мобилок */
+@media (max-width: 480px) {
+  #scan-modal .scan-zones-info {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  #scan-modal .zone-card {
+    padding: 8px;
+  }
+  
+  #scan-modal .zone-title {
+    font-size: 13px;
+  }
+}
+ </style>
 
 </head>
 <body>
@@ -1907,7 +1950,7 @@ body.modal-open {
 <!-- <img class="avatar-img" src="images/avatar.png" alt="Avatar">  -->
 <div class="avatar-info">
 <div class="status-title"><i class="fas fa-user-astronaut"></i> Pilot</div>
-<div class="status-value" id="player-name">Citizen</div>
+<div class="status-value" id="player-name">ZAGADKA</div>
 <div class="avatar-meta">Rank: Citizen • ID: V01D-031</div>
 </div>
 </div>
@@ -2376,49 +2419,78 @@ body.modal-open {
 </div>
 <!-- Модальное окно сканирования -->
 <div class="modal" id="scan-modal">
-<div class="modal-content">
-<div class="modal-header scan-header">
-<div class="scan-header-row">
-<h3 class="modal-title">Sector scanning</h3>
-<button aria-label="Close" class="close-modal">×</button>
-</div>
-<!-- читабельная легенда зон -->
+  <div class="modal-content">
+    <div class="modal-header scan-header">
+      <div class="scan-header-row">
+        <h3 class="modal-title">Sector scanning</h3>
+        <button aria-label="Close" class="close-modal">×</button>
+      </div>
 
-</div>
-<p>Select to scan (cost: <span id="scan-cost">—</span> ⚡):</p>
-<div class="scan-legend">
+      <p>Select to scan (cost: <span id="scan-cost">—</span> ⚡):</p>
 
-</div><div class="scan-zones-info"><div class="zones-row"><div class="zone-item outer"><span class="dot"></span><div class="zone-text"><div class="zone-title">Area that is dangerous</div><div class="zone-range">100–150 km (Risk: HIGH)</div></div></div><div class="zone-item middle"><span class="dot"></span><div class="zone-text"><div class="zone-title">The average level of intelligence</div><div class="zone-range">50–100 km (Risk: MEDIUM)</div></div></div><div class="zone-item inner"><span class="dot"></span><div class="zone-text"><div class="zone-title">The radius of the abandoned lands</div><div class="zone-range">0–50 km (Risk: LOW)</div></div></div></div></div><div class="sectors-grid">
-<div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="3">
-<div class="sector-name">SECOR 3</div>
-<div class="sector-risk low">RISK: LOW</div>
-</div>
-<div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="7">
-<div class="sector-name">SECTOR 7</div>
-<div class="sector-risk medium">RISK: MEDIUM</div>
-</div>
-<div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="9">
-<div class="sector-name">SECTOR 9</div>
-<div class="sector-risk">RISK: HIGH</div>
-</div>
-<div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="12">
-<div class="sector-name">SECTOR 12</div>
-<div class="sector-risk">RISK: HIGH</div>
-</div>
-<div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="15">
-<div class="sector-name">SECTOR 15</div>
-<div class="sector-risk medium">RISK: MEDIUM</div>
-</div>
-<div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="18">
-<div class="sector-name">SECTOR 18</div>
-<div class="sector-risk low">RISK: LOW</div>
-</div>
-</div>
-<div class="modal-actions">
-<button class="btn btn-danger" id="break-btn">ABORT</button>
-<button class="btn btn-primary" id="confirm-scan">SCAN</button>
-</div>
-</div>
+      <!-- Легенда зон: ОСТАЁТСЯ в шапке -->
+      <div class="scan-zones-info">
+        <div class="zone-card">
+          <div class="zone-header">
+            <span class="zone-badge inner-badge"></span>
+            <span class="zone-title">The radius of the abandoned lands</span>
+          </div>
+          <div class="zone-range">0-50 km</div>
+        </div>
+
+        <div class="zone-card">
+          <div class="zone-header">
+            <span class="zone-badge middle-badge"></span>
+            <span class="zone-title">The average level of intelligence</span>
+          </div>
+          <div class="zone-range">50-100 km</div>
+        </div>
+
+        <div class="zone-card">
+          <div class="zone-header">
+            <span class="zone-badge outer-badge"></span>
+            <span class="zone-title">Area that is dangerous</span>
+          </div>
+          <div class="zone-range">100-150 km</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ВАЖНО: сетка секторов ПЕРЕНЕСЕНА сюда -->
+    <div class="modal-body">
+      <div class="sectors-grid">
+        <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="3" >
+          <div class="sector-name">SECOR 3</div>
+          <div class="sector-risk low">RISK: LOW</div>
+        </div>
+        <div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="7">
+          <div class="sector-name">SECTOR 7</div>
+          <div class="sector-risk medium">RISK: MEDIUM</div>
+        </div>
+        <div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="9">
+          <div class="sector-name">SECTOR 9</div>
+          <div class="sector-risk">RISK: HIGH</div>
+        </div>
+        <div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="12">
+          <div class="sector-name">SECTOR 12</div>
+          <div class="sector-risk">RISK: HIGH</div>
+        </div>
+        <div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="15">
+          <div class="sector-name">SECTOR 15</div>
+          <div class="sector-risk medium">RISK: MEDIUM</div>
+        </div>
+        <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="18">
+          <div class="sector-name">SECTOR 18</div>
+          <div class="sector-risk low">RISK: LOW</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="break-btn">ABORT</button>
+      <button class="btn btn-primary" id="confirm-scan">SCAN</button>
+    </div>
+  </div>
 </div>
 <!-- Модальное окно результатов сканирования -->
 <div class="modal" id="scan-result-modal">
@@ -3897,76 +3969,6 @@ function bindSleepButtons(){
   });
 }
 
-/** Сканирование: новая стоимость/риск/награда */
-const SCAN = {
-  // маппим data-risk → редкость
-  riskToKey(risk){ return (risk==='low'?'low':risk==='medium'?'medium':'high'); },
-  current: null // { sector, belt, risk }
-};
-
-function bindSectorPick(){
-  document.querySelectorAll('#scan-modal .sector-item').forEach(it=>{
-    it.addEventListener('click', ()=>{
-      // визуальный выбор
-      document.querySelectorAll('#scan-modal .sector-item').forEach(x=>x.style.outline='none');
-      it.style.outline = '2px solid #00ffcc';
-
-      const sector = it.dataset.sector;
-      const belt   = it.dataset.belt;
-      const risk   = it.dataset.risk;  // low/medium/high
-      SCAN.current = { sector, belt, risk };
-      // обновим цену в UI
-      const key = SCAN.riskToKey(risk);
-      const price = E_CFG.scanCost[key];
-      const costEl = document.getElementById('scan-cost');
-      if (costEl) costEl.textContent = String(price);
-    });
-  });
-}
-
-function bindScanConfirm(){
-  const btn = document.getElementById('confirm-scan');
-  if (!btn) return;
-  btn.addEventListener('click', ()=>{
-    if (!SCAN.current){
-      showNotification('Choose sector to scan', false);
-      return;
-    }
-    const key  = SCAN.riskToKey(SCAN.current.risk);
-    const cost = E_CFG.scanCost[key];
-    if (!spendEnergy(cost)){
-      showNotification('Not enough Energy', false);
-      return;
-    }
-
-    // запускаем миссию (оставляю твою существующую анимацию прогресса)
-    startMissionWithOutcome(key, cost);
-    closeModalById('scan-modal');
-  });
-}
-
-/** Итог миссии: шанс успеха, возврат половины при фейле */
-function startMissionWithOutcome(key, cost){
-  // Здесь используем твои элементы миссии (progress и т.д.)
-  const chance = E_CFG.scanChance[key];
-  // имитация завершения через 3 секунды (если у тебя уже есть таймер — используй его)
-  setTimeout(()=>{
-    const ok = Math.random() < chance;
-
-    if (ok){
-      const mult = E_CFG.scanMult[key];
-      // начисляем награду — подставь свою функцию лута/XP
-      const gainedMvc = Math.floor(10 * mult); // пример!
-      showNotification(`Scan success (+${gainedMvc} MVC, x${mult})`, true);
-      // TODO: тут вызови свою логику: добавить ресурсы по мультипликатору
-    } else {
-      // риск-энергия: теряем 50% стоимости (мы списали всё при старте — вернём половину)
-      addEnergy(Math.floor(cost * 0.5));
-      showNotification('Scan failed (refunded 50% energy)', false);
-    }
-  }, 3000);
-}
-
 
 (() => {
   const $  = s => document.querySelector(s);
@@ -4259,81 +4261,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
     </script>
 
-<!-- === FIX: robust click binding for power nodes (delegated) === -->
-<script id="nodes-fix-js">
-(function(){
-  // Safely parse int
-  function toInt(x, d){ var n = parseInt(x,10); return isNaN(n) ? (d||0) : n; }
-  // Fill energy-node modal from a node element
-  function fillEnergyNodeModal(el){
-    var id     = el.dataset.nodeId || el.id || 'node';
-    var title  = el.dataset.title  || 'Energy node';
-    var text   = el.dataset.desc   || 'Concentrated energy near the platform.';
-    var amount = toInt(el.dataset.amount || (el.querySelector('.cd') && el.querySelector('.cd').textContent.replace(/[^\d]/g,'')) || '50', 50);
-    var titleEl = document.getElementById('en-node-title');
-    var textEl  = document.getElementById('en-node-text');
-    var amtEl   = document.getElementById('en-node-amount');
-    if (titleEl) titleEl.textContent = title;
-    if (textEl)  textEl.textContent  = text;
-    if (amtEl)   amtEl.textContent   = '+' + amount + ' ⚡';
-    // cooldown
-    var left = 0;
-    try{ left = (window.E && window.E.nodes && window.E.nodes[id] && window.E.nodes[id].readyAt ? window.E.nodes[id].readyAt : 0) - Date.now(); }catch(e){ left = 0; }
-    var cdEl = document.getElementById('en-node-cooldown');
-    var btn  = document.getElementById('en-collect-btn');
-    if (btn){
-      btn.dataset.nodeId = id;
-      btn.dataset.amount = String(amount);
-      if (left > 0){
-        if (cdEl){ cdEl.hidden = false; cdEl.textContent = 'Cooldown ' + Math.ceil(left/60000) + ' min'; }
-        btn.disabled = true;
-      } else {
-        if (cdEl){ cdEl.hidden = true; }
-        btn.disabled = false;
-      }
-    }
-  }
-  // Open modal by id (works with existing CSS)
-  function openModalById(id){
-    var m = document.getElementById(id);
-    if (m){ m.classList.add('active'); }
-  }
-  // Delegated click handler for .power-node
-  document.addEventListener('click', function(e){
-    var node = e.target.closest && e.target.closest('.power-node');
-    if (!node) return;
-    // If the original global function exists, prefer it
-    if (typeof window.openEnergyNodeModal === 'function'){
-      try { return window.openEnergyNodeModal(node); } catch(err){ /* fallback below */ }
-    }
-    fillEnergyNodeModal(node);
-    openModalById('energy-node-modal');
-  }, true); // capture to be robust
-
-  // Also ensure clicking the Collect button updates cooldown using the shared E state if present
-  var collectBtn = document.getElementById('en-collect-btn');
-  if (collectBtn){
-    collectBtn.addEventListener('click', function(){
-      if (collectBtn.disabled) return;
-      var id = collectBtn.dataset.nodeId || 'node';
-      var amount = toInt(collectBtn.dataset.amount || '0', 0);
-      if (window.addEnergy) try { window.addEnergy(amount); } catch(e){}
-      if (window.E){
-        if (!window.E.nodes) window.E.nodes = {};
-        if (!window.E.nodes[id]) window.E.nodes[id] = { readyAt: 0 };
-        if (window.E_CFG && window.E_CFG.nodeRestoreMs){
-          window.E.nodes[id].readyAt = Date.now() + window.E_CFG.nodeRestoreMs;
-        } else {
-          window.E.nodes[id].readyAt = Date.now() + 2*60*60*1000;
-        }
-        if (window.saveState) try { window.saveState(); } catch(e){}
-        if (window.renderNodes) try { window.renderNodes(); } catch(e){}
-      }
-      var modal = document.getElementById('energy-node-modal');
-      if (modal) modal.classList.remove('active');
-    });
-  }
-})();
+<script>
+/*__FORCE_TUTORIAL_OPEN__*/
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var t = document.getElementById('tutorial-modal');
+    if (t && !t.classList.contains('active')) t.classList.add('active');
+    var s = document.getElementById('start-game-btn');
+    if (s){ s.addEventListener('click', function(){ t.classList.remove('active'); }); }
+  }catch(e){ console.error(e); }
+});
 </script>
 
 </body>
