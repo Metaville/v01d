@@ -885,13 +885,7 @@
 .avatar-info .avatar-meta{
   font-size:12px; color:#a0a0d0; margin-top:4px;
 }
-/* Вариант без картинки: круг с инициалами */
-.avatar-initials{
-  width:56px;height:56px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#2a2a4a,#1a1a2f);
-  border:2px solid #00ffcc; font-weight:700; color:#00ffcc;
-}
+
  
         /* Кошелек */
         #wallet-container {
@@ -1292,23 +1286,7 @@ body.modal-open {
   color: #ffb3b3;
   margin-top: 4px;
 }
-/* Пульсация как у капсулы, но красная */
-#avatar-card{
-  position: relative;
-  border: 1px solid rgba(255,77,77,0.5);
-  box-shadow: 0 0 15px rgba(255,77,77,0.3);
-  animation: pulse-red 2s infinite;
-}
-@keyframes pulse-red{
-  0%   { box-shadow: 0 0 5px  rgba(255,77,77,0.3); }
-  50%  { box-shadow: 0 0 20px rgba(255,77,77,0.7); }
-  100% { box-shadow: 0 0 5px  rgba(255,77,77,0.3); }
-}
-#avatar-card:hover{
-  transform: scale(1.03);
-  box-shadow: 0 0 25px rgba(255,77,77,0.9);
-  animation: none;
-}
+
 
 /* Красноватая подсветка карточки */
 .red-glow {
@@ -1378,6 +1356,11 @@ body.modal-open {
 /* пульсация карточек */
 #avatar-card{ animation: pulse-red 2s infinite; }
 #o2-generation-card{ animation: pulse-cyan 2s infinite; }
+#avatar-card:hover{
+  transform: scale(1.03);
+  box-shadow: 0 0 25px rgba(255,77,77,0.9);
+  animation: none;
+}
 @keyframes pulse-red{
   0%{ box-shadow:0 0 6px rgba(255,77,77,.35); }
   50%{ box-shadow:0 0 22px rgba(255,77,77,.75); }
@@ -1852,6 +1835,21 @@ body.modal-open {
 @media (max-width: 520px) {
   #solar-modal { padding: 6vh 16px; }
   #solar-modal .modal-content { padding: 14px 16px; }
+}
+/* Solar modal: environment strip */
+#solar-modal .solar-env{ margin-top:12px; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px; }
+#solar-modal .env-title{ font-weight:600; opacity:.9; margin-bottom:8px; }
+#solar-modal .env-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+#solar-modal .env-pill{
+  display:flex; align-items:center; justify-content:space-between;
+  background: rgba(255,255,255,.03); border:1px solid #3a3a5a; border-radius:8px; padding:8px 10px; font-size:13px;
+}
+#solar-modal .env-left{ display:flex; align-items:center; gap:8px; opacity:.9; }
+#solar-modal .env-pill strong{ letter-spacing:.2px; }
+
+/* Мобильная адаптация: 2 колонки */
+@media (max-width:520px){
+  #solar-modal .env-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 
 </style>
@@ -2513,10 +2511,42 @@ body.modal-open {
         </div>
         <div class="legend-row">
           <span class="legend-name"><i class="fas fa-arrow-up"></i> Upgrade array</span>
-          <span class="legend-cost">150 MVC + 60 🛠️</span>
+          <span class="legend-cost">150 MVC + 50 🛠️</span>
         </div>
       </div>
     </div>
+    <!-- Environment / mechanics info -->
+<div class="solar-env">
+  <div class="env-title">Environment</div>
+  <div class="env-grid">
+    <div class="env-pill">
+      <div class="env-left"><i class="fas fa-cloud-sun"></i><span>Weather</span></div>
+      <strong id="solar-env-weather">—</strong>
+    </div>
+    <div class="env-pill">
+      <div class="env-left"><i class="fas fa-sun"></i><span>Daylight</span></div>
+      <strong id="solar-env-daylight">—</strong>
+    </div>
+    <div class="env-pill">
+      <div class="env-left"><i class="fas fa-stopwatch"></i><span>Day length</span></div>
+      <strong id="solar-env-daylength">—</strong>
+    </div>
+
+    <div class="env-pill">
+      <div class="env-left"><i class="fas fa-percentage"></i><span>Eff. ×</span></div>
+      <strong id="solar-env-mul-eff">×1.00</strong>
+    </div>
+    <div class="env-pill">
+      <div class="env-left"><i class="fas fa-cloud"></i><span>Weather ×</span></div>
+      <strong id="solar-env-mul-weather">×1.00</strong>
+    </div>
+    <div class="env-pill">
+      <div class="env-left"><i class="fas fa-bolt"></i><span>Irradiance ×</span></div>
+      <strong id="solar-env-mul-irr">×1.00</strong>
+    </div>
+  </div>
+</div>
+
     <div class="modal-actions">
       <button class="btn" id="solar-btn-clean"><i class="fas fa-broom"></i> Clean panels</button>
       <button class="btn" id="solar-btn-repair"><i class="fas fa-tools"></i> Repair micro‑cracks</button>
@@ -3150,8 +3180,8 @@ body.modal-open {
                     scanInterval = null; // обнуляем ссылку
 
                     showNotification("Sector scanning complete!", true);
-                    updateResource('oxygen', -5);
-                    updateResource('bio', 1);
+                    updateResource('oxygen', -25);
+                    
                     clearInterval(scanInterval);
                     document.getElementById('harvest-btn').disabled = 
                 gameState.missions.harvestCount >= gameState.missions.maxHarvests;
@@ -3295,7 +3325,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
 
         // Экстренное питание
         document.getElementById('emergency-btn').addEventListener('click', function() {
-            if (updateResource('mvc', -80)) {
+            if (updateResource('mvc', -40)) {
                 updateResource('energy', 100);
                 showNotification("Emergency power activated! +100 ⚡", true);
             }
@@ -4384,110 +4414,275 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
 <script>
-// ===== Solar Panels mini-system (UI only, placeholder mechanics) =====
+// ===== Solar Panels mini-system (mechanics v2) =====
 (function(){
-  const STORAGE_KEY = 'mv_solar_state_v1';
-  const load = () => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; } catch(e){ return null; }
-  };
-  const save = (st) => localStorage.setItem(STORAGE_KEY, JSON.stringify(st));
+  const STORE = 'mv_solar_state_v2';
 
-  // default state
-  let S = load() || { eff: 87, cond: 92, batt: 60, cap: 120 }; // cap in ⚡/h at 100% eff
+  // --- helpers ---
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const now = () => Date.now();
 
-  function estOutput(){ return Math.round(S.cap * (S.eff/100)); }
+  // --- defaults / init ---
+  const GS = window.gameState = window.gameState || {};
+  GS.resources = GS.resources || { energy:0, mvc:0, parts:0, oxygen:0, bio:0 };
+  GS.solar = GS.solar || {};
 
-  // Card update
-  function updateSolarCard(){
+  // восстановление из localStorage
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch(e){}
+  const S = Object.assign(GS.solar, saved || {
+    // "физика"
+    cap: 120,                 // номинальная мощность при 100% (⚡/h)
+    condition: 92,            // техсостояние (0..100)
+    dirt: 8,                  // грязь (0..100) -> снижает эффективность
+    battery: 200,             // текущий заряд батареи (⚡)
+    batteryCap: 600,          // ёмкость батареи (⚡)
+    // апгрейды/флаги
+    upgrades: { tracker: false, droneClean: false },
+    // окружение
+    weather: 'clear',         // clear | cloudy | dust
+    lastWeatherChange: now(),
+    // тайминги/циклы
+    dayCycleSec: 120,         // длина «дня» (сек) — удобно для демо
+    _accum: 0,                // дробные ⚡ до округления
+    _lastTick: now()
+  });
+
+  // --- параметры баланса (подкручиваются под демо) ---
+  const WEATHER_MUL = { clear: 1.0, cloudy: 0.7, dust: 0.4 };
+  const DIRT_PENALTY = 0.005;       // -0.5% эффективности за 1 пункт грязи
+  const WEAR_RATE_PER_MIN = 0.03;   // износ в мин (%/мин)
+  const DIRT_RATE_PER_MIN = 0.20;   // накопление грязи в мин (%/мин)
+  const DRONE_CLEAN_PER_MIN = 0.15; // автоочистка дрона (%/мин)
+  const GRID_TARGET = 1200;         // целевой буфер ⚡ в общем ресурсе
+  const TICK_MS = 1000;             // шаг тика
+
+  // --- день/ночь: 0..1 ---
+  function irradiance(t){
+    // простая синусоида: 0 = ночь, 1 = полдень. Период = dayCycleSec.
+    const day = ( (t/1000) % S.dayCycleSec ) / S.dayCycleSec; // 0..1
+    const val = Math.max(0, Math.sin(Math.PI * (day)));       // 0..1 (ночь=0, полдень~1)
+    return val;
+  }
+
+  // --- эффективность модулей (0..1) ---
+  function efficiency(){
+    const cleanMul = 1 - clamp(S.dirt * DIRT_PENALTY, 0, 0.6);        // до -60%
+    const condMul  = clamp(S.condition/100, 0, 1);
+    const trackMul = S.upgrades.tracker ? 1.10 : 1.00;                // слежение за солнцем
+    return clamp(cleanMul * condMul * trackMul, 0, 1);
+  }
+
+  // --- смена погоды (редко, но влияет) ---
+  function maybeChangeWeather(){
+    const dt = now() - S.lastWeatherChange;
+    if (dt < 15000) return; // не чаще чем раз в 15с (для демо)
+    // небольшая вероятность смены
+    if (Math.random() < 0.08){
+      const roll = Math.random();
+      S.weather = roll < 0.65 ? 'clear' : roll < 0.9 ? 'cloudy' : 'dust';
+      S.lastWeatherChange = now();
+      if (typeof showNotification === 'function'){
+        const map = { clear:'Ясно', cloudy:'Облачно', dust:'Пылит' };
+        showNotification(`Погода: ${map[S.weather]}`, true);
+      }
+    }
+  }
+
+  // --- тик производства ---
+  function tick(){
+    const t = now();
+
+    // износ/грязь/авточистка — посекундно, но задано "в минуту"
+    S.condition = clamp(S.condition - (WEAR_RATE_PER_MIN/60), 0, 100);
+    S.dirt      = clamp(S.dirt + (DIRT_RATE_PER_MIN/60) - (S.upgrades.droneClean? DRONE_CLEAN_PER_MIN/60 : 0), 0, 100);
+
+    // выход ⚡/сек: cap (⚡/ч) -> ⚡/сек = cap / 3600
+    const basePerSec = S.cap / 3600;
+    const out = basePerSec
+              * efficiency()
+              * WEATHER_MUL[S.weather]
+              * irradiance(t);
+
+    // копим в аккумулятор внутренне (чтобы целые числа списывать реже)
+    S._accum += out;
+
+    // конвертим целую часть в батарею
+    const whole = Math.floor(S._accum);
+    if (whole > 0){
+      S._accum -= whole;
+      // сначала батарея
+      const toBattery = Math.min(whole, S.batteryCap - S.battery);
+      S.battery += toBattery;
+      let rest = whole - toBattery;
+
+      // если батарея полна — часть сразу в общий energy
+      if (rest > 0){
+        if (typeof updateResource === 'function') {
+          updateResource('energy', rest);
+        } else {
+          GS.resources.energy = (GS.resources.energy||0) + rest;
+        }
+      }
+    }
+
+    // автоподача в сеть из батареи, если общий energy ниже буфера
+    const need = Math.max(0, GRID_TARGET - (GS.resources.energy||0));
+    if (need > 0 && S.battery > 0){
+      const give = Math.min(need, S.battery);
+      S.battery -= give;
+      if (typeof updateResource === 'function') {
+        updateResource('energy', give);
+      } else {
+        GS.resources.energy = (GS.resources.energy||0) + give;
+      }
+    }
+
+    // смена погоды изредка
+    maybeChangeWeather();
+
+    // UI + persist
+    updateCard();
+    updateModal();
+    persist();
+  }
+
+  // --- UI ---
+  function updateCard(){
+    const eff = Math.round(efficiency()*100); // %
     const effEl = document.getElementById('solar-efficiency');
     const barEl = document.getElementById('solar-progress');
-    if (effEl) effEl.textContent = S.eff + '%';
-    if (barEl) barEl.style.width = S.eff + '%';
+    if (effEl) effEl.textContent = eff + '%';
+    if (barEl) barEl.style.width = eff + '%';
+  }
+  function updateModal(){
+    const effEl  = document.getElementById('solar-modal-eff');
+    const battEl = document.getElementById('solar-modal-batt');
+    const condEl = document.getElementById('solar-modal-cond');
+    const outEl  = document.getElementById('solar-modal-out');
+    const prgEl  = document.getElementById('solar-modal-progress');
+
+    const effPct = Math.round(efficiency()*100);
+    const outNow = Math.round(S.cap * (efficiency() * WEATHER_MUL[S.weather] * irradiance(now()))); // ⚡/ч оценка
+    const battPct= Math.round((S.battery / S.batteryCap) * 100);
+
+    effEl  && (effEl.textContent  = effPct + '%');
+    battEl && (battEl.textContent = clamp(battPct,0,100) + '%');
+    condEl && (condEl.textContent = Math.round(S.condition) + '%');
+    outEl  && (outEl.textContent  = outNow);
+    prgEl  && (prgEl.style.width  = effPct + '%');
   }
 
-  // Modal update
-  function updateSolarModal(){
-    const mEff = document.getElementById('solar-modal-eff');
-    const mBatt= document.getElementById('solar-modal-batt');
-    const mCond= document.getElementById('solar-modal-cond');
-    const mOut = document.getElementById('solar-modal-out');
-    const mBar = document.getElementById('solar-modal-progress');
-    if (mEff)  mEff.textContent  = S.eff + '%';
-    if (mBatt) mBatt.textContent = S.batt + '%';
-    if (mCond) mCond.textContent = S.cond + '%';
-    if (mOut)  mOut.textContent  = estOutput();
-    if (mBar)  mBar.style.width  = S.eff + '%';
+  // --- persist ---
+  function persist(){
+    try {
+      localStorage.setItem(STORE, JSON.stringify(S));
+      GS.solar = S; // чтобы можно было смотреть в debug
+    } catch(e){}
   }
 
-  // Open/close helpers (scoped for solar id)
-  function openModal(id){ document.getElementById(id)?.classList.add('active'); document.body.classList.add('modal-open'); }
-  function closeModal(id){ document.getElementById(id)?.classList.remove('active'); document.body.classList.remove('modal-open'); }
-
-  // Bind card open
-  document.addEventListener('DOMContentLoaded', function(){
-    const card = document.getElementById('solar-panels-card');
-    if (card){
-      card.addEventListener('click', function(){
-        updateSolarModal();
-        openModal('solar-modal');
-      });
-    }
-    // close buttons (delegated)
-    document.addEventListener('click', function(e){
-      const b = e.target.closest('[data-close="solar-modal"]');
-      if (b){ closeModal('solar-modal'); }
-    });
-
-    // Action: Clean
-    const cleanBtn = document.getElementById('solar-btn-clean');
-    if (cleanBtn) cleanBtn.addEventListener('click', function(){
-      const prev = S.eff;
-      S.eff = Math.min(100, S.eff + 8);
-      save(S);
-      updateSolarCard(); updateSolarModal();
+  // --- actions (кнопки в модалке) ---
+  function bindActions(){
+    // Clean: просто убираем грязь
+    document.getElementById('solar-btn-clean')?.addEventListener('click', () => {
+      const before = S.dirt;
+      S.dirt = clamp(S.dirt - 25, 0, 100); // прилично чистим
+      const deltaEff = Math.round((efficiency() - ((1 - clamp(before*DIRT_PENALTY,0,0.6)) * (S.condition/100) * (S.upgrades.tracker?1.1:1))) * 100);
       if (typeof showNotification === 'function'){
-        showNotification(`Panels cleaned (+${S.eff - prev}% efficiency)`, true);
+        showNotification(`Панели очищены (${Math.max(0, -deltaEff)}→ эффективность выросла)`, true);
       }
+      updateCard(); updateModal(); persist();
     });
 
-    // Action: Repair (costs 5 parts if available)
-    const repairBtn = document.getElementById('solar-btn-repair');
-    if (repairBtn) repairBtn.addEventListener('click', function(){
+    // Repair: -5 🛠️, +10% состояние
+    document.getElementById('solar-btn-repair')?.addEventListener('click', () => {
       try{
         if (typeof updateResource === 'function' && !updateResource('parts', -5)) return;
-      }catch(e){ /* ignore if no economy tie-in */ }
-      S.cond = Math.min(100, S.cond + 6);
-      S.eff  = Math.min(100, S.eff + 3);
-      save(S);
-      updateSolarCard(); updateSolarModal();
+      } catch(e){}
+      S.condition = clamp(S.condition + 10, 0, 100);
       if (typeof showNotification === 'function'){
-        showNotification('Micro-cracks repaired (−5 🛠️, +3% eff, +6% condition)', true);
+        showNotification('Микротрещины устранены (−5 🛠️, +10% состояния)', true);
       }
+      updateCard(); updateModal(); persist();
     });
 
-    // Action: Upgrade (costs 150 MVC & 10 parts)
-    const upgBtn = document.getElementById('solar-btn-upgrade');
-    if (upgBtn) upgBtn.addEventListener('click', function(){
+    // Upgrade: −150 MVC, −10 🛠️, +30 ⚡/h и открываем трекер (первый апгрейд)
+    document.getElementById('solar-btn-upgrade')?.addEventListener('click', () => {
       try{
         if (typeof updateResource === 'function'){
           if (!updateResource('mvc', -150)) return;
           if (!updateResource('parts', -10)) { updateResource('mvc', +150); return; }
         }
-      }catch(e){ /* ignore */ }
-      S.cap += 30; // +30 ⚡/h capacity
-      S.eff = Math.min(100, S.eff + 2);
-      save(S);
-      updateSolarCard(); updateSolarModal();
+      } catch(e){}
+      S.cap += 30;
+      if (!S.upgrades.tracker) S.upgrades.tracker = true; // первый апгрейд дарит трекер
       if (typeof showNotification === 'function'){
-        showNotification('Array upgraded (+30 ⚡/h, −150 MVC, −10 🛠️)', true);
+        showNotification('Массив улучшен (+30 ⚡/ч, трекер включён, −150 MVC, −10 🛠️)', true);
+      }
+      updateCard(); updateModal(); persist();
+    });
+  }
+
+  // --- open/close solar modal (используем вашу .modal) ---
+  function bindOpen(){
+    const card = document.getElementById('solar-panels-card');
+    const modal = document.getElementById('solar-modal');
+    if (!card || !modal) return false;
+    card.addEventListener('click', () => {
+      updateModal();
+      modal.classList.add('active');
+      document.body.classList.add('modal-open');
+    });
+    document.addEventListener('click', (e)=>{
+      if (e.target.closest('[data-close="solar-modal"]')){
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
       }
     });
+    return true;
+  }
 
-    // initial render
-    updateSolarCard();
-  });
+  // --- boot ---
+  function boot(){
+    bindActions();
+    bindOpen();
+    updateCard(); updateModal(); persist();
+    // единый таймер для солнечной системы
+    setInterval(tick, TICK_MS);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once:true });
+  } else {
+    boot();
+  }
 })();
 </script>
+<script>
+(function(){
+  function updateSolarEnvOnly(){
+    const setText = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
+    const modal = document.getElementById('solar-modal');
+    if (!modal || !modal.classList.contains('active')) return; // обновляем только когда окно открыто
 
+    // Берём S из вашей механики (или из gameState.solar)
+    const S = (window.gameState && window.gameState.solar) || window.S || {};
+    const weatherMap = { clear:'Ясно', cloudy:'Облачно', dust:'Пыль' };
+
+    const irr   = (typeof irradiance==='function') ? irradiance(Date.now()) : 0;
+    const eff   = (typeof efficiency==='function') ? efficiency() : 1;
+    const wMul  = (typeof WEATHER_MUL!=='undefined' && WEATHER_MUL[S.weather]) ? WEATHER_MUL[S.weather] : 1;
+
+    setText('#solar-env-weather', weatherMap[S.weather || 'clear'] || (S.weather || '—'));
+    setText('#solar-env-daylight', irr > 0 ? (Math.round(irr*100) + '%') : 'Ночь');
+    setText('#solar-env-daylength', (S.dayCycleSec || 120) + ' s');
+
+    setText('#solar-env-mul-eff',      '×' + eff.toFixed(2));
+    setText('#solar-env-mul-weather',  '×' + wMul.toFixed(2));
+    setText('#solar-env-mul-irr',      '×' + irr.toFixed(2));
+  }
+  setInterval(updateSolarEnvOnly, 1000);
+})();
+</script>
 </body>
 </html>
