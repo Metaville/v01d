@@ -1798,7 +1798,63 @@ body.modal-open {
     font-size: 13px;
   }
 }
- </style>
+ 
+/* === Solar modal: Costs legend (scoped) === */
+.solar-costs-legend{
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin: 12px 0 0;
+  padding-top: 12px;
+}
+.solar-costs-legend .legend-title{
+  font-weight: 600;
+  opacity: .9;
+  margin-bottom: 8px;
+}
+.solar-costs-legend .legend-list{ display: grid; grid-template-columns: 1fr; gap: 6px; }
+.solar-costs-legend .legend-row{ display:flex; justify-content:space-between; align-items:center; font-size:13px; opacity:.9; }
+.solar-costs-legend .legend-name{ display:inline-flex; align-items:center; gap:8px; }
+.solar-costs-legend .legend-name i{ opacity:.85; }
+.solar-costs-legend .legend-cost{ opacity:.8; }
+
+/* Оверлей для модалки солнечных панелей — полностью непрозрачный */
+#solar-modal {
+  background: rgb(0, 0, 10); /* то же, что было, но без альфы */
+  /* при желании просто #000 */
+}
+
+/* 1) ВНЕШНИЕ отступы от краёв экрана (рамка вокруг модалки) */
+#solar-modal {
+  /* добавляет «воздух» вокруг карточки модалки внутри оверлея */
+  padding: clamp(16px, 3vh, 32px) clamp(12px, 2vw, 24px);
+  /* если хотите прижать чуть выше центра — раскомментируйте: */
+  /* align-items: flex-start; padding-top: 8vh; padding-bottom: 6vh; */
+}
+
+/* 2) ВНУТРЕННИЕ отступы самого окна */
+#solar-modal .modal-content {
+  padding: 16px 20px 14px;      /* сверху/сбоку/снизу */
+  border-radius: 12px;          /* на случай, если хотите унифицировать скругление */
+}
+
+/* 3) Межблочные отступы внутри модалки */
+#solar-modal .modal-header { margin-bottom: 12px; }
+#solar-modal .modal-body   { margin-bottom: 12px; }
+/* если в разметке есть инлайн-стиль у прогресса — переопределим его: */
+#solar-modal .progress-container { margin-top: 14px !important; }
+
+/* 4) Зазоры в сетке статусов и между кнопками */
+#solar-modal .status-grid { gap: 12px; }
+#solar-modal .modal-actions {
+  display: flex; flex-wrap: wrap; gap: 8px;   /* расстояние между кнопками */
+}
+
+/* 5) Адаптивные: на мобильном чуть больше «воздуха» по краям */
+@media (max-width: 520px) {
+  #solar-modal { padding: 6vh 16px; }
+  #solar-modal .modal-content { padding: 14px 16px; }
+}
+
+</style>
 
 </head>
 <body>
@@ -1935,15 +1991,7 @@ body.modal-open {
 <div class="screen" id="base-screen">
 <h2 class="section-title">Platform status</h2>
 <div class="status-grid">
-<div class="status-card">
-<div class="status-title">
-<i class="fas fa-solar-panel"></i> Solar panels
-                        </div>
-<div class="status-value">87%</div>
-<div class="progress-bar">
-<div class="progress-fill" style="width: 87%"></div>
-</div>
-</div>
+<div class="status-card" id="solar-panels-card"><div class="status-title"><i class="fas fa-solar-panel"></i> Solar panels <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span></div><div class="status-value" id="solar-efficiency">87%</div><div class="progress-bar"><div class="progress-fill" id="solar-progress" style="width: 87%"></div></div></div>
 <!-- AVATAR CARD (кликабельно) -->
 <div aria-label="Open profile" class="status-card red-glow" id="avatar-card" role="button">
 <div class="avatar-row">
@@ -2417,6 +2465,67 @@ body.modal-open {
 <div id="o2-miner-content"></div>
 </div>
 </div>
+
+<!-- Модальное окно Солнечные панели -->
+<div class="modal" id="solar-modal">
+  <div class="modal-content" style="max-width:520px">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-solar-panel"></i> Solar panels</h3>
+      <button class="close-modal" data-close="solar-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:#93a3b8;margin:0 0 12px">
+        Array of panels mounted on the V.01.D platform. Works best in clear conditions.
+      </p>
+      <div class="status-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="status-card">
+          <div class="status-title">Efficiency</div>
+          <div class="status-value" id="solar-modal-eff">87%</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">Battery</div>
+          <div class="status-value" id="solar-modal-batt">60%</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">Array condition</div>
+          <div class="status-value" id="solar-modal-cond">92%</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">Output (est.)</div>
+          <div class="status-value"><span id="solar-modal-out">72</span> ⚡/h</div>
+        </div>
+      </div>
+      <div class="progress-container" style="margin-top:14px">
+        <div class="progress-bar"><div class="progress-fill" id="solar-modal-progress" style="width:87%"></div></div>
+      </div>
+    </div>
+    <!-- Costs legend (added, non-breaking) -->
+    <div class="solar-costs-legend">
+      <div class="legend-title">Costs</div>
+      <div class="legend-list">
+        <div class="legend-row">
+          <span class="legend-name"><i class="fas fa-broom"></i> Clean panels</span>
+          <span class="legend-cost">10 MVC • 0 🛠️</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-name"><i class="fas fa-tools"></i> Repair micro‑cracks</span>
+          <span class="legend-cost">15 🛠️</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-name"><i class="fas fa-arrow-up"></i> Upgrade array</span>
+          <span class="legend-cost">150 MVC + 60 🛠️</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="solar-btn-clean"><i class="fas fa-broom"></i> Clean panels</button>
+      <button class="btn" id="solar-btn-repair"><i class="fas fa-tools"></i> Repair micro‑cracks</button>
+      <button class="btn btn-primary" id="solar-btn-upgrade"><i class="fas fa-arrow-up"></i> Upgrade array</button>
+      <button class="btn ghost" data-close="solar-modal">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Модальное окно сканирования -->
 <div class="modal" id="scan-modal">
   <div class="modal-content">
@@ -4271,6 +4380,113 @@ document.addEventListener('DOMContentLoaded', function(){
     if (s){ s.addEventListener('click', function(){ t.classList.remove('active'); }); }
   }catch(e){ console.error(e); }
 });
+</script>
+
+
+<script>
+// ===== Solar Panels mini-system (UI only, placeholder mechanics) =====
+(function(){
+  const STORAGE_KEY = 'mv_solar_state_v1';
+  const load = () => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; } catch(e){ return null; }
+  };
+  const save = (st) => localStorage.setItem(STORAGE_KEY, JSON.stringify(st));
+
+  // default state
+  let S = load() || { eff: 87, cond: 92, batt: 60, cap: 120 }; // cap in ⚡/h at 100% eff
+
+  function estOutput(){ return Math.round(S.cap * (S.eff/100)); }
+
+  // Card update
+  function updateSolarCard(){
+    const effEl = document.getElementById('solar-efficiency');
+    const barEl = document.getElementById('solar-progress');
+    if (effEl) effEl.textContent = S.eff + '%';
+    if (barEl) barEl.style.width = S.eff + '%';
+  }
+
+  // Modal update
+  function updateSolarModal(){
+    const mEff = document.getElementById('solar-modal-eff');
+    const mBatt= document.getElementById('solar-modal-batt');
+    const mCond= document.getElementById('solar-modal-cond');
+    const mOut = document.getElementById('solar-modal-out');
+    const mBar = document.getElementById('solar-modal-progress');
+    if (mEff)  mEff.textContent  = S.eff + '%';
+    if (mBatt) mBatt.textContent = S.batt + '%';
+    if (mCond) mCond.textContent = S.cond + '%';
+    if (mOut)  mOut.textContent  = estOutput();
+    if (mBar)  mBar.style.width  = S.eff + '%';
+  }
+
+  // Open/close helpers (scoped for solar id)
+  function openModal(id){ document.getElementById(id)?.classList.add('active'); document.body.classList.add('modal-open'); }
+  function closeModal(id){ document.getElementById(id)?.classList.remove('active'); document.body.classList.remove('modal-open'); }
+
+  // Bind card open
+  document.addEventListener('DOMContentLoaded', function(){
+    const card = document.getElementById('solar-panels-card');
+    if (card){
+      card.addEventListener('click', function(){
+        updateSolarModal();
+        openModal('solar-modal');
+      });
+    }
+    // close buttons (delegated)
+    document.addEventListener('click', function(e){
+      const b = e.target.closest('[data-close="solar-modal"]');
+      if (b){ closeModal('solar-modal'); }
+    });
+
+    // Action: Clean
+    const cleanBtn = document.getElementById('solar-btn-clean');
+    if (cleanBtn) cleanBtn.addEventListener('click', function(){
+      const prev = S.eff;
+      S.eff = Math.min(100, S.eff + 8);
+      save(S);
+      updateSolarCard(); updateSolarModal();
+      if (typeof showNotification === 'function'){
+        showNotification(`Panels cleaned (+${S.eff - prev}% efficiency)`, true);
+      }
+    });
+
+    // Action: Repair (costs 5 parts if available)
+    const repairBtn = document.getElementById('solar-btn-repair');
+    if (repairBtn) repairBtn.addEventListener('click', function(){
+      try{
+        if (typeof updateResource === 'function' && !updateResource('parts', -5)) return;
+      }catch(e){ /* ignore if no economy tie-in */ }
+      S.cond = Math.min(100, S.cond + 6);
+      S.eff  = Math.min(100, S.eff + 3);
+      save(S);
+      updateSolarCard(); updateSolarModal();
+      if (typeof showNotification === 'function'){
+        showNotification('Micro-cracks repaired (−5 🛠️, +3% eff, +6% condition)', true);
+      }
+    });
+
+    // Action: Upgrade (costs 150 MVC & 10 parts)
+    const upgBtn = document.getElementById('solar-btn-upgrade');
+    if (upgBtn) upgBtn.addEventListener('click', function(){
+      try{
+        if (typeof updateResource === 'function'){
+          if (!updateResource('mvc', -150)) return;
+          if (!updateResource('parts', -10)) { updateResource('mvc', +150); return; }
+        }
+      }catch(e){ /* ignore */ }
+      S.cap += 30; // +30 ⚡/h capacity
+      S.eff = Math.min(100, S.eff + 2);
+      save(S);
+      updateSolarCard(); updateSolarModal();
+      if (typeof showNotification === 'function'){
+        showNotification('Array upgraded (+30 ⚡/h, −150 MVC, −10 🛠️)', true);
+      }
+    });
+
+    // initial render
+    updateSolarCard();
+  });
+})();
 </script>
 
 </body>
