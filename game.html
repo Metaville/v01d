@@ -3808,34 +3808,35 @@ function initO2Miner() {
   }
 
   // Заполняем HTML нового майнера
-  wrap.innerHTML = `
-    <div class="o2m-new-container">
+  
+wrap.innerHTML = `
+    <div class="o2m-new-container" aria-label="Майнинг кислорода">
       <div class="o2m-new-top">
-        <div class="o2m-new-ring">
+        <div class="o2m-new-ring" title="Производство O₂ в час">
           <div class="o2m-new-sweep"></div>
           <div class="o2m-new-center">
-            <span>Производство</span>
+            <span>Производство в час</span>
             <b id="o2m-rate"></b>
-            <span>O₂ / час</span>
+            <span>O₂ / ч</span>
           </div>
         </div>
         <div class="o2m-new-metrics">
-          <div class="o2m-new-card">
+          <div class="o2m-new-card" title="Сколько энергии тратится каждый час">
             <h4>Энергопотребление</h4>
-            <div id="o2m-energy" class="value">–0 ⚡</div>
+            <div id="o2m-energy" class="value">–0 ⚡/ч</div>
             <div class="hint">за час</div>
           </div>
-          <div class="o2m-new-card">
+          <div class="o2m-new-card" title="Текущий запас льда в единицах">
             <h4>Запас льда</h4>
-            <div id="o2m-ice" class="value">0</div>
-            <div class="hint">единиц</div>
+            <div id="o2m-ice" class="value">0 ед.</div>
+            <div class="hint">для непр. работы</div>
           </div>
-          <div class="o2m-new-card">
-            <h4>Мод производительности</h4>
+          <div class="o2m-new-card" title="Коэффициент производительности (бусты)">
+            <h4>Мод производитель</h4>
             <div id="o2m-mod" class="value">×1.00</div>
             <div class="hint">без бустов</div>
           </div>
-          <div class="o2m-new-card">
+          <div class="o2m-new-card" title="Текущее состояние системы майнинга O₂">
             <h4>Состояние</h4>
             <div id="o2m-state" class="value lime">OK</div>
             <div id="o2m-state-hint" class="hint">активно</div>
@@ -3843,10 +3844,12 @@ function initO2Miner() {
         </div>
       </div>
       <div class="o2m-new-actions">
-        <button id="o2m-new-close" class="btn ghost">Close miner</button>
+        <button id="o2m-claim" class="btn primary">Забрать O₂</button>
+        <button id="o2m-new-close" class="btn ghost">Закрыть</button>
       </div>
     </div>
   `;
+
 
   // Ссылки на элементы
   const rateEl  = document.getElementById('o2m-rate');
@@ -3857,7 +3860,23 @@ function initO2Miner() {
   const stateHint = document.getElementById('o2m-state-hint');
   const closeBtn = document.getElementById('o2m-new-close');
 
-  // Значения коэффициентов (должны совпадать с теми, что используются в updateO2Generation)
+  
+  const claimBtn = document.getElementById('o2m-claim');
+
+  // Простейшая логика «Забрать O₂»: выдаём накопленное целое значение, если есть
+  claimBtn?.addEventListener('click', () => {
+    const buf = Math.floor(gameState.o2Generation.buffer || 0);
+    if (buf > 0) {
+      gameState.resources.oxygen += buf;
+      gameState.o2Generation.buffer -= buf;
+      showNotification(`Получено ${buf} O₂`, true, 4000);
+      updateMinerUI();
+      updateUI?.();
+    } else {
+      showNotification('Нет накопленного O₂ для забора', false, 3000);
+    }
+  });
+// Значения коэффициентов (должны совпадать с теми, что используются в updateO2Generation)
   const ICE_PER_O2 = 0.2;
   const ENERGY_PER_O2 = 2;
 
