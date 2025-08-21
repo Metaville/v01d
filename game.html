@@ -1853,6 +1853,14 @@ body.modal-open {
 }
 #solar-modal .modal-content { max-height: 85vh; overflow-y: auto; }
 
+/* ===== Секция улучшений солнечных панелей ===== */
+.upgrade-section{ margin-top:20px; padding-top:15px; border-top:1px solid #2a2a4a; }
+.upgrade-info-card{ background:rgba(20,25,40,.7); border-radius:10px; padding:15px; border:1px solid #3a3a5a; }
+.upgrade-level{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-weight:500; }
+.level-badge{ background:linear-gradient(135deg,#00cc99,#009973); color:#001a14; padding:4px 10px; border-radius:12px; font-weight:600; font-size:14px; }
+.upgrade-bonuses{ display:grid; grid-template-columns:1fr; gap:8px; }
+.bonus-item{ display:flex; align-items:center; gap:8px; font-size:14px; color:#a0a0d0; }
+
 </style>
 
 </head>
@@ -1990,7 +1998,14 @@ body.modal-open {
 <div class="screen" id="base-screen">
 <h2 class="section-title">Platform status</h2>
 <div class="status-grid">
-<div class="status-card" id="solar-panels-card"><div class="status-title"><i class="fas fa-solar-panel"></i> Solar panels <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span></div><div class="status-value" id="solar-efficiency">87%</div><div class="progress-bar"><div class="progress-fill" id="solar-progress" style="width: 87%"></div></div></div>
+<div class="status-card" id="solar-panels-card">
+<div class="status-title">
+<i class="fas fa-solar-panel"></i> Solar panels 
+<span class="click-indicator"><i class="fas fa-hand-pointer"></i>
+</span>
+</div>
+<div class="status-value" id="solar-efficiency">87%</div>
+<div class="progress-bar"><div class="progress-fill" id="solar-progress" style="width: 87%"></div></div></div>
 <!-- AVATAR CARD (кликабельно) -->
 <div aria-label="Open profile" class="status-card red-glow" id="avatar-card" role="button">
 <div class="avatar-row">
@@ -2498,6 +2513,32 @@ body.modal-open {
         <div class="progress-bar"><div class="progress-fill" id="solar-modal-progress" style="width:87%"></div></div>
       </div>
       <div id="solar-debug-info"></div>
+      <!-- Секция улучшений -->
+<div class="upgrade-section">
+  <h4 class="section-title" style="margin-top: 20px;">
+    <i class="fas fa-chart-line"></i> Улучшения массива
+  </h4>
+  <div class="upgrade-info-card">
+    <div class="upgrade-level">
+      <span>Текущий уровень:</span>
+      <span class="level-badge" id="solar-upgrade-level">1</span>
+    </div>
+    <div class="upgrade-bonuses">
+      <div class="bonus-item">
+        <i class="fas fa-sun" style="color:#ffcc00;"></i>
+        <span>Эффективность: +<span id="solar-efficiency-bonus">0</span>%</span>
+      </div>
+      <div class="bonus-item">
+        <i class="fas fa-bolt" style="color:#00ffcc;"></i>
+        <span>Мощность: +<span id="solar-capacity-bonus">0</span> ⚡/ч</span>
+      </div>
+      <div class="bonus-item">
+        <i class="fas fa-shield-alt" style="color:#cc66ff;"></i>
+        <span>Износостойкость: +<span id="solar-durability-bonus">0</span>%</span>
+      </div>
+    </div>
+  </div>
+</div>
     </div>
         <!-- Environment / mechanics info -->
 <div class="solar-env">
@@ -4443,7 +4484,16 @@ document.addEventListener('DOMContentLoaded', function(){
     battery: 200,             // текущий заряд батареи (⚡)
     batteryCap: 600,          // ёмкость батареи (⚡)
     // апгрейды/флаги
-    upgrades: { tracker: false, droneClean: false },
+    upgrades: {
+  tracker: false,
+  droneClean: false,
+  level: 1,
+  efficiency: 0,
+  capacity: 0,
+  durability: 0,
+  nextCostMVC: 150,
+  nextCostParts: 10
+},
     // окружение
     weather: 'clear',         // clear | cloudy | dust
     lastWeatherChange: now(),
@@ -4461,7 +4511,13 @@ const DIRT_RATE_PER_MIN = 0.20;   // накопление грязи в мин (
 const DRONE_CLEAN_PER_MIN = 0.15; // автоочистка дрона (%/мин)
 const GRID_TARGET = 400;          // Целевой буфер снижен с 1200 до 400
 const TICK_MS = 1000;             // шаг тика
-
+// --- Параметры улучшений ---
+const UPGRADE_BONUSES = {
+  efficiency: 5,       // +5% эффективности за уровень
+  capacity: 15,        // +15 ⚡/ч за уровень
+  durability: 3,       // +3% износостойкости за уровень
+  costMultiplier: 1.5  // множитель стоимости на уровень
+};
   // --- день/ночь: 0..1 ---
   function irradiance(t){
     // простая синусоида: 0 = ночь, 1 = полдень. Период = dayCycleSec.
@@ -4471,12 +4527,14 @@ const TICK_MS = 1000;             // шаг тика
   }
 
   // --- эффективность модулей (0..1) ---
-  function efficiency(){
-    const cleanMul = 1 - clamp(S.dirt * DIRT_PENALTY, 0, 0.6);        // до -60%
-    const condMul  = clamp(S.condition/100, 0, 1);
-    const trackMul = S.upgrades.tracker ? 1.10 : 1.00;                // слежение за солнцем
-    return clamp(cleanMul * condMul * trackMul, 0, 1);
-  }
+ function efficiency(){
+  const cleanMul = 1 - clamp(S.dirt * DIRT_PENALTY, 0, 0.6);
+  const condMul  = clamp(S.condition/100, 0, 1);
+  const trackMul = S.upgrades.tracker ? 1.10 : 1.00;
+  const upgradeMul = 1 + ((S.upgrades && S.upgrades.efficiency) ? S.upgrades.efficiency : 0) / 100;
+  return clamp(cleanMul * condMul * trackMul * upgradeMul, 0, 1);
+}
+
 
   // --- смена погоды (редко, но влияет) ---
   function maybeChangeWeather(){
@@ -4493,17 +4551,47 @@ const TICK_MS = 1000;             // шаг тика
       }
     }
   }
+// --- Функции улучшений ---
+function updateUpgradeDisplay() {
+  const lvlEl = document.getElementById('solar-upgrade-level');
+  const effEl = document.getElementById('solar-efficiency-bonus');
+  const capEl = document.getElementById('solar-capacity-bonus');
+  const durEl = document.getElementById('solar-durability-bonus');
+  if (lvlEl) lvlEl.textContent = S.upgrades.level;
+  if (effEl) effEl.textContent = S.upgrades.efficiency;
+  if (capEl) capEl.textContent = S.upgrades.capacity;
+  if (durEl) durEl.textContent = S.upgrades.durability;
+
+  const upgradeBtn = document.getElementById('solar-btn-upgrade');
+  if (upgradeBtn) {
+    upgradeBtn.innerHTML = `<i class="fas fa-arrow-up"></i> Улучшить (${S.upgrades.nextCostMVC} MVC, ${S.upgrades.nextCostParts} 🛠️)`;
+  }
+}
+
+function applyUpgradeBonuses() {
+  const lvl = S.upgrades.level || 1;
+  S.upgrades.efficiency = UPGRADE_BONUSES.efficiency * (lvl - 1);
+  S.upgrades.capacity   = UPGRADE_BONUSES.capacity   * (lvl - 1);
+  S.upgrades.durability = UPGRADE_BONUSES.durability * (lvl - 1);
+
+  S.upgrades.nextCostMVC   = Math.floor(150 * Math.pow(UPGRADE_BONUSES.costMultiplier, lvl - 1));
+  S.upgrades.nextCostParts = Math.floor(10  * Math.pow(UPGRADE_BONUSES.costMultiplier, lvl - 1));
+
+  updateUpgradeDisplay();
+}
 
 // --- тик производства ---
 function tick(){
     const t = now();
 
     // износ/грязь/авточистка — посекундно, но задано "в минуту"
-    S.condition = clamp(S.condition - (WEAR_RATE_PER_MIN/60), 0, 100);
+    const wearRate = WEAR_RATE_PER_MIN * (1 - ((S.upgrades && S.upgrades.durability) || 0)/100);
+S.condition = clamp(S.condition - (wearRate/60), 0, 100);
     S.dirt      = clamp(S.dirt + (DIRT_RATE_PER_MIN/60) - (S.upgrades.droneClean? DRONE_CLEAN_PER_MIN/60 : 0), 0, 100);
 
     // выход ⚡/сек: cap (⚡/ч) -> ⚡/сек = cap / 3600
-    const basePerSec = S.cap / 3600;
+    const totalCapacity = S.cap + ((S.upgrades && S.upgrades.capacity) || 0);
+const basePerSec = totalCapacity / 3600;
     const out = basePerSec
               * efficiency()
               * WEATHER_MUL[S.weather]
@@ -4572,9 +4660,14 @@ function tick(){
     const condEl = document.getElementById('solar-modal-cond');
     const outEl  = document.getElementById('solar-modal-out');
     const prgEl  = document.getElementById('solar-modal-progress');
+        // Добавляем бонусы улучшений к отображаемым значениям
+    const totalCapacity = S.cap + S.upgrades.capacity;
+    const totalEfficiency = Math.round(efficiency() * 100);
 
     const effPct = Math.round(efficiency()*100);
-    const outNow = Math.round(S.cap * (efficiency() * WEATHER_MUL[S.weather] * irradiance(now()))); // ⚡/ч оценка
+    const totalCapacity = S.cap + ((S.upgrades && S.upgrades.capacity) || 0);
+const outNow = Math.round(totalCapacity * (efficiency() * WEATHER_MUL[S.weather] * irradiance(now())));
+
     const battPct= Math.round((S.battery / S.batteryCap) * 100);
 
     //  отладочная информация
@@ -4588,6 +4681,9 @@ function tick(){
             </div>
         `;
     }
+     // Обновляем отображение с учетом бонусов
+    outEl && (outEl.textContent = Math.round(totalCapacity * (efficiency() * WEATHER_MUL[S.weather] * irradiance(now()))));
+    
 
 
     effEl  && (effEl.textContent  = effPct + '%');
@@ -4595,6 +4691,8 @@ function tick(){
     condEl && (condEl.textContent = Math.round(S.condition) + '%');
     outEl  && (outEl.textContent  = outNow);
     prgEl  && (prgEl.style.width  = effPct + '%');
+        // Обновляем отображение улучшений
+    updateUpgradeDisplay();
   }
   
   // --- Environment update ---
@@ -4619,14 +4717,27 @@ function tick(){
     setText('#solar-env-mul-irr', '×' + irr.toFixed(2));
   }
 
-  // --- persist ---
-  function persist(){
+ // --- Модифицированная функция сохранения ---
+function persist(){
     try {
-      localStorage.setItem(STORE, JSON.stringify(S));
-      GS.solar = S; // чтобы можно было смотреть в debug
-    } catch(e){}
-  }
-
+        localStorage.setItem(STORE, JSON.stringify({
+            cap: S.cap,
+            condition: S.condition,
+            dirt: S.dirt,
+            battery: S.battery,
+            batteryCap: S.batteryCap,
+            upgrades: S.upgrades, // Сохраняем улучшения
+            weather: S.weather,
+            lastWeatherChange: S.lastWeatherChange,
+            dayCycleSec: S.dayCycleSec,
+            _accum: S._accum,
+            _lastTick: S._lastTick
+        }));
+        GS.solar = S;
+    } catch(e){
+        console.error("Ошибка при сохранении:", e);
+    }
+}
   // --- actions (кнопки в модалке) ---
   function bindActions(){
     // Clean: просто убираем грязь
@@ -4653,23 +4764,54 @@ function tick(){
     });
 
     // Upgrade: −150 MVC, −10 🛠️, +30 ⚡/h и открываем трекер (первый апгрейд)
-    document.getElementById('solar-btn-upgrade')?.addEventListener('click', () => {
-      try{
-        if (typeof updateResource === 'function'){
-          if (!updateResource('mvc', -150)) return;
-          if (!updateResource('parts', -10)) { updateResource('mvc', +150); return; }
+    // --- Модифицированная функция улучшения ---
+// --- Модифицированная функция улучшения ---
+document.getElementById('solar-btn-upgrade')?.addEventListener('click', () => {
+    try {
+        // Проверяем достаточно ли ресурсов
+        if (typeof updateResource === 'function') {
+            if (!updateResource('mvc', -S.upgrades.nextCostMVC)) {
+                showNotification("Недостаточно MVC для улучшения!", false);
+                return;
+            }
+            if (!updateResource('parts', -S.upgrades.nextCostParts)) {
+                updateResource('mvc', S.upgrades.nextCostMVC); // Возвращаем MVC
+                showNotification("Недостаточно запчастей для улучшения!", false);
+                return;
+            }
         }
-      } catch(e){}
-      S.cap += 30;
-      if (!S.upgrades.tracker) S.upgrades.tracker = true; // первый апгрейд дарит трекер
-      if (typeof showNotification === 'function'){
-        showNotification('Массив улучшен (+30 ⚡/ч, трекер включён, −150 MVC, −10 🛠️)', true);
-      }
-      updateCard(); updateModal(); updateSolarEnv(); persist();
-    });
-  }
+    } catch(e) {
+        console.error("Ошибка при улучшении:", e);
+        return;
+    }
+    
+    // Увеличиваем уровень улучшений
+    S.upgrades.level += 1;
+    
+    // Увеличиваем базовую мощность
+    S.cap += 30;
+    
+    // Применяем бонусы улучшений
+    applyUpgradeBonuses();
+    
+    // Если это первый апгрейд, включаем трекер
+    if (!S.upgrades.tracker) {
+        S.upgrades.tracker = true;
+        showNotification("Трекер солнца активирован! +10% к эффективности", true);
+    }
+    
+    if (typeof showNotification === 'function') {
+        showNotification(`Массив улучшен до уровня ${S.upgrades.level}! (+30 ⚡/ч базовая мощность, +${UPGRADE_BONUSES.efficiency}% эффективности, +${UPGRADE_BONUSES.capacity} ⚡/ч мощности, +${UPGRADE_BONUSES.durability}% износостойкости)`, true);
+    }
+    
+    updateCard(); 
+    updateModal(); 
+    updateSolarEnv(); 
+    persist();
+});
 
-  // --- open/close solar modal (используем вашу .modal) ---
+
+  // --- open/close solar modal  ---
   function bindOpen(){
     const card = document.getElementById('solar-panels-card');
     if (!card || !modal) return false;
@@ -4692,18 +4834,21 @@ function tick(){
   function boot(){
     bindActions();
     bindOpen();
-    updateCard(); updateModal(); persist();
-    // единый таймер для солнечной системы
+    applyUpgradeBonuses(); // Инициализируем улучшения
+    updateCard(); 
+    updateModal(); 
+    persist();
     setInterval(tick, TICK_MS);
-  }
-
+}
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot, { once:true });
   } else {
     boot();
   }
-})();
+}();
+});
 </script>
+
 <script>
 (function(){
   function updateSolarEnvOnly(){
