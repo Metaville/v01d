@@ -2836,7 +2836,13 @@ body.modal-open {
                 energy: 500,
                 mvc: 500,
                 bio: 100,
-                parts: 100
+                parts: 100,
+                /**
+                 * Запас льда используется майнером кислорода как сырьё. Этот ресурс
+                 * не отображается в общем счётчике, но хранится в состоянии. Для
+                 * начала задаём небольшой стартовый запас.
+                 */
+                ice: 120
             },
 
             player: {
@@ -2855,7 +2861,17 @@ body.modal-open {
             o2Generation: {
                 rate: 5,
                 progress: 0,
-                maxRate: 100
+                maxRate: 100,
+                /**
+                 * Аккумуляторы для дробного производства O₂. Эти поля
+                 * позволяют накапливать дробные части кислорода, льда и
+                 * энергии между тиками, чтобы постепенно расходовать
+                 * ресурсы и выдавать целые единицы O₂. Инициализируются
+                 * нулём при запуске.
+                 */
+                o2Accum: 0,
+                iceAccum: 0,
+                energyAccum: 0
             },
             missions: {
                 scanning: false,
@@ -2941,7 +2957,11 @@ body.modal-open {
                 energy: "энергии",
                 mvc: "MVC",
                 bio: "биоматериалов",
-                parts: "запчастей"
+                parts: "запчастей",
+                /**
+                 * Название для льда. Используется в уведомлениях и подсказках.
+                 */
+                ice: "льда"
             };
             return names[resource] || resource;
         }
@@ -3048,12 +3068,14 @@ body.modal-open {
             gameState.resources[resource] += amount;
             updateUI();
             
-            // Анимация изменения
+            // Анимация изменения (только для ресурсов, которые отображаются в интерфейсе).
             const element = document.getElementById(`${resource}-resource`);
-            element.classList.add('changed');
-            setTimeout(() => {
-                element.classList.remove('changed');
-            }, 1000);
+            if (element) {
+                element.classList.add('changed');
+                setTimeout(() => {
+                    element.classList.remove('changed');
+                }, 1000);
+            }
             
             return true;
         }
@@ -3144,7 +3166,9 @@ document.getElementById('confirm-scan').addEventListener('click', function() {
     gameState.missions.harvested = false; // Добавлено
     gameState.missions.harvestCount = 0; // Добавлено
             // Генерация случайных ресурсов
-            const resourceTypes = ['bio', 'parts', 'mvc',];
+            // Возможные ресурсы для скана. Добавили "ice" как сырьё для
+            // генератора кислорода.
+            const resourceTypes = ['bio', 'parts', 'mvc', 'ice'];
             const randomResource = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
             const amount = Math.floor(Math.random() * 30) + 10;
             
@@ -3236,7 +3260,8 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
         bio: "Biomaterials 🧪",
         parts: "Parts 🛠️",
         mvc: "MVC",
-        oxygen: "Oxygen O₂"
+        oxygen: "Oxygen O₂",
+        ice: "Ice ❄️"
     };
     
     // Форматируем стоимость с иконками
@@ -3689,15 +3714,63 @@ document.addEventListener('DOMContentLoaded', ()=>{
         }, 10000);
 
         // Генерация кислорода
+        /**
+         * Новая логика генерации O₂. Производство идёт непрерывно
+         * пропорционально скорости (ед./час) и требует расходования
+         * льда и энергии. Лёд расходуется по коэффициенту ICE_PER_O2,
+         * энергия — ENERGY_PER_O2 за каждую произведённую единицу O₂.
+         * Дробные части накопленных ресурсов хранятся в о2Generation.o2Accum,
+         * o2Generation.iceAccum и o2Generation.energyAccum.
+         * Производство происходит только если достаточно ресурсов на
+         * минимальный расход (ICE_PER_O2 и ENERGY_PER_O2); иначе тик
+         * пропускается.
+         */
         function updateO2Generation() {
-            if (gameState.o2Generation.rate > 0) {
-                gameState.o2Generation.progress += 2;
-                
-                if (gameState.o2Generation.progress >= 100) {
-                    gameState.o2Generation.progress = 0;
-                    gameState.resources.oxygen += Math.floor(gameState.o2Generation.rate / 10);
-                    updateUI();
+            const rate = gameState.o2Generation.rate;
+            if (!rate || rate <= 0) return;
+            // Константы расхода: сколько льда и энергии требуется на одну единицу кислорода.
+            const ICE_PER_O2 = 0.2;
+            const ENERGY_PER_O2 = 2;
+            // Производство в этот тик (единиц O₂/сек) — делим годовой расход на 3600
+            const produced = rate / 3600;
+            // Проверим, хватает ли сырья на текущий тик
+            const minIce = ICE_PER_O2 * produced;
+            const minEnergy = ENERGY_PER_O2 * produced;
+            if (gameState.resources.ice < minIce || gameState.resources.energy < minEnergy) {
+                // нет достаточного сырья — просто выходим (производство остановлено)
+                return;
+            }
+            // Накопим дробные значения
+            gameState.o2Generation.o2Accum += produced;
+            gameState.o2Generation.iceAccum += ICE_PER_O2 * produced;
+            gameState.o2Generation.energyAccum += ENERGY_PER_O2 * produced;
+            // Если накопилось минимум 1 — списываем целые части ресурсов
+            const iceToSpend = Math.floor(gameState.o2Generation.iceAccum);
+            if (iceToSpend > 0) {
+                if (!updateResource('ice', -iceToSpend)) {
+                    // если не удалось списать (недостаточно) — обнуляем накопление и выходим
+                    gameState.o2Generation.iceAccum = 0;
+                    gameState.o2Generation.o2Accum = 0;
+                    gameState.o2Generation.energyAccum = 0;
+                    return;
                 }
+                gameState.o2Generation.iceAccum -= iceToSpend;
+            }
+            const energyToSpend = Math.floor(gameState.o2Generation.energyAccum);
+            if (energyToSpend > 0) {
+                if (!updateResource('energy', -energyToSpend)) {
+                    gameState.o2Generation.iceAccum = 0;
+                    gameState.o2Generation.o2Accum = 0;
+                    gameState.o2Generation.energyAccum = 0;
+                    return;
+                }
+                gameState.o2Generation.energyAccum -= energyToSpend;
+            }
+            // Производим кислород из накопления
+            const o2ToProduce = Math.floor(gameState.o2Generation.o2Accum);
+            if (o2ToProduce > 0) {
+                updateResource('oxygen', o2ToProduce);
+                gameState.o2Generation.o2Accum -= o2ToProduce;
             }
         }
         
@@ -3707,182 +3780,132 @@ function initO2Miner() {
   const wrap = document.getElementById('o2-miner-content');
   if (!wrap) return;
 
+  // Подключаем стили для нового майнера только один раз
+  if (!document.getElementById('o2m-new-style')) {
+    const style = document.createElement('style');
+    style.id = 'o2m-new-style';
+    style.textContent = `
+      /* Новый интерфейс O₂ майнера */
+      .o2m-new-container{display:flex;flex-direction:column;align-items:center;padding:20px;gap:12px;max-width:480px;margin:0 auto;}
+      .o2m-new-top{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;width:100%;}
+      .o2m-new-ring{width:180px;height:180px;position:relative;border-radius:50%;border:6px solid #193250;box-shadow:0 0 40px #00f3ff22 inset;}
+      .o2m-new-sweep{position:absolute;inset:-6px;border-radius:50%;border:6px solid transparent;border-top-color:#00f3ff;filter:drop-shadow(0 0 8px #00f3ff);animation:o2spin 6s linear infinite;}
+      @keyframes o2spin{to{transform:rotate(360deg);}}
+      .o2m-new-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#eaf6ff;text-align:center;pointer-events:none;}
+      .o2m-new-center b{font-size:32px;margin-bottom:4px;color:#00ffcc;}
+      .o2m-new-center span{font-size:12px;letter-spacing:1px;color:#88a7c9;text-transform:uppercase;}
+      .o2m-new-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;flex:1;width:240px;}
+      .o2m-new-card{background:linear-gradient(180deg,#0d172c,#0b1324);border:1px solid #22395d;border-radius:12px;padding:12px;box-shadow:0 0 12px #00f3ff20;}
+      .o2m-new-card h4{margin:0 0 6px;font-size:12px;color:#a0c4ed;letter-spacing:.6px;text-transform:uppercase;}
+      .o2m-new-card .value{font-size:22px;font-weight:700;color:#00ffcc;}
+      .o2m-new-card .value.warn{color:#ffc857;}
+      .o2m-new-card .value.danger{color:#ff5277;}
+      .o2m-new-card .value.lime{color:#00ff99;}
+      .o2m-new-card .hint{font-size:10px;color:#88a0c7;margin-top:4px;}
+      .o2m-new-actions{display:flex;justify-content:center;margin-top:10px;}
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Заполняем HTML нового майнера
   wrap.innerHTML = `
-    <div class="o2m">
-      <div class="o2m-head">
-        <div class="o2m-title">
-          <i class="fas fa-wind"></i>
-          <span>O₂ Miner</span>
-          <small class="o2m-sub">Sector 7G</small>
-        </div>
-        <span id="o2m-status" class="o2m-badge o2m-badge--ok">Extraction active</span>
-      </div>
-
-      <div class="o2m-card">
-        <div class="o2m-toprow">
-          <div class="o2m-topcol">
-            <div class="o2m-label">Cycle progress</div>
-            <div class="o2m-progress">
-              <div id="o2m-progress-fill" class="o2m-progress__fill"></div>
-            </div>
-            <div class="o2m-progress-meta">
-              <span>Start</span>
-              <strong id="o2m-progress-percent">0%</strong>
-              <span>Claim</span>
-            </div>
-          </div>
-
-          <div class="o2m-topcol o2m-compact">
-            <div class="o2m-timer">
-              <span class="o2m-label">Next claim</span>
-              <div class="o2m-timer-box">
-                <i class="far fa-clock"></i>
-                <strong id="o2m-timer">04:00:00</strong>
-              </div>
-            </div>
-            <div class="o2m-yield">
-              <span class="o2m-label">Current yield</span>
-              <div class="o2m-yield-box">
-                <strong id="o2m-yield">0.00 O₂</strong>
-              </div>
-              <small class="o2m-muted">per cycle</small>
-            </div>
+    <div class="o2m-new-container">
+      <div class="o2m-new-top">
+        <div class="o2m-new-ring">
+          <div class="o2m-new-sweep"></div>
+          <div class="o2m-new-center">
+            <span>Производство</span>
+            <b id="o2m-rate"></b>
+            <span>O₂ / час</span>
           </div>
         </div>
-
-        <div class="o2m-grid">
-          <div class="o2m-stat">
-            <span class="o2m-stat__label">Active miners</span>
-            <span id="o2m-active-miners" class="o2m-stat__value">1,427</span>
+        <div class="o2m-new-metrics">
+          <div class="o2m-new-card">
+            <h4>Энергопотребление</h4>
+            <div id="o2m-energy" class="value">–0 ⚡</div>
+            <div class="hint">за час</div>
           </div>
-          <div class="o2m-stat">
-            <span class="o2m-stat__label">Your share</span>
-            <span id="o2m-your-share" class="o2m-stat__value">2.7%</span>
+          <div class="o2m-new-card">
+            <h4>Запас льда</h4>
+            <div id="o2m-ice" class="value">0</div>
+            <div class="hint">единиц</div>
           </div>
-          <div class="o2m-stat">
-            <span class="o2m-stat__label">Cycle length</span>
-            <span id="o2m-next-claim" class="o2m-stat__value">04:00:00</span>
+          <div class="o2m-new-card">
+            <h4>Мод производительности</h4>
+            <div id="o2m-mod" class="value">×1.00</div>
+            <div class="hint">без бустов</div>
+          </div>
+          <div class="o2m-new-card">
+            <h4>Состояние</h4>
+            <div id="o2m-state" class="value lime">OK</div>
+            <div id="o2m-state-hint" class="hint">активно</div>
           </div>
         </div>
       </div>
-
-      <div class="o2m-foot">
-        <div class="o2m-hint">
-          <i class="fas fa-info-circle"></i>
-          Yield scales with <b>O₂ generation rate</b> and network activity.
-        </div>
-        <div class="o2m-actions">
-          <button id="o2m-close" class="btn ghost">Close miner</button>
-          <button id="o2m-claim" class="btn primary" disabled>Claim</button>
-        </div>
+      <div class="o2m-new-actions">
+        <button id="o2m-new-close" class="btn ghost">Close miner</button>
       </div>
     </div>
   `;
 
-  // ====== Состояние и утилиты
-  const cycleSecs = 4 * 60 * 60; // 4 часа
-  let timeLeft    = cycleSecs;
-  let activeMiners = 1427;
+  // Ссылки на элементы
+  const rateEl  = document.getElementById('o2m-rate');
+  const energyEl = document.getElementById('o2m-energy');
+  const iceEl  = document.getElementById('o2m-ice');
+  const modEl  = document.getElementById('o2m-mod');
+  const stateEl = document.getElementById('o2m-state');
+  const stateHint = document.getElementById('o2m-state-hint');
+  const closeBtn = document.getElementById('o2m-new-close');
 
-  const $ = id => document.getElementById(id);
-  const statusEl = $('o2m-status');
-  const fillEl   = $('o2m-progress-fill');
-  const percEl   = $('o2m-progress-percent');
-  const timerEl  = $('o2m-timer');
-  const nextEl   = $('o2m-next-claim');
-  const minersEl = $('o2m-active-miners');
-  const shareEl  = $('o2m-your-share');
-  const yieldEl  = $('o2m-yield');
-  const claimBtn = $('o2m-claim');
-  const closeBtn = $('o2m-close');
+  // Значения коэффициентов (должны совпадать с теми, что используются в updateO2Generation)
+  const ICE_PER_O2 = 0.2;
+  const ENERGY_PER_O2 = 2;
 
-  function fmt(sec){
-    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  }
-
-  function setClaimReady(ready){
-    claimBtn.disabled = !ready;
-    claimBtn.classList.toggle('is-ready', ready);
-    statusEl.textContent = ready ? 'Ready to claim' : 'Extraction active';
-    statusEl.classList.toggle('o2m-badge--ok', !ready);
-    statusEl.classList.toggle('o2m-badge--green', ready);
-  }
-
-  // ====== Рендер цикла
-  function updateMinerData() {
-    // если уже готовы к клейму — не тикаем дальше, просто держим 100%
-    if (timeLeft > 0) timeLeft--;
-
-    // «живая» динамика числа майнеров
-    const delta = Math.floor(Math.random() * 21) - 10;
-    activeMiners = Math.max(1000, activeMiners + delta);
-
-    const progress = ((cycleSecs - Math.max(timeLeft,0)) / cycleSecs) * 100;
-    const yourShare = (1 / activeMiners * 100).toFixed(2);
-    const yieldNow = (gameState?.o2Generation?.rate ? gameState.o2Generation.rate : 0) / 10;
-
-    // UI
-    fillEl.style.width = `${Math.min(progress, 100)}%`;
-    percEl.textContent = `${Math.round(Math.min(progress,100))}%`;
-    timerEl.textContent = fmt(Math.max(timeLeft,0));
-    nextEl.textContent  = fmt(Math.max(timeLeft,0));
-    minersEl.textContent = activeMiners.toLocaleString();
-    shareEl.textContent  = `${yourShare}%`;
-    yieldEl.textContent  = `${yieldNow.toFixed(2)} O₂`;
-
-    // готовность к клейму
-
-
-    if (timeLeft <= 0) {
-      timeLeft = 0;          // зафиксировать ноль
-      setClaimReady(true);   // включить кнопку, подсветить статус
+  function updateMinerUI() {
+    const rate = gameState.o2Generation.rate || 0;
+    // Производство (ед./час)
+    rateEl.textContent = `+${rate.toFixed(1)}`;
+    // Энергопотребление за час
+    const energyCons = rate * ENERGY_PER_O2;
+    energyEl.textContent = `−${energyCons.toFixed(1)} ⚡`;
+    // Запас льда (целые единицы)
+    iceEl.textContent = Math.floor(gameState.resources.ice).toLocaleString();
+    // Пока мод производительности фиксирован
+    modEl.textContent = '×1.00';
+    // Состояние: проверяем ресурсы
+    let state = 'OK';
+    let hint = 'активно';
+    stateEl.classList.remove('warn','danger','lime');
+    if (gameState.resources.ice <= 0.01) {
+      state = 'Нет льда';
+      hint = 'пополните лёд';
+      stateEl.classList.add('danger');
+    } else if (gameState.resources.energy <= 0.01) {
+      state = 'Нет энергии';
+      hint = 'нужна энергия';
+      stateEl.classList.add('warn');
     } else {
-      setClaimReady(false);
+      stateEl.classList.add('lime');
     }
+    stateEl.textContent = state;
+    stateHint.textContent = hint;
   }
 
-  // ====== Обработчики
-  claimBtn.addEventListener('click', () => {
-    if (claimBtn.disabled) return;
+  // Первый рендер и интервал обновления UI
+  updateMinerUI();
+  clearInterval(minerInterval);
+  minerInterval = setInterval(updateMinerUI, 1000);
 
-    // награда: можно под свою формулу; берём текущий yieldNow:
-    const reward = +( (gameState?.o2Generation?.rate || 0) / 10 ).toFixed(2);
-
-    if (typeof updateResource === 'function') {
-      updateResource('oxygen', reward);
-    } else if (window.gameState?.resources) {
-      // запасной путь, если у тебя ресурсы в gameState.resources
-      gameState.resources.oxygen = (gameState.resources.oxygen || 0) + reward;
-    }
-
-    if (typeof showNotification === 'function') {
-      showNotification(`Claimed ${reward} O₂`, true);
-    } else {
-      console.log('Claimed O₂', reward);
-    }
-
-    // сброс цикла
-    timeLeft = cycleSecs;
-    setClaimReady(false);
-    updateMinerData();
-  });
-
+  // Обработчик закрытия майнера
   closeBtn.addEventListener('click', () => {
     clearInterval(minerInterval);
     if (typeof closeModalById === 'function') {
       closeModalById('o2-miner-modal');
     } else {
-      // запасной вариант закрытия
       const m = document.getElementById('o2-miner-modal');
-      if (m) { m.classList.remove('active'); m.style.visibility='hidden'; m.style.opacity='0'; }
+      if (m) m.classList.remove('active');
     }
   });
-
-  // первичный рендер + запуск интервала
-  updateMinerData();
-  clearInterval(minerInterval);
-  minerInterval = setInterval(updateMinerData, 1000);
 }
 
         
