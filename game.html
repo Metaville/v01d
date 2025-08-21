@@ -9,6 +9,70 @@
 <title>METAVILLE: V.01.D / Genesis Platform</title>
 <!-- TON Connect UI Kit -->
 <script defer="" src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
+<!-- Модальное окно для подключения модулей -->
+    <div class="modal" id="modules-modal" aria-hidden="true">
+      <div class="modal-content" style="max-width: 640px;">
+        <div class="modal-header">
+          <h3 class="modal-title"><i class="fas fa-sitemap"></i> Station Modules</h3>
+          <button class="close-modal" data-close="modules-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="modules-legend" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <span class="sr-badge good">Installed</span>
+            <span class="sr-badge info">Available</span>
+            <span class="sr-badge warn">Locked</span>
+          </div>
+          <!-- Ветка развития (простая вертикальная) -->
+          <div class="module-tree">
+            <div class="module-node installed" data-id="core">
+              <div class="node-head"><strong>Core</strong> <small>base system</small></div>
+              <div class="node-desc">Main control unit (pre‑installed)</div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="power">
+              <div class="node-head"><strong>Power Unit</strong></div>
+              <div class="node-desc">Provides basic power distribution</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="power">Connect</button>
+              </div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="o2">
+              <div class="node-head"><strong>O₂ Plant</strong></div>
+              <div class="node-desc">Requires: Power Unit</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="o2">Connect</button>
+              </div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="scanner">
+              <div class="node-head"><strong>Scanner Mk.I</strong></div>
+              <div class="node-desc">Requires: Power Unit</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="scanner">Connect</button>
+              </div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="stealth">
+              <div class="node-head"><strong>Stealth Suite</strong></div>
+              <div class="node-desc">Requires: Scanner Mk.I</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="stealth">Connect</button>
+              </div>
+            </div>
+          </div>
+          <div class="sr-sep"></div>
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;">
+            <div>Free slots: <strong id="modules-slots">-</strong></div>
+            <div class="hint" style="font-size:12px;color:#93a3b8;">Each module uses 1 slot</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn ghost" data-close="modules-modal">Close</button>
+        </div>
+      </div>
+    </div>
+
 <script>
   window.addEventListener('DOMContentLoaded', () => {
     if (window.TonConnectUI) {
@@ -1102,6 +1166,91 @@
   border-radius: 12px;
 }
 
+/* Подсветка для карточки «Модули» */
+.highlight-modules {
+  box-shadow: 0 0 14px rgba(204, 102, 255, 0.5);
+  border: 1px solid rgba(204, 102, 255, 0.8);
+  border-radius: 12px;
+}
+
+/* Ветка развития модулей внутри модального окна */
+#modules-modal .module-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#modules-modal .module-branch {
+  height: 14px;
+  margin-left: 12px;
+  border-left: 2px dashed #2a3358;
+}
+
+#modules-modal .module-node {
+  border: 1px solid #2a3358;
+  background: rgba(22, 28, 55, 0.55);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+#modules-modal .module-node.installed {
+  border-color: #0b8a6f;
+  background: rgba(11, 138, 111, 0.16);
+}
+
+#modules-modal .module-node.locked {
+  opacity: 0.7;
+}
+
+#modules-modal .node-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e9ecff;
+}
+
+#modules-modal .node-desc {
+  color: #aab0ff;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+#modules-modal .node-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+#modules-modal .connect-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+
+/* Небольшие бейджи для легенды */
+#modules-modal .sr-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#modules-modal .sr-badge.good {
+  background: #0b8a6f;
+  color: #e6fff4;
+}
+
+#modules-modal .sr-badge.info {
+  background: #004c8f;
+  color: #e6f0ff;
+}
+
+#modules-modal .sr-badge.warn {
+  background: #663300;
+  color: #fff0e6;
+}
+
         /* Стилизация скроллбара */
         #o2-miner-content .container::-webkit-scrollbar {
             width: 6px;
@@ -2024,13 +2173,15 @@ body.modal-open {
 <div class="status-value"><span id="drones-value">0</span> drone</div>
 <div>Renovating</div>
 </div>
-<div class="status-card">
-<div class="status-title">
-<i class="fas fa-microchip"></i> Modules
-                        </div>
-<div class="status-value"><span id="slots-value">2</span> слота</div>
-<div>Free</div>
-</div>
+        <!-- Сделаем карточку «Модули» кликабельной и подсвеченной. -->
+        <div class="status-card clickable highlight-modules" id="modules-card">
+            <div class="status-title">
+                <i class="fas fa-microchip"></i> Modules
+                <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
+            </div>
+            <div class="status-value"><span id="slots-value">2</span> слота</div>
+            <div>Free</div>
+        </div>
 <div class="status-card clickable" id="rest-capsule-card">
 <div class="status-title">
 <i class="fas fa-bed"></i> Rest capsules
@@ -4780,5 +4931,101 @@ function tick(){
   setInterval(updateSolarEnvOnly, 1000);
 })();
 </script>
+    <script>
+    (function(){
+      // Глобальные константы для кислородной установки, если ещё не заданы
+      if (typeof window.ENERGY_PER_O2 === 'undefined') window.ENERGY_PER_O2 = 2;
+      if (typeof window.ICE_PER_O2    === 'undefined') window.ICE_PER_O2    = 0.2;
+
+      // Описание модулей и зависимостей
+      const modulesDef = {
+        core:    { name:'Core',         requires: [],         installed: true  },
+        power:   { name:'Power Unit',   requires: ['core'],   installed: false },
+        o2:      { name:'O₂ Plant',     requires: ['power'],  installed: false },
+        scanner: { name:'Scanner Mk.I', requires: ['power'],  installed: false },
+        stealth:{ name:'Stealth Suite',requires: ['scanner'], installed: false }
+      };
+
+      // Функция открытия модального окна
+      function openModulesModal(){
+        const modal = document.getElementById('modules-modal');
+        if (!modal) return;
+        // обновляем свободные слоты
+        const slotsEl = document.getElementById('modules-slots');
+        if (slotsEl) {
+          const slots = (typeof gameState !== 'undefined' && typeof gameState.slots !== 'undefined') ? gameState.slots : 0;
+          slotsEl.textContent = String(slots);
+        }
+        // обновляем состояние узлов
+        modal.querySelectorAll('.module-node').forEach(node => {
+          const id = node.dataset.id;
+          const mod = modulesDef[id];
+          if (!mod) return;
+          node.classList.toggle('installed', !!mod.installed);
+          const unlocked = mod.requires.every(r => modulesDef[r] && modulesDef[r].installed);
+          node.classList.toggle('locked', !mod.installed && !unlocked);
+          const btn = node.querySelector('.connect-btn');
+          if (btn) {
+            const can = !mod.installed && unlocked && (typeof gameState !== 'undefined' ? (gameState.slots > 0) : true);
+            btn.disabled = !can;
+          }
+        });
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+      }
+
+      document.addEventListener('DOMContentLoaded', function(){
+        // Клик по карточке «Модули»
+        const card = document.getElementById('modules-card');
+        if (card) {
+          card.addEventListener('click', openModulesModal);
+        }
+        // Закрытие модалки
+        document.querySelectorAll('[data-close="modules-modal"]').forEach(btn => {
+          btn.addEventListener('click', function(){
+            const modal = document.getElementById('modules-modal');
+            if (modal) modal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+          });
+        });
+        // Подключение модулей
+        const modulesModal = document.getElementById('modules-modal');
+        if (modulesModal) {
+          modulesModal.addEventListener('click', function(e){
+            const btn = e.target.closest('.connect-btn');
+            if (!btn) return;
+            const id = btn.dataset.module;
+            const mod = modulesDef[id];
+            if (!mod) return;
+            // Проверяем зависимости
+            const unlocked = mod.requires.every(r => modulesDef[r] && modulesDef[r].installed);
+            if (!unlocked) {
+              if (typeof showNotification === 'function') showNotification('Requirements not met', false);
+              return;
+            }
+            // Проверяем свободные слоты
+            if (typeof gameState !== 'undefined' && typeof gameState.slots !== 'undefined' && gameState.slots <= 0) {
+              if (typeof showNotification === 'function') showNotification('No free slots', false);
+              return;
+            }
+            // Подключаем модуль
+            mod.installed = true;
+            if (typeof gameState !== 'undefined' && typeof gameState.slots !== 'undefined') {
+              gameState.slots -= 1;
+            }
+            if (typeof showNotification === 'function') {
+              showNotification('Module connected: ' + mod.name, true);
+            }
+            if (typeof updateUI === 'function') {
+              updateUI();
+            }
+            // Перерисовываем модалку
+            openModulesModal();
+          });
+        }
+      });
+    })();
+    </script>
+
 </body>
 </html>
