@@ -2003,6 +2003,45 @@ body.modal-open {
 #solar-modal .modal-content { max-height: 85vh; overflow-y: auto; }
 
 </style>
+<!-- Drone UI styles -->
+<style>
+/* Drone UI (custom styles) */
+.drone-card{background:#0f0f1a;border:1px solid #2a2a4a;border-radius:12px;padding:12px;margin:10px 0;}
+.drone-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.drone-info{display:flex;flex-direction:column;gap:6px}
+.drone-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-size:14px;color:#a0a0d0}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.badges .badge{border:1px solid #2a2a4a;border-radius:999px;padding:4px 8px;font-size:12px;background:#141a2b}
+.drone-visual{display:flex;flex-direction:column;gap:8px;min-width:180px}
+.state-pill{display:inline-block;padding:6px 10px;border-radius:8px;border:1px solid #2b2f45;background:#181c2f}
+.plain-damage .state{font-size:12px;margin:2px 0;opacity:.75}
+.plain-damage .state-ok{color:#9ae6b4}.plain-damage .state-mid{color:#f6e05e}.plain-damage .state-hard{color:#fc8181}
+.damage-zones{display:grid;grid-template-columns:1fr;gap:12px;margin-top:8px}
+.zone-title{font-weight:700;margin-bottom:6px;color:#a9b8d3}
+.zone-bar{height:10px;background:#1b2140;border:1px solid #2a2a4a;border-radius:999px;overflow:hidden}
+.bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#ff6b6b,#ffa94d)}
+.zone-actions{display:flex;align-items:center;gap:8px;margin-top:6px}
+.btn.xs{padding:6px 8px;font-size:12px}
+.hint{color:#93a3b8;font-size:12px;margin-top:8px}
+.drone-actions{display:flex;flex-wrap:wrap;gap:8px}
+.log-title{font-weight:700;margin-bottom:6px}
+.log-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.log-list li{font-size:13px;color:#a0a7c0;border-left:2px solid #2a2a4a;padding-left:8px}
+.upgrade-row{display:grid;grid-template-columns:1fr auto auto auto auto;gap:10px;align-items:center;border:1px solid #2a2a4a;padding:8px;border-radius:8px;margin-bottom:8px;background:#0f1424}
+.upgrade-row .u-title{font-weight:700}
+.upgrade-row .u-desc{font-size:12px;color:#93a3b8}
+.upgrade-row .u-cost{font-size:12px;color:#ffd37a}
+.upgrade-row .u-inv{font-size:12px;color:#6bcf99}
+.shop-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid #2a2a4a;padding:10px;border-radius:10px;margin-bottom:10px;background:#0f1424}
+.shop-row .s-title{font-weight:800}
+.shop-row .s-spec{font-size:12px;color:#93a3b8}
+.shop-row .s-cost{font-size:12px;color:#ffd37a;justify-self:end;margin-right:8px}
+@media (max-width:520px){
+  .drone-row{flex-direction:column;align-items:flex-start}
+  .drone-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .upgrade-row{grid-template-columns:1fr auto;gap:6px}
+}
+</style>
 
 </head>
 <body>
@@ -2560,6 +2599,153 @@ body.modal-open {
 </div>
 </div>
 <!-- Нижнее меню навигации -->
+<!-- Экран Дрона и связанные модальные окна -->
+<div class="screen" id="mehanics-screen">
+  <h2 class="section-title"><i class="fas fa-robot"></i> Дрон</h2>
+  <!-- Информация -->
+  <div class="drone-card">
+    <div class="drone-row">
+      <div class="drone-info">
+        <div class="drone-model">Модель: <strong id="drone-model">Scout Mk.I</strong></div>
+        <div class="drone-stats">
+          <div>HP: <strong id="drone-hp">100/100</strong></div>
+          <div>Прочность корпуса: <strong id="drone-armor">—</strong></div>
+          <div>Уровень сигнала: <strong id="drone-signal">—</strong></div>
+        </div>
+        <div class="drone-mods">
+          Активные слоты: <span id="drone-slots">2</span><br/>
+          <div id="drone-mod-badges" class="badges"></div>
+        </div>
+      </div>
+      <div class="drone-visual">
+        <div id="drone-state-pill" class="state-pill">Состояние: Норма</div>
+        <!-- Обычная версия визуального состояния -->
+        <div id="drone-plain-damage" class="plain-damage">
+          <div class="state state-ok">0–29% • В порядке</div>
+          <div class="state state-mid">30–59% • Повреждён</div>
+          <div class="state state-hard">60%+ • Тяжёлые повреждения</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Расширенная версия повреждений -->
+  <div class="drone-card">
+    <div class="drone-row" style="align-items:flex-start;gap:14px;">
+      <label class="toggle">
+        <input type="checkbox" id="drone-advanced-toggle" checked>
+        <span>Интерактивные повреждения (корпус/сенсор/антенна)</span>
+      </label>
+    </div>
+    <div id="drone-advanced" class="damage-zones">
+      <div class="zone" data-zone="hull">
+        <div class="zone-title"><i class="fas fa-shield-alt"></i> Корпус</div>
+        <div class="zone-bar"><div class="bar-fill" id="zone-hull"></div></div>
+        <div class="zone-actions">
+          <button class="btn xs repair-zone" data-zone="hull">+ Починка 10% (5 🛠️)</button>
+          <span class="zone-val" id="zone-hull-val">0%</span>
+        </div>
+      </div>
+      <div class="zone" data-zone="sensor">
+        <div class="zone-title"><i class="fas fa-bullseye"></i> Сенсор</div>
+        <div class="zone-bar"><div class="bar-fill" id="zone-sensor"></div></div>
+        <div class="zone-actions">
+          <button class="btn xs repair-zone" data-zone="sensor">+ Починка 10% (5 🛠️)</button>
+          <span class="zone-val" id="zone-sensor-val">0%</span>
+        </div>
+      </div>
+      <div class="zone" data-zone="antenna">
+        <div class="zone-title"><i class="fas fa-broadcast-tower"></i> Антенна</div>
+        <div class="zone-bar"><div class="bar-fill" id="zone-antenna"></div></div>
+        <div class="zone-actions">
+          <button class="btn xs repair-zone" data-zone="antenna">+ Починка 10% (5 🛠️)</button>
+          <span class="zone-val" id="zone-antenna-val">0%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Интерфейс управления -->
+  <div class="drone-card">
+    <div class="drone-actions">
+      <button class="btn" id="drone-repair"><i class="fas fa-tools"></i> Ремонт (10 🛠️ → +20 HP)</button>
+      <button class="btn" id="drone-upgrade"><i class="fas fa-arrow-up"></i> Улучшить (модули)</button>
+      <button class="btn" id="drone-shop"><i class="fas fa-store"></i> Магазин</button>
+      <button class="btn btn-primary" id="drone-scan"><i class="fas fa-satellite"></i> Сканировать</button>
+    </div>
+    <div class="hint">Если повреждения ≥ 70% — сканирование недоступно (сначала починка).</div>
+  </div>
+  <!-- Лента событий -->
+  <div class="drone-card">
+    <div class="log-title">Лента событий</div>
+    <ul id="drone-log" class="log-list"></ul>
+  </div>
+</div>
+
+<!-- Модальное окно апгрейдов дрона -->
+<div class="modal" id="drone-upgrades-modal">
+  <div class="modal-content" style="max-width:520px">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-microchip"></i> Модули дрона</h3>
+      <button class="close-modal" data-close="drone-upgrades-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="upgrade-row">
+        <div class="u-title">Щит</div>
+        <div class="u-desc">Снижает риск урона, +20 к защите</div>
+        <div class="u-cost">100 MVC + 20 🛠️</div>
+        <span class="u-inv" id="inv-shield">0 в инвентаре</span>
+        <button class="btn xs u-btn" data-mod="shield">Установить</button>
+      </div>
+      <div class="upgrade-row">
+        <div class="u-title">Расширенный сенсор</div>
+        <div class="u-desc">↑ шанс успеха, +15 к сигналу</div>
+        <div class="u-cost">80 MVC + 10 🛠️</div>
+        <span class="u-inv" id="inv-sensor">0 в инвентаре</span>
+        <button class="btn xs u-btn" data-mod="sensor">Установить</button>
+      </div>
+      <div class="hint">Доступно слотов: <strong id="drone-free-slots">2</strong></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" data-close="drone-upgrades-modal">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- Магазин дронов -->
+<div class="modal" id="drone-shop-modal">
+  <div class="modal-content" style="max-width:640px">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-store"></i> Магазин дронов</h3>
+      <button class="close-modal" data-close="drone-shop-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="shop-row" data-model="Rover Mk.II" data-cost-mvc="320" data-cost-parts="60"
+           data-hp="130" data-armor="20" data-signal="55" data-slots="2">
+        <div class="s-title">Rover Mk.II</div>
+        <div class="s-spec">HP 130 • Броня 20 • Сигнал 55 • Слотов 2</div>
+        <div class="s-cost">320 MVC + 60 🛠️</div>
+        <button class="btn xs buy-model">Купить</button>
+      </div>
+      <div class="shop-row" data-model="Surveyor S3" data-cost-mvc="500" data-cost-parts="120"
+           data-hp="150" data-armor="15" data-signal="75" data-slots="3">
+        <div class="s-title">Surveyor S3</div>
+        <div class="s-spec">HP 150 • Броня 15 • Сигнал 75 • Слотов 3</div>
+        <div class="s-cost">500 MVC + 120 🛠️</div>
+        <button class="btn xs buy-model">Купить</button>
+      </div>
+      <div class="shop-row" data-model="Bulwark B1" data-cost-mvc="650" data-cost-parts="150"
+           data-hp="180" data-armor="35" data-signal="45" data-slots="2">
+        <div class="s-title">Bulwark B1</div>
+        <div class="s-spec">HP 180 • Броня 35 • Сигнал 45 • Слотов 2</div>
+        <div class="s-cost">650 MVC + 150 🛠️</div>
+        <button class="btn xs buy-model">Купить</button>
+      </div>
+      <div class="hint">При покупке новая модель ставится сразу. Установленные модули снимаются и возвращаются в инвентарь.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" data-close="drone-shop-modal">Закрыть</button>
+    </div>
+  </div>
+</div>
 <div class="nav-menu">
 <div class="nav-item active" data-screen="map-screen">
 <i class="fas fa-globe-americas"></i>
@@ -2584,6 +2770,10 @@ body.modal-open {
 <div class="nav-item" data-screen="quest-screen">
 <i class="fas fa-tasks"></i>
 <span>QUESTS</span>
+</div>
+<div class="nav-item" data-screen="mehanics-screen">
+<i class="fas fa-robot"></i>
+<span>DRONES</span>
 </div>
 <div id="wallet-container">
 <button class="btn btn-warning" id="connect-wallet">
@@ -3748,6 +3938,32 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   // === Квест "Awakening": открытие из меню, логика сцен ===
 (function(){
+  // Relocate drone screen and modals into correct containers on startup. This avoids
+  // issues if the markup was inserted outside of .main-content when the page was built.
+  try {
+    const mechScreen = document.getElementById('mehanics-screen');
+    const mainContent = document.querySelector('.main-content');
+    if (mechScreen && mainContent && !mainContent.contains(mechScreen)) {
+      // Insert the mechanics screen at the beginning of main-content so it appears near the top
+      // rather than after all other content.
+      if (mainContent.firstChild) {
+        mainContent.insertBefore(mechScreen, mainContent.firstChild);
+      } else {
+        mainContent.appendChild(mechScreen);
+      }
+    }
+    // Always append modal containers to the body to prevent nesting issues
+    const upgradesModalEl = document.getElementById('drone-upgrades-modal');
+    const shopModalEl = document.getElementById('drone-shop-modal');
+    if (upgradesModalEl && upgradesModalEl.parentElement !== document.body) {
+      document.body.appendChild(upgradesModalEl);
+    }
+    if (shopModalEl && shopModalEl.parentElement !== document.body) {
+      document.body.appendChild(shopModalEl);
+    }
+  } catch (e) {
+    console.error('Error relocating drone elements', e);
+  }
   // Кнопка "Accept" в карточке квеста (data-quest="awakening")
   const acceptBtn = document.querySelector('[data-quest="awakening"]');
   const modal = document.getElementById('quest-awake-modal');
@@ -5027,5 +5243,356 @@ function tick(){
     })();
     </script>
 
+<!-- Drone mechanics script -->
+<script>
+(function(){
+  const DRONE_STORE = 'mv_drone_v1';
+  const DEFAULT = {
+    model: 'Scout Mk.I',
+    hp: 100, maxHp: 100,
+    baseArmor: 10,
+    baseSignal: 50,
+    slots: 2,
+    modules: [],
+    inventory: { shield: 0, sensor: 0 },
+    zones: { hull: 0, sensor: 0, antenna: 0 },
+    log: []
+  };
+  function load(){
+    try{
+      const data = JSON.parse(localStorage.getItem(DRONE_STORE)||'{}');
+      return Object.assign({}, DEFAULT, data, {
+        inventory: Object.assign({}, DEFAULT.inventory, data.inventory||{}),
+        zones: Object.assign({}, DEFAULT.zones, data.zones||{}),
+        modules: Array.isArray(data.modules) ? data.modules.slice() : []
+      });
+    }catch(e){
+      return JSON.parse(JSON.stringify(DEFAULT));
+    }
+  }
+  function save(){ localStorage.setItem(DRONE_STORE, JSON.stringify(state)); }
+  let state = load();
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const avgDamage = s => (s.zones.hull + s.zones.sensor + s.zones.antenna) / 3;
+  const isBroken = s => avgDamage(s) >= 70;
+  const has = m => state.modules.includes(m);
+  function armor(){ return state.baseArmor + (has('shield')?20:0); }
+  function signal(){ return state.baseSignal + (has('sensor')?15:0); }
+  function updateInvUI(){
+    const invShield = document.getElementById('inv-shield');
+    const invSensor = document.getElementById('inv-sensor');
+    if (invShield) invShield.textContent = `${state.inventory.shield||0} в инвентаре`;
+    if (invSensor) invSensor.textContent = `${state.inventory.sensor||0} в инвентаре`;
+  }
+  function pushLog(msg){
+    state.log.unshift(new Date().toLocaleTimeString() + ' — ' + msg);
+    state.log = state.log.slice(0,5);
+  }
+  const refs = {
+    model: $('#drone-model'),
+    hp: $('#drone-hp'),
+    armor: $('#drone-armor'),
+    signal: $('#drone-signal'),
+    slots: $('#drone-slots'),
+    badges: $('#drone-mod-badges'),
+    pill: $('#drone-state-pill'),
+    plain: $('#drone-plain-damage'),
+    advWrap: $('#drone-advanced'),
+    log: $('#drone-log'),
+    z: {
+      hull: $('#zone-hull'),
+      sensor: $('#zone-sensor'),
+      antenna: $('#zone-antenna'),
+      hullVal: $('#zone-hull-val'),
+      sensorVal: $('#zone-sensor-val'),
+      antennaVal: $('#zone-antenna-val')
+    },
+    freeSlots: $('#drone-free-slots')
+  };
+  function render(){
+    if (!refs.model) return;
+    refs.model.textContent = state.model;
+    refs.hp.textContent = `${state.hp}/${state.maxHp}`;
+    refs.armor.textContent = armor();
+    refs.signal.textContent = signal();
+    refs.slots.textContent = state.slots;
+    if (refs.freeSlots) refs.freeSlots.textContent = state.slots;
+    refs.badges.innerHTML = '';
+    if (state.modules.length === 0){
+      const b = document.createElement('span');
+      b.className = 'badge';
+      b.textContent = '—';
+      refs.badges.appendChild(b);
+    } else {
+      state.modules.forEach(m=>{
+        const b = document.createElement('span');
+        b.className = 'badge';
+        b.textContent = m==='shield'?'Щит':'Расширенный сенсор';
+        refs.badges.appendChild(b);
+      });
+    }
+    const setZone = (id,val) => {
+      const v = clamp(val,0,100);
+      refs.z[id].style.width = v + '%';
+      refs.z[id+'Val'].textContent = v + '%';
+    };
+    setZone('hull', state.zones.hull);
+    setZone('sensor', state.zones.sensor);
+    setZone('antenna', state.zones.antenna);
+    const dmg = avgDamage(state);
+    let txt = 'Норма';
+    refs.pill.style.background = '#181c2f';
+    if (dmg >= 60){ txt = 'Тяжёлые повреждения'; refs.pill.style.background = '#3b1f25'; }
+    else if (dmg >= 30){ txt = 'Повреждён'; refs.pill.style.background = '#3b3925'; }
+    refs.pill.textContent = `Состояние: ${txt}`;
+    refs.log.innerHTML = state.log.map(x=>`<li>${x}</li>`).join('');
+    save();
+  }
+  function repairGeneral(){
+    if (typeof updateResource === 'function' && !updateResource('parts', -10)) return;
+    const before = state.hp;
+    state.hp = clamp(state.hp + 20, 0, state.maxHp);
+    pushLog(`Ремонт: +${state.hp - before} HP (−10 🛠️)`);
+    if (typeof showNotification === 'function') showNotification('Дрон отремонтирован (+20 HP)', true);
+    render();
+  }
+  function repairZone(zone){
+    if (!state.zones.hasOwnProperty(zone)) return;
+    if (typeof updateResource === 'function' && !updateResource('parts', -5)) return;
+    const before = state.zones[zone];
+    state.zones[zone] = clamp(state.zones[zone] - 10, 0, 100);
+    pushLog(`Починка зоны «${zoneName(zone)}»: ${before}% → ${state.zones[zone]}% (−5 🛠️)`);
+    render();
+  }
+  function zoneName(k){ return k==='hull'?'Корпус':k==='sensor'?'Сенсор':'Антенна'; }
+  function openUpgrades(){
+    const m = document.getElementById('drone-upgrades-modal');
+    if (!m) return;
+    m.classList.add('active');
+    document.body.classList.add('modal-open');
+    updateInvUI();
+  }
+  function openShop(){
+    const m = document.getElementById('drone-shop-modal');
+    if (!m) return;
+    m.classList.add('active');
+    document.body.classList.add('modal-open');
+  }
+  function installModule(id, costMvc, costParts){
+    if (state.modules.includes(id)){
+      if (typeof showNotification === 'function') showNotification('Модуль уже установлен', false);
+      return;
+    }
+    if (state.slots <= 0){
+      if (typeof showNotification === 'function') showNotification('Нет свободных слотов', false);
+      return;
+    }
+    if (state.inventory[id] && state.inventory[id] > 0){
+      state.inventory[id]--;
+    } else {
+      if (typeof updateResource === 'function'){
+        if (!updateResource('mvc', -costMvc)) return;
+        if (!updateResource('parts', -costParts)) { updateResource('mvc', costMvc); return; }
+      }
+    }
+    state.modules.push(id);
+    state.slots--;
+    pushLog(`Установлен модуль: ${id==='shield'?'Щит':'Расширенный сенсор'}`);
+    if (typeof showNotification === 'function') showNotification('Модуль установлен', true);
+    updateInvUI();
+    render();
+  }
+  function buyModel(row){
+    const model = row.dataset.model;
+    const costMvc = +row.dataset.costMvc;
+    const costParts = +row.dataset.costParts;
+    const hp = +row.dataset.hp;
+    const br = +row.dataset.armor;
+    const sig = +row.dataset.signal;
+    const slots = +row.dataset.slots;
+    if (state.model === model){
+      if (typeof showNotification === 'function') showNotification('Эта модель уже установлена', false);
+      return;
+    }
+    if (typeof updateResource === 'function'){
+      if (!updateResource('mvc', -costMvc)) return;
+      if (!updateResource('parts', -costParts)) { updateResource('mvc', costMvc); return; }
+    }
+    state.modules.forEach(id=>{
+      if (!state.inventory[id]) state.inventory[id] = 0;
+      state.inventory[id]++;
+    });
+    const hadMods = state.modules.length;
+    state.model = model;
+    state.maxHp = hp;
+    state.hp = hp;
+    state.baseArmor = br;
+    state.baseSignal = sig;
+    state.slots = slots;
+    state.modules = [];
+    pushLog(`Куплен дрон: ${model} (HP ${hp}, Броня ${br}, Сигнал ${sig}, Слотов ${slots})`);
+    if (hadMods) pushLog('Модули сняты и перенесены в инвентарь');
+    if (typeof showNotification === 'function') showNotification(`Установлен ${model}`, true);
+    updateInvUI();
+    render();
+  }
+  const BASE_DAMAGE_CHANCE = 0.35;
+  const MIN_DAMAGE_CHANCE  = 0.05;
+  const SHIELD_CHANCE_DELTA = 0.20;
+  const SHIELD_SEVERITY_MULT = 0.7;
+  function damageChance(){
+    let c = BASE_DAMAGE_CHANCE - (armor() * 0.002);
+    if (has('shield')) c -= SHIELD_CHANCE_DELTA;
+    return Math.max(MIN_DAMAGE_CHANCE, c);
+  }
+  function roll(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function applyScanDamage(){
+    if (Math.random() >= damageChance()) return { damaged:false };
+    const zones = ['hull','sensor','antenna'];
+    const affected = Math.random() < 0.35 ? zones : [ pick(zones) ];
+    let totalSeverity = 0;
+    affected.forEach(z=>{
+      let sev = roll(8,20);
+      sev = Math.max(2, sev - Math.floor(armor()*0.3));
+      if (has('shield')) sev = Math.ceil(sev * SHIELD_SEVERITY_MULT);
+      state.zones[z] = clamp(state.zones[z] + sev, 0, 100);
+      totalSeverity += sev;
+      pushLog(`Повреждение зоны «${zoneName(z)}»: +${sev}%`);
+    });
+    const hpLoss = Math.max(5, Math.floor(totalSeverity * 0.8));
+    const before = state.hp;
+    state.hp = clamp(state.hp - hpLoss, 0, state.maxHp);
+    pushLog(`Урон дрону: −${before - state.hp} HP`);
+    if (avgDamage(state) >= 70){
+      if (typeof showNotification === 'function') showNotification('Критические повреждения (≥70%). Почини дрон перед сканом.', false);
+    }
+    render();
+    return { damaged:true, zones:affected, hpLoss };
+  }
+  function handleScanComplete(payload={}){
+    const { success=true, rewards={}, note } = payload;
+    if (success){
+      const parts = Object.entries(rewards||{}).filter(([,v])=>v>0).map(([k,v])=>`+${v} ${k}`);
+      pushLog(`Сканирование успешно! ${parts.length?(' '+parts.join(', ')) : ''}`.trim());
+    } else {
+      pushLog('Сканирование провалилось');
+    }
+    if (note) pushLog(note);
+    applyScanDamage();
+    render();
+  }
+  window.addEventListener('scan:complete', (e)=>handleScanComplete(e.detail||{}));
+  window.droneScanHook = function(payload){
+    window.dispatchEvent(new CustomEvent('scan:complete', { detail: payload||{} }));
+  };
+  (function(){
+    const orig = window.showScanResultModal;
+    window.showScanResultModal = function(sectorData, resourceType, resourceAmount){
+      const riskPct = typeof sectorData.risk === 'number' ? sectorData.risk : parseInt(sectorData.risk)||0;
+      let chance = Math.max(0.1, (100 - riskPct)/100 + signal()*0.005);
+      if (chance > 0.95) chance = 0.95;
+      const success = Math.random() < chance;
+      const resNameMap = { bio:'bio', parts:'parts', mvc:'mvc', oxygen:'oxygen', ice:'ice' };
+      const rewards = {};
+      if (success){
+        if (orig) orig(sectorData, resourceType, resourceAmount);
+        const key = resNameMap[resourceType]||resourceType;
+        rewards[key] = resourceAmount;
+        window.droneScanHook && window.droneScanHook({ success:true, rewards });
+      } else {
+        if (typeof showNotification === 'function') showNotification('Сканирование провалилось (сигнал слишком слабый)', false);
+        window.droneScanHook && window.droneScanHook({ success:false, note:'Fail due to low signal' });
+      }
+    };
+  })();
+  function bind(){
+    document.getElementById('drone-repair')?.addEventListener('click', repairGeneral);
+    document.querySelectorAll('#mehanics-screen .repair-zone').forEach(btn=>{
+      btn.addEventListener('click', ()=> repairZone(btn.dataset.zone));
+    });
+    const advToggle = document.getElementById('drone-advanced-toggle');
+    if (advToggle){
+      advToggle.addEventListener('change', (e)=>{
+        const on = e.target.checked;
+        const adv = document.getElementById('drone-advanced');
+        const plain = document.getElementById('drone-plain-damage');
+        if (adv) adv.style.display = on ? '' : 'none';
+        if (plain) plain.style.opacity = on ? .4 : 1;
+      });
+    }
+    document.getElementById('drone-upgrade')?.addEventListener('click', openUpgrades);
+    document.getElementById('drone-shop')?.addEventListener('click', openShop);
+    document.getElementById('drone-scan')?.addEventListener('click', function(){
+      if (isBroken(state)){
+        if (typeof showNotification === 'function') showNotification('Дрон сильно повреждён (≥70%). Почини прежде чем сканировать.', false);
+        pushLog('Сканирование недоступно: критические повреждения');
+        render();
+        return;
+      }
+      const m = document.getElementById('scan-modal');
+      if (m){
+        m.classList.add('active');
+        document.body.classList.add('modal-open');
+        selectedSector = null;
+        document.querySelectorAll('#scan-modal .sector-item').forEach(s=>{
+          s.style.borderColor = '#3a3a5a';
+          s.style.background  = '#1a1a2f';
+        });
+        const costLabel = document.getElementById('scan-cost');
+        if (costLabel) costLabel.textContent = '—';
+      }
+    });
+    document.querySelectorAll('#drone-upgrades-modal .u-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=> {
+        const id = btn.dataset.mod;
+        const cost = id==='shield' ? { mvc:100, parts:20 } : { mvc:80, parts:10 };
+        installModule(id, cost.mvc, cost.parts);
+      });
+    });
+    document.addEventListener('click', function(e){
+      const closeTarget1 = e.target.closest('[data-close="drone-upgrades-modal"]');
+      if (closeTarget1){
+        const m = document.getElementById('drone-upgrades-modal');
+        if (m) m.classList.remove('active');
+        document.body.classList.remove('modal-open');
+      }
+      const closeTarget2 = e.target.closest('[data-close="drone-shop-modal"]');
+      if (closeTarget2){
+        const m2 = document.getElementById('drone-shop-modal');
+        if (m2) m2.classList.remove('active');
+        document.body.classList.remove('modal-open');
+      }
+    });
+    document.querySelectorAll('#drone-shop-modal .buy-model').forEach(btn=>{
+      btn.addEventListener('click', ()=> buyModel(btn.closest('.shop-row')));
+    });
+    const scanModal = document.getElementById('scan-modal');
+    if (scanModal){
+      const closeBtn = scanModal.querySelector('.close-modal');
+      closeBtn && closeBtn.addEventListener('click', function(){
+        scanModal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+      });
+      const abortBtn = document.getElementById('break-btn');
+      abortBtn && abortBtn.addEventListener('click', function(){
+        scanModal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+      });
+    }
+  }
+  function boot(){
+    bind();
+    render();
+  }
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot, { once:true });
+  } else {
+    boot();
+  }
+})();
+</script>
 </body>
 </html>
