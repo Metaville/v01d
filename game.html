@@ -949,26 +949,6 @@
 .avatar-info .avatar-meta{
   font-size:12px; color:#a0a0d0; margin-top:4px;
 }
-
- 
-        /* Кошелек */
-        #wallet-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 0;
-            flex: 1;
-        }
-        
-        #wallet-address {
-            font-size: 12px;
-            color: #00ffcc;
-            margin-left: 8px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100px;
-        }
-
         /* Репутация: сетка и карточки */
 .rep-grid {
   display: grid;
@@ -2774,6 +2754,7 @@ body.modal-open {
 <div class="nav-item" data-screen="mehanics-screen">
 <i class="fas fa-robot"></i>
 <span>DRONES</span>
+</div>
 </div>
 
 <!-- Модалка квеста "Awakening" -->
@@ -4738,81 +4719,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindSectorPick();
   bindScanConfirm();
 });
-        // TON Connect
-       document.addEventListener('DOMContentLoaded', async () => {
-  const connectButton = document.getElementById('connect-wallet');
-  const addressSpan = document.getElementById('wallet-address');
-  
-  // Используем демо-манифест для теста
-  const manifestUrl = 'https://metaville.github.io/v01d/manifest.json';
-  
-  // Проверка загрузки библиотеки
-  if (!window.TonConnectUI) {
-    console.error('TON Connect UI not loaded');
-    showNotification("Error: TON Connect library not loaded", false);
-    return;
-  }
-  
-  try {
-    // Создаем экземпляр UI
-    const ui = window.TonConnectUI.create({
-      manifestUrl,
-      buttonRootId: 'wallet-container',
-      language: 'en'
-    });
-    
-    // Функция обновления интерфейса кошелька
-    const updateWalletUI = (wallet) => {
-      if (wallet) {
-        const fullAddr = wallet.account.address;
-        const shortAddr = `${fullAddr.slice(0, 4)}…${fullAddr.slice(-4)}`;
-        addressSpan.textContent = shortAddr;
-        connectButton.innerHTML = '<i class="fas fa-check"></i>';
-        connectButton.classList.replace('btn-warning', 'btn-primary');
-        showNotification("TON wallet connected!", true);
-      } else {
-        addressSpan.textContent = '';
-        connectButton.innerHTML = '<i class="fas fa-wallet"></i>';
-        connectButton.classList.replace('btn-primary', 'btn-warning');
-      }
-    };
-    
-    // Проверка существующего подключения
-    const connectedWallet = ui.connected;
-    if (connectedWallet) {
-      updateWalletUI(connectedWallet);
-    }
-    
-    // Обработчик подключения
-    connectButton.addEventListener('click', async () => {
-      try {
-        if (ui.connected) {
-          await ui.disconnect();
-          updateWalletUI(null);
-          showNotification("TON wallet disconnected", true);
-        } else {
-          const wallet = await ui.connect();
-          updateWalletUI(wallet);
-        }
-      } catch (err) {
-        console.error('Connection failed:', err);
-        showNotification("Connection error: " + err.message, false);
-      }
-    });
-    
-    // Слушатель изменений состояния
-    ui.onStatusChange(wallet => {
-      updateWalletUI(wallet);
-    });
-    
-  } catch (error) {
-    console.error('TON Connect initialization error:', error);
-    showNotification("TON Connect initialization error", false);
-  }
-});
-    </script>
 
-<script>
 /*__FORCE_TUTORIAL_OPEN__*/
 document.addEventListener('DOMContentLoaded', function(){
   try{
