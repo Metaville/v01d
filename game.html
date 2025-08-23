@@ -2148,7 +2148,7 @@ body.modal-open {
 </div>
 <div style="display: flex; justify-content: space-between; margin-top: 20px;">
 <span id="mission-time">0%</span>
-<span id="mission-harvest">HARVESTER: 0/2</span>
+<span id="mission-harvest">HARVESTER:</span>
 <span id="scanned-resources">Resourse: -</span>
 <span id="mission-risk" style="color: #ffcc00;">RISK: 0% ⚠️</span>
 </div>
@@ -2335,59 +2335,15 @@ body.modal-open {
 </div>
 <!-- Экран Маркет -->
 <div class="screen" id="market-screen">
-<h2 class="section-title">Market V.01.D</h2>
-<div class="market-tabs">
-<div class="tab active">Resources</div>
-<div class="tab">Equipment</div>
-<div class="tab">Contracts</div>
-</div>
-<div class="offer-card">
-<div class="offer-header">
-<div class="offer-vendor">GLORY</div>
-<div class="offer-rating">★★★★☆</div>
-</div>
-<div style="margin-bottom: 10px;">Polymers • 85 units </div>
-<div class="offer-details">
-<div class="offer-price">12 MVC/unit</div>
-<button class="btn buy-btn" data-amount="85" data-price="12" data-resource="polymers" style="padding: 8px 12px;">BUY</button>
-<button class="btn btn-secondary">SELL</button>
-</div>
-</div>
-<div class="offer-card">
-<div class="offer-header">
-<div class="offer-vendor">SYNDICATE-7</div>
-<div class="offer-rating">★★★☆☆</div>
-</div>
-<div style="margin-bottom: 10px;">Rare earths • 12 unit</div>
-<div class="offer-details">
-<div class="offer-price">28 MVC/unit</div>
-<button class="btn buy-btn" data-amount="12" data-price="28" data-resource="rare" style="padding: 8px 12px;">BUY</button>
-<button class="btn btn-secondary">SELL</button>
-</div>
-</div>
-<div class="offer-card">
-<div class="offer-header">
-<div class="offer-vendor">JOE'S BAR</div>
-<div class="offer-rating">★★★★★</div>
-</div>
-<div style="margin-bottom: 10px;">O₂ • 150 unit</div>
-<div class="offer-details">
-<div class="offer-price">10 MVC/unit</div>
-<button class="btn buy-btn" data-amount="150" data-price="10" data-resource="oxygen" style="padding: 8px 12px;">BUY</button>
-<button class="btn btn-secondary">SELL</button>
-</div>
-</div>
-<div class="offer-card">
-<div class="offer-header">
-<div class="offer-vendor">MODULE SHOP</div>
-<div class="offer-rating">★★★★☆</div>
-</div>
-<div style="margin-bottom: 10px;">Stealth module for a drone</div>
-<div class="offer-details">
-<div class="offer-price">450 MVC</div>
-<button class="btn buy-btn" data-amount="1" data-price="450" data-resource="stealth" style="padding: 8px 12px;">BUY</button>
-</div>
-</div>
+        <h2 class="section-title">Market V.01.D</h2>
+        <!-- Tabs for different categories. Only one tab (Resources) is functional in this prototype -->
+        <div class="market-tabs">
+          <div class="tab active" id="tab-resources">Resources</div>
+          <div class="tab" id="tab-equipment">Equipment</div>
+          <div class="tab" id="tab-contracts">Contracts</div>
+        </div>
+        <!-- Dynamic container for market offers. Items will be rendered here by JavaScript -->
+        <div id="market-items"></div>
 </div>
 <!-- Экран Голосования -->
 <div class="screen" id="vote-screen">
@@ -2731,12 +2687,10 @@ body.modal-open {
 <i class="fas fa-globe-americas"></i>
 <span>MAP</span>
 </div>
-    <div class="nav-item" data-screen="mehanics-screen">
+<div class="nav-item" data-screen="mehanics-screen">
 <i class="fas fa-robot"></i>
 <span>DRONES</span>
-</div>  
-
-  
+</div>
 <div class="nav-item" data-screen="base-screen">
 <i class="fas fa-hard-hat"></i>
 <span>BASE</span>
@@ -2757,6 +2711,7 @@ body.modal-open {
 <i class="fas fa-tasks"></i>
 <span>QUESTS</span>
 </div>
+
 </div>
 
 <!-- Модалка квеста "Awakening" -->
@@ -3212,12 +3167,157 @@ body.modal-open {
                 security: 45,
                 moon: 28
             },
+            /**
+             * Инвентарь игрока для предметов рынка, не отображаемых в ресурсах. Здесь будем хранить
+             * купленные товары (полимеры, редкоземы, оборудование и т.д.). Оксиген продаётся напрямую
+             * из ресурса oxygen, поэтому в инвентарь не включается.
+             */
+            inventory: {
+                polymers: 0,
+                rare: 0,
+                stealth: 0,
+                drill: 0,
+                drone: 0
+            },
             userVotes: 150,
+            /**
+             * Товары рынка. Для удобства каждый товар содержит базовую цену (basePrice), чтобы от неё
+             * рассчитывать динамические изменения, а также initialAmount — стартовое количество.
+             * Поле resource используется для обновления соответствующего ресурса игрока при покупке.
+             * Категория определяет, в какой вкладке отображается товар.
+             */
             marketItems: [
-                { id: 1, name: "Полимеры", vendor: "ГЛОРИЯ", rating: 4, amount: 85, price: 12 },
-                { id: 2, name: "Редкоземы", vendor: "СИНДИКАТ-7", rating: 3, amount: 12, price: 28 },
-                { id: 3, name: "O₂", vendor: "БАР У ДЖО", rating: 5, amount: 150, price: 10 },
-                { id: 4, name: "Стелс-модуль", vendor: "ЦЕХ МОДУЛЕЙ", rating: 4, amount: 1, price: 450 }
+                {
+                    id: 1,
+                    name: "Полимеры",
+                    vendor: "ГЛОРИЯ",
+                    rating: 4,
+                    amount: 85,
+                    initialAmount: 85,
+                    price: 12,
+                    basePrice: 12,
+                    category: 'resources',
+                    resource: 'polymers',
+                    sellable: false
+                },
+                {
+                    id: 2,
+                    name: "Редкоземы",
+                    vendor: "СИНДИКАТ-7",
+                    rating: 3,
+                    amount: 12,
+                    initialAmount: 12,
+                    price: 28,
+                    basePrice: 28,
+                    category: 'resources',
+                    resource: 'rare',
+                    sellable: false
+                },
+                {
+                    id: 3,
+                    name: "O₂",
+                    vendor: "БАР У ДЖО",
+                    rating: 5,
+                    amount: 150,
+                    initialAmount: 150,
+                    price: 10,
+                    basePrice: 10,
+                    category: 'resources',
+                    resource: 'oxygen',
+                    sellable: true
+                },
+                {
+                    id: 4,
+                    name: "Стелс‑модуль",
+                    vendor: "ЦЕХ МОДУЛЕЙ",
+                    rating: 4,
+                    amount: 1,
+                    initialAmount: 1,
+                    price: 450,
+                    basePrice: 450,
+                    category: 'equipment',
+                    resource: 'stealth',
+                    sellable: false
+                },
+                {
+                    id: 5,
+                    name: "Лазерный бур",
+                    vendor: "МЕХАНИКС",
+                    rating: 4,
+                    amount: 3,
+                    initialAmount: 3,
+                    price: 120,
+                    basePrice: 120,
+                    category: 'equipment',
+                    resource: 'drill',
+                    sellable: false
+                },
+                {
+                    id: 6,
+                    name: "Дрон‑майнер",
+                    vendor: "СИНДИКАТ-7",
+                    rating: 5,
+                    amount: 2,
+                    initialAmount: 2,
+                    price: 300,
+                    basePrice: 300,
+                    category: 'equipment',
+                    resource: 'drone',
+                    sellable: false
+                }
+                ,
+                {
+                    id: 7,
+                    name: "Топливные ячейки",
+                    vendor: "РЫНОК-АРЕС",
+                    rating: 4,
+                    amount: 40,
+                    initialAmount: 40,
+                    price: 18,
+                    basePrice: 18,
+                    category: 'resources',
+                    resource: 'energy',
+                    sellable: true
+                },
+                {
+                    id: 8,
+                    name: "Продовольственные пайки",
+                    vendor: "Комбинат продовольствия",
+                    rating: 3,
+                    amount: 60,
+                    initialAmount: 60,
+                    price: 14,
+                    basePrice: 14,
+                    category: 'resources',
+                    resource: 'bio',
+                    sellable: true
+                },
+                {
+                    id: 9,
+                    name: "Комплект запчастей",
+                    vendor: "БАЗА МЕХАНИКОВ",
+                    rating: 4,
+                    amount: 30,
+                    initialAmount: 30,
+                    price: 22,
+                    basePrice: 22,
+                    category: 'resources',
+                    resource: 'parts',
+                    sellable: true
+                },
+                {
+                    id: 10,
+                    name: "Лёд",
+                    vendor: "ПОЛЯРНАЯ СТАНЦИЯ",
+                    rating: 4,
+                    amount: 80,
+                    initialAmount: 80,
+                    price: 8,
+                    basePrice: 8,
+                    category: 'resources',
+                    resource: 'ice',
+                    sellable: true
+                }
             ],
             drones: 0,
             slots: 2,
@@ -3266,6 +3366,44 @@ body.modal-open {
         let scanInterval = null;
         let o2Interval = null;
         let minerInterval = null;
+
+        // Текущая категория маркета (resources, equipment, contracts). Используется для фильтрации
+        // товаров при отрисовке. По умолчанию — ресурсы.
+        let currentMarketCategory = 'resources';
+
+        /**
+         * Массив событий, влияющих на рынок. Каждый объект содержит имя события,
+         * текст для уведомления и функцию effect(item), которая возвращает
+         * дополнительный множитель цены для конкретного товара. События
+         * запускаются случайно в updateMarketPrices() с небольшой вероятностью.
+         */
+        const marketEvents = [
+            {
+                name: 'Raider attack',
+                message: 'Raiders attacked supply convoys! Prices for parts and energy increased.',
+                effect: (item) => {
+                    // поднимаем цену на 25% для запчастей и энергии
+                    return ['parts', 'energy'].includes(item.resource) ? 1.25 : 1;
+                }
+            },
+            {
+                name: 'Rare resource surge',
+                message: 'A new vein of rare minerals was discovered. Prices for rare earths and polymers dropped.',
+                effect: (item) => {
+                    return ['rare', 'polymers'].includes(item.resource) ? 0.8 : 1;
+                }
+            },
+            {
+                name: 'Market crash',
+                message: 'Oversupply has caused a market crash! All prices temporarily drop.',
+                effect: () => 0.7
+            },
+            {
+                name: 'New shipment',
+                message: 'A large shipment has arrived. Supplies increased and prices are slightly lower.',
+                effect: () => 0.9
+            }
+        ];
 
         // Получение имени ресурса
         function getResourceName(resource) {
@@ -3408,9 +3546,19 @@ body.modal-open {
                 document.querySelectorAll('.screen').forEach(screen => {
                     screen.classList.remove('active');
                 });
-                
+
                 const screenId = this.getAttribute('data-screen');
                 document.getElementById(screenId).classList.add('active');
+
+                // Если пользователь переключился на экран маркета, убедимся, что предложения отрисованы
+                if (screenId === 'market-screen' && typeof renderMarket === 'function') {
+                    // Отрисовываем текущую категорию маркета
+                    renderMarket();
+                    // Привязываем клики к вкладкам (ресурсы, оборудование, контракты)
+                    if (typeof bindMarketTabs === 'function') {
+                        bindMarketTabs();
+                    }
+                }
             });
         });
 
@@ -4319,6 +4467,286 @@ wrap.innerHTML = `
         setTimeout(() => {
             showNotification("Welcome to METAVILLE on the V.01.D platform!", true);
         }, 1000);
+
+        /**
+         * Инициализация рынка. Рисует интерфейс на основе gameState.marketItems и
+         * периодически обновляет цены. Вызывается после загрузки интерфейса.
+         */
+        function initMarket() {
+            renderMarket();
+            // Обновляем цены раз в 60 секунд
+            setInterval(updateMarketPrices, 60000);
+
+            // Обработчики переключения табов. В прототипе доступны только ресурсы
+            const resTab = document.getElementById('tab-resources');
+            const eqTab = document.getElementById('tab-equipment');
+            const contTab = document.getElementById('tab-contracts');
+            // Привязываем вкладки после инициализации
+            if (typeof bindMarketTabs === 'function') {
+                bindMarketTabs();
+            }
+        }
+
+        /**
+         * Формирует HTML-карточки товаров рынка и вставляет их в контейнер
+         * #market-items. В конце добавляет обработчики событий для кнопок покупки.
+         */
+        function renderMarket() {
+            const container = document.getElementById('market-items');
+            if (!container) return;
+            container.innerHTML = '';
+            let itemsRendered = 0;
+            gameState.marketItems.forEach((item, index) => {
+                if (item.category !== currentMarketCategory) return;
+                itemsRendered++;
+                // Формируем звёзды рейтинга: заполненные и пустые
+                const filledStars = '★'.repeat(item.rating);
+                const emptyStars = '☆'.repeat(5 - item.rating);
+                const priceLabel = item.amount > 1 ? `${item.price.toLocaleString()} MVC/unit` : `${item.price.toLocaleString()} MVC`;
+
+                const card = document.createElement('div');
+                card.className = 'offer-card';
+                // Собираем HTML
+                let html = '';
+                html += '<div class="offer-header">';
+                html += `<div class="offer-vendor">${item.vendor}</div>`;
+                html += `<div class="offer-rating">${filledStars}${emptyStars}</div>`;
+                html += '</div>';
+                html += `<div style="margin-bottom: 10px;">${item.name} • ${item.amount.toLocaleString()} ${item.amount !== 1 ? 'units' : 'unit'}</div>`;
+                html += '<div class="offer-details">';
+                html += `<div class="offer-price">${priceLabel}</div>`;
+                html += `<button class="btn buy-btn" data-index="${index}" style="padding: 8px 12px;">BUY</button>`;
+                if (item.sellable) {
+                    // Добавляем кнопку продажи, если товар можно продать обратно
+                    html += `<button class="btn btn-secondary sell-btn" data-index="${index}" style="padding: 8px 12px; margin-left: 6px;">SELL</button>`;
+                }
+                html += '</div>';
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+
+            // Если нет товаров в выбранной категории — выводим заглушку для Contracts
+            if (itemsRendered === 0 && currentMarketCategory === 'contracts') {
+                const msg = document.createElement('div');
+                msg.style.color = '#93a3b8';
+                msg.style.fontSize = '14px';
+                msg.style.textAlign = 'center';
+                msg.style.marginTop = '20px';
+                msg.textContent = 'Контракты будут доступны в будущих обновлениях.';
+                container.appendChild(msg);
+            }
+
+            attachMarketHandlers();
+        }
+
+        /**
+         * Прикрепляет обработчики нажатия на кнопки BUY, созданные динамически в renderMarket().
+         * Считывает индекс товара из data-index и обрабатывает покупку или продажу.
+         */
+        function attachMarketHandlers() {
+            // Покупка
+            const buyButtons = document.querySelectorAll('#market-items .buy-btn');
+            buyButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    const item = gameState.marketItems[index];
+                    if (!item) return;
+                    // Проверяем, есть ли доступные единицы для покупки
+                    if (item.amount <= 0) {
+                        showNotification(`Item ${item.name} is out of stock!`, false);
+                        return;
+                    }
+                    const cost = item.price;
+                    // Проверяем наличие MVC у игрока
+                    if (!updateResource('mvc', -cost)) {
+                        return;
+                    }
+                    // Понижаем количество доступного товара
+                    item.amount--;
+                    // Добавляем в ресурсы/инвентарь
+                    switch (item.resource) {
+                        case 'polymers':
+                            gameState.inventory.polymers++;
+                            break;
+                        case 'rare':
+                            gameState.inventory.rare++;
+                            break;
+                        case 'oxygen':
+                            updateResource('oxygen', 1);
+                            break;
+                        case 'stealth':
+                            gameState.inventory.stealth++;
+                            break;
+                        case 'drill':
+                            gameState.inventory.drill++;
+                            break;
+                        case 'drone':
+                            gameState.inventory.drone++;
+                            break;
+                        case 'energy':
+                            updateResource('energy', 1);
+                            break;
+                        case 'bio':
+                            updateResource('bio', 1);
+                            break;
+                        case 'parts':
+                            updateResource('parts', 1);
+                            break;
+                        case 'ice':
+                            updateResource('ice', 1);
+                            break;
+                    }
+                    showNotification(`Purchased ${item.name} for ${cost} MVC`, true);
+                    // Пересчитываем цены на основе спроса/предложения
+                    updateMarketPrices();
+                    updateUI();
+                });
+            });
+            // Продажа (только для товаров, где sellable = true)
+            const sellButtons = document.querySelectorAll('#market-items .sell-btn');
+            sellButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    const item = gameState.marketItems[index];
+                    if (!item || !item.sellable) return;
+                    // Продажа 10 единиц товара. Количество можно изменять по желанию
+                    const quantity = 10;
+                    let available = 0;
+                    // Определяем доступное количество в зависимости от типа ресурса или инвентаря
+                    switch (item.resource) {
+                        case 'oxygen':
+                        case 'energy':
+                        case 'bio':
+                        case 'parts':
+                        case 'ice':
+                            available = gameState.resources[item.resource];
+                            break;
+                        case 'polymers':
+                        case 'rare':
+                        case 'stealth':
+                        case 'drill':
+                        case 'drone':
+                            available = gameState.inventory[item.resource];
+                            break;
+                        default:
+                            available = 0;
+                    }
+                    if (available < quantity) {
+                        showNotification('Not enough items to sell!', false);
+                        return;
+                    }
+                    // списываем соответствующий ресурс или инвентарь
+                    if (['oxygen','energy','bio','parts','ice'].includes(item.resource)) {
+                        updateResource(item.resource, -quantity);
+                    } else {
+                        // списываем из инвентаря
+                        gameState.inventory[item.resource] -= quantity;
+                    }
+                    // На 80% от текущей цены
+                    const saleRevenue = Math.round(item.price * quantity * 0.8);
+                    updateResource('mvc', saleRevenue);
+                    // Возвращаем товар на рынок
+                    item.amount += quantity;
+                    showNotification(`Sold ${quantity} units of ${item.name} for ${saleRevenue} MVC`, true);
+                    updateMarketPrices();
+                    updateUI();
+                });
+            });
+        }
+
+        /**
+         * Обновляет цены на товары рынка в зависимости от базовой цены, случайного
+         * колебания и потенциальных событий. После пересчёта перерисовывает
+         * интерфейс и показывает уведомление, если изменение было значительным.
+         */
+        function updateMarketPrices() {
+            // Определяем, произойдёт ли специальное рыночное событие
+            let currentEvent = null;
+            if (Math.random() < 0.15) { // 15 % шанс запуска события
+                currentEvent = marketEvents[Math.floor(Math.random() * marketEvents.length)];
+                // Показываем уведомление о событии
+                showNotification(currentEvent.message, false);
+            }
+
+            gameState.marketItems.forEach(item => {
+                const oldPrice = item.price;
+                // Коэффициент спроса/предложения: если запас упал, цена растёт; если вырос — падает.
+                let demandFactor = 0;
+                if (item.initialAmount > 0) {
+                    demandFactor = (item.initialAmount - item.amount) / item.initialAmount;
+                }
+                demandFactor = Math.max(-1, Math.min(1, demandFactor));
+                // Множитель от спроса: до ±50 %
+                const supplyMul = 1 + demandFactor * 0.5;
+                // Случайный множитель ±5 %
+                const rand = 1 + (Math.random() * 0.1 - 0.05);
+                // Множитель от активного события (если есть)
+                const eventMul = currentEvent ? currentEvent.effect(item) : 1;
+                let newPrice = Math.round(item.basePrice * supplyMul * rand * eventMul);
+                if (newPrice < 1) newPrice = 1;
+                item.price = newPrice;
+                // При сильном изменении (>20 %) выводим уведомление
+                if (Math.abs(newPrice - oldPrice) / oldPrice > 0.2) {
+                    const direction = newPrice > oldPrice ? 'increased' : 'decreased';
+                    showNotification(`Price for ${item.name} has ${direction} to ${newPrice} MVC`, true);
+                }
+            });
+            renderMarket();
+        }
+
+        // Вызываем инициализацию рынка после полной загрузки DOM. Если документ
+        // уже загружен, запускаем сразу, иначе ждём события DOMContentLoaded.
+        (function(){
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initMarket);
+            } else {
+                initMarket();
+            }
+        })();
+
+        /**
+         * Помечает выбранный таб как активный и снимает подсветку с остальных.
+         * Используется для переключения категорий рынка.
+         * @param {HTMLElement} tabEl
+         */
+        function setActiveTab(tabEl) {
+            document.querySelectorAll('.market-tabs .tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            if (tabEl) tabEl.classList.add('active');
+        }
+
+        /**
+         * Назначает обработчики на вкладки рынка. При клике меняет текущую категорию,
+         * активную вкладку и перерисовывает товары. Вызывается после перехода
+         * на экран маркета или при первой инициализации.
+         */
+        function bindMarketTabs() {
+            const resTab = document.getElementById('tab-resources');
+            const eqTab  = document.getElementById('tab-equipment');
+            const contTab= document.getElementById('tab-contracts');
+            if (resTab) {
+                resTab.onclick = () => {
+                    currentMarketCategory = 'resources';
+                    setActiveTab(resTab);
+                    renderMarket();
+                };
+            }
+            if (eqTab) {
+                eqTab.onclick = () => {
+                    currentMarketCategory = 'equipment';
+                    setActiveTab(eqTab);
+                    renderMarket();
+                };
+            }
+            if (contTab) {
+                contTab.onclick = () => {
+                    currentMarketCategory = 'contracts';
+                    setActiveTab(contTab);
+                    renderMarket();
+                };
+            }
+        }
 
 /**
  * Показывает уведомление.
