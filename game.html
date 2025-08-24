@@ -1279,28 +1279,7 @@
 
 /* ===== ПЛОТНЫЙ ФОН самих карточек модалок ===== */
 #tutorial-modal .modal-content,
-#rest-modal .modal-content,
-#quest-awake-modal .modal-content {
-  background: linear-gradient(135deg, #0e1324 0%, #121832 100%) !important;
-  border: 1px solid #273056 !important;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6) !important;
-}
-
-/* Кнопка закрытия на тёмном фоне выглядит лучше ярче */
-#tutorial-modal .close-modal,
-#rest-modal .close-modal,
-#quest-awake-modal .close-modal {
-  color: #c9d4ff !important;
-}
-
-/* Блокируем прокрутку body, когда есть активная модалка */
-body.modal-open {
-  overflow: hidden;
-}
-
 /* Ограничение ширины/высоты и границы от экрана для туториала и квестов */
-#tutorial-modal .modal-content,
-#quest-awake-modal .modal-content,
 #rest-modal .modal-content {
   max-width: 90vw;   /* максимум 90% ширины окна */
   max-height: 90vh;  /* максимум 90% высоты окна */
@@ -1312,20 +1291,31 @@ body.modal-open {
   box-shadow: 0 12px 40px rgba(0,0,0,0.6);
   padding: 20px;
 }
-#tutorial-modal.modal,
-#quest-awake-modal.modal,
+#quest-awake-modal .modal-content {
+  background: linear-gradient(135deg, #0e1324 0%, #121832 100%) !important;
+  border: 1px solid #273056 !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6) !important;
+  /* Чтобы клик «по фону» был кликабельным, а контент — нет */
+  position: relative;
+  pointer-events: auto;
+}
 #rest-modal.modal {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 5px; /* отступ внутри оверлея для мобильных */
 }
+/* Кнопка закрытия на тёмном фоне выглядит лучше ярче */
+#tutorial-modal .close-modal,
+#rest-modal .close-modal,
+#quest-awake-modal .close-modal {
+  color: #c9d4ff !important;
+}
 
-/* Блокируем прокрутку фона, когда открыта модалка */
+/* Блокируем прокрутку body, когда есть активная модалка */
 body.modal-open {
   overflow: hidden;
 }
-
 /* Базовая раскладка модалки — центрирование содержимого */
 .modal {
   display: none;                /* по умолчанию скрыта */
@@ -1339,13 +1329,6 @@ body.modal-open {
 .modal.active {
   display: flex;
 }
-
-/* Чтобы клик «по фону» был кликабельным, а контент — нет */
-.modal .modal-content {
-  position: relative;
-  pointer-events: auto;
-}
-
 
 /* Узлы электростанций на карте */
 /* Кольца карты не перехватывают клики */
@@ -2046,7 +2029,7 @@ body.modal-open {
 <div class="resource-item" id="ice-resource">
 <span>❄️ <span id="ice-value">120</span></span>
 </div>
-    <!-- Отображение полимеров и редкоземов -->
+<!-- Отображение полимеров и редкоземов -->
     <div class="resource-item" id="polymers-resource">
         <span>🧬 <span id="polymers-value">0</span></span>
     </div>
@@ -2174,7 +2157,7 @@ body.modal-open {
 <span class="click-indicator"><i class="fas fa-hand-pointer"></i>
 </span></div><div class="status-value" id="solar-efficiency">87%</div><div class="progress-bar"><div class="progress-fill" id="solar-progress" style="width: 87%"></div></div></div>
 <!-- AVATAR CARD (кликабельно) -->
-<div aria-label="Open profile" class="status-card red-glow" id="avatar-card" role="button">
+<div aria-label="Open profile" class="status-card red-glow clickable" id="avatar-card" role="button">
 <div class="avatar-row">
 <!-- <img class="avatar-img" src="images/avatar.png" alt="Avatar">  -->
 <div class="avatar-info">
@@ -2857,7 +2840,7 @@ body.modal-open {
 
       <p>Select to scan (cost: <span id="scan-cost">—</span> ⚡):</p>
 
-      <!-- Легенда зон: шапке -->
+      <!-- Легенда зон: ОСТАЁТСЯ в шапке -->
       <div class="scan-zones-info">
         <div class="zone-card">
           <div class="zone-header">
@@ -2885,7 +2868,7 @@ body.modal-open {
       </div>
     </div>
 
-    <!-- сетка секторов  -->
+    <!-- ВАЖНО: сетка секторов ПЕРЕНЕСЕНА сюда -->
     <div class="modal-body">
       <div class="sectors-grid">
         <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="3" >
@@ -3256,9 +3239,7 @@ body.modal-open {
                 mvc: "MVC",
                 bio: "биоматериалов",
                 parts: "запчастей",
-                /**
-                 * Название для льда. Используется в уведомлениях и подсказках.
-                 */
+                /** * Название для льда. Используется в уведомлениях и подсказках.  */
                 ice: "льда",
                 polymers: "полимеров",
                 rare: "редкоземов"
@@ -4106,8 +4087,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
             // Производим кислород из накопления
             const o2ToProduce = Math.floor(gameState.o2Generation.o2Accum);
             if (o2ToProduce > 0) {
-                updateResource('oxygen', o2ToProduce);
-                gameState.o2Generation.o2Accum -= o2ToProduce;
+               // updateResource('oxygen', o2ToProduce);
+                gameState.o2Generation.buffer += o2ToProduce;
             }
         }
         
@@ -4172,6 +4153,11 @@ wrap.innerHTML = `
             <h4>Мод производитель</h4>
             <div id="o2m-mod" class="value">×1.00</div>
             <div class="hint">без бустов</div>
+          </div>
+          <div class="o2m-new-card" title="Накопленный кислород">
+          <h4>Накопленный O₂</h4>
+          <div id="o2m-buffer" class="value">0</div>
+          <div class="hint">готов к забору</div>
           </div>
           <div class="o2m-new-card" title="Текущее состояние системы майнинга O₂">
             <h4>Состояние</h4>
@@ -4320,7 +4306,7 @@ wrap.innerHTML = `
  * @param {boolean} isSuccess - true => зелёное, false => красное
  * @param {number} ms - время показа
  */
-function showNotification(message, isSuccess = true, ms = 10000) {
+function showNotification(message, isSuccess = true, ms = 6000) {
   // ищем/создаём единственный элемент уведомления
   let el = document.getElementById('app-notification');
   if (!el) {
@@ -4653,12 +4639,22 @@ document.querySelectorAll('.power-node').forEach(el => {
 
   // ПОКАЗЫВАТЬ ТОЛЬКО ОДИН РАЗ:
   const seen = localStorage.getItem('tutorialSeen');
-  if (!seen) tutorial.classList.add('active');
-  else tutorial.classList.remove('active');
+  if (!seen) {
+    // если пользователь ещё не видел туториал, показываем его
+    tutorial.classList.add('active');
+    // блокируем прокрутку фона, пока открыт туториал
+    document.body.classList.add('modal-open');
+  } else {
+    // если туториал уже был показан, убираем активный класс на всякий случай
+    tutorial.classList.remove('active');
+  }
 
   function closeTutorial(){
+    // прячем модалку и разблокируем прокрутку
     tutorial.classList.remove('active');
-    localStorage.setItem('tutorialSeen','1'); // закомментируй эту строку, если нужно показывать КАЖДЫЙ раз
+    document.body.classList.remove('modal-open');
+    // запоминаем, что туториал уже показан
+    //  localStorage.setItem('tutorialSeen','1'); // закомментируй эту строку, если нужно показывать КАЖДЫЙ раз
   }
 
   // Кнопки закрытия (примерные id/атрибуты — подставь свои)
@@ -4678,22 +4674,12 @@ document.querySelectorAll('.power-node').forEach(el => {
   });
 })();
 
+/* Удалили дублирующую инициализацию туториала, которая всегда открывала модалку */
 document.addEventListener('DOMContentLoaded', () => {
-  const modal    = document.getElementById('tutorial-modal');
-  const startBtn = document.getElementById('start-game-btn');
-  if (!modal || !startBtn) return;
-
-  // показываем туториал каждый запуск
-  modal.classList.add('active');
-  document.body.classList.add('modal-open'); // блок скролла фона
-
-  // закрытие по кнопке
-  startBtn.addEventListener('click', () => {
-    modal.classList.remove('active');
-    document.body.classList.remove('modal-open');
-  }, { once: true });
-});
-document.addEventListener('DOMContentLoaded', () => {
+  // Reset tutorialSeen flag on every load to ensure tutorial opens
+  try {
+    localStorage.removeItem('tutorialSeen');
+  } catch (e) {}
   // Энерго-система
   const gained = regenSince(E.lastTs, nowTs());
   if (gained > 0) {
@@ -4717,14 +4703,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /*__FORCE_TUTORIAL_OPEN__*/
-document.addEventListener('DOMContentLoaded', function(){
-  try{
-    var t = document.getElementById('tutorial-modal');
-    if (t && !t.classList.contains('active')) t.classList.add('active');
-    var s = document.getElementById('start-game-btn');
-    if (s){ s.addEventListener('click', function(){ t.classList.remove('active'); }); }
-  }catch(e){ console.error(e); }
-});
+// Убрали форс-показ туториала. Теперь он контролируется через localStorage и показывается только один раз.
 </script>
 
 
@@ -6255,6 +6234,60 @@ function tick(){
     boot();
   }
 })();
+</script>
+<!-- Custom script to ensure tutorial modal and avatar profile work reliably -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Force tutorial modal to open on first load
+  const tutorialModal = document.getElementById('tutorial-modal');
+  if (tutorialModal) {
+    tutorialModal.classList.add('active');
+    document.body.classList.add('modal-open');
+    const startBtn = document.getElementById('start-game-btn');
+    const skipBtn  = document.getElementById('tutorial-skip');
+    function closeTutorial() {
+      tutorialModal.classList.remove('active');
+      document.body.classList.remove('modal-open');
+    }
+    if (startBtn) startBtn.addEventListener('click', closeTutorial);
+    if (skipBtn)  skipBtn.addEventListener('click', closeTutorial);
+    tutorialModal.addEventListener('click', (e) => {
+      if (e.target === tutorialModal) closeTutorial();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && tutorialModal.classList.contains('active')) {
+        closeTutorial();
+      }
+    });
+  }
+  // Bind avatar click to open profile modal
+  const avatarCard = document.getElementById('avatar-card');
+  const profileModal = document.getElementById('profile-modal');
+  const profileOverlay = document.getElementById('profile-overlay');
+  const profileClose1 = document.getElementById('profile-close');
+  const profileClose2 = document.getElementById('profile-close-2');
+  if (avatarCard && profileModal && profileOverlay) {
+    function openProfile() {
+      profileOverlay.classList.add('open');
+      profileModal.classList.add('open');
+      document.body.classList.add('modal-open');
+    }
+    function closeProfile() {
+      profileOverlay.classList.remove('open');
+      profileModal.classList.remove('open');
+      document.body.classList.remove('modal-open');
+    }
+    avatarCard.addEventListener('click', openProfile);
+    profileOverlay.addEventListener('click', closeProfile);
+    if (profileClose1) profileClose1.addEventListener('click', closeProfile);
+    if (profileClose2) profileClose2.addEventListener('click', closeProfile);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && profileModal.classList.contains('open')) {
+        closeProfile();
+      }
+    });
+  }
+});
 </script>
 </body>
 </html>
