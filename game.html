@@ -2157,7 +2157,7 @@ body.modal-open {
 <span class="click-indicator"><i class="fas fa-hand-pointer"></i>
 </span></div><div class="status-value" id="solar-efficiency">87%</div><div class="progress-bar"><div class="progress-fill" id="solar-progress" style="width: 87%"></div></div></div>
 <!-- AVATAR CARD (кликабельно) -->
-<div aria-label="Open profile" class="status-card red-glow clickable" id="avatar-card" role="button">
+<div aria-label="Open profile" class="status-card red-glow" id="avatar-card" role="button">
 <div class="avatar-row">
 <!-- <img class="avatar-img" src="images/avatar.png" alt="Avatar">  -->
 <div class="avatar-info">
@@ -3176,7 +3176,10 @@ body.modal-open {
                  * Раздел «Цех модулей» был заменён на покупку и продажу льда. Этот ресурс
                  * добывается в ледяных шахтах и используется для производства воды и кислорода.
                  */
-                { id: 4, name: "Лёд", vendor: "ЦЕХ ЛЬДА", rating: 4, amount: 50, price: 20 }
+                { id: 4, name: "Лёд", vendor: "ЦЕХ ЛЬДА", rating: 4, amount: 50, price: 20 },
+                // Товары для рынка: биоматериалы и запчасти
+                { id: 5, name: "Биоматериал", vendor: "БИОФАБ", rating: 4, amount: 60, price: 15, resource: 'bio' },
+                { id: 6, name: "Запчасти", vendor: "ТЕХМАСТЕР", rating: 3, amount: 40, price: 25, resource: 'parts' }
             ],
             drones: 0,
             slots: 2,
@@ -4676,10 +4679,6 @@ document.querySelectorAll('.power-node').forEach(el => {
 
 /* Удалили дублирующую инициализацию туториала, которая всегда открывала модалку */
 document.addEventListener('DOMContentLoaded', () => {
-  // Reset tutorialSeen flag on every load to ensure tutorial opens
-  try {
-    localStorage.removeItem('tutorialSeen');
-  } catch (e) {}
   // Энерго-система
   const gained = regenSince(E.lastTs, nowTs());
   if (gained > 0) {
@@ -5017,6 +5016,9 @@ function tick(){
             else if (name.includes('энерг')) resource = 'energy';
             // Новый ресурс: лёд
             else if (name.includes('лёд') || name.includes('лед')) resource = 'ice';
+            // Новые ресурсы: биоматериалы и запчасти
+            else if (name.includes('био') || name.includes('bio')) resource = 'bio';
+            else if (name.includes('запчаст') || name.includes('parts')) resource = 'parts';
             item.resource = resource;
         });
     }
@@ -5128,7 +5130,10 @@ function tick(){
             "РЫНОК-АРЕС": { reputation: 0, discount: 0 },
             "Комбинат продовольствия": { reputation: 0, discount: 0 },
             "БАЗА МЕХАНИКОВ": { reputation: 0, discount: 0 },
-            "ПОЛЯРНАЯ СТАНЦИЯ": { reputation: 0, discount: 0 }
+            "ПОЛЯРНАЯ СТАНЦИЯ": { reputation: 0, discount: 0 },
+            // Новые торговцы для биоматериалов и запчастей
+            "БИОФАБ": { reputation: 0, discount: 0 },
+            "ТЕХМАСТЕР": { reputation: 0, discount: 0 }
         },
         init() {
             // Загружаем сохранённую репутацию
@@ -6234,60 +6239,6 @@ function tick(){
     boot();
   }
 })();
-</script>
-<!-- Custom script to ensure tutorial modal and avatar profile work reliably -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  // Force tutorial modal to open on first load
-  const tutorialModal = document.getElementById('tutorial-modal');
-  if (tutorialModal) {
-    tutorialModal.classList.add('active');
-    document.body.classList.add('modal-open');
-    const startBtn = document.getElementById('start-game-btn');
-    const skipBtn  = document.getElementById('tutorial-skip');
-    function closeTutorial() {
-      tutorialModal.classList.remove('active');
-      document.body.classList.remove('modal-open');
-    }
-    if (startBtn) startBtn.addEventListener('click', closeTutorial);
-    if (skipBtn)  skipBtn.addEventListener('click', closeTutorial);
-    tutorialModal.addEventListener('click', (e) => {
-      if (e.target === tutorialModal) closeTutorial();
-    });
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && tutorialModal.classList.contains('active')) {
-        closeTutorial();
-      }
-    });
-  }
-  // Bind avatar click to open profile modal
-  const avatarCard = document.getElementById('avatar-card');
-  const profileModal = document.getElementById('profile-modal');
-  const profileOverlay = document.getElementById('profile-overlay');
-  const profileClose1 = document.getElementById('profile-close');
-  const profileClose2 = document.getElementById('profile-close-2');
-  if (avatarCard && profileModal && profileOverlay) {
-    function openProfile() {
-      profileOverlay.classList.add('open');
-      profileModal.classList.add('open');
-      document.body.classList.add('modal-open');
-    }
-    function closeProfile() {
-      profileOverlay.classList.remove('open');
-      profileModal.classList.remove('open');
-      document.body.classList.remove('modal-open');
-    }
-    avatarCard.addEventListener('click', openProfile);
-    profileOverlay.addEventListener('click', closeProfile);
-    if (profileClose1) profileClose1.addEventListener('click', closeProfile);
-    if (profileClose2) profileClose2.addEventListener('click', closeProfile);
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && profileModal.classList.contains('open')) {
-        closeProfile();
-      }
-    });
-  }
-});
 </script>
 </body>
 </html>
