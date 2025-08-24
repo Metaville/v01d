@@ -2006,6 +2006,233 @@ body.modal-open {
 }
 </style>
 
+<!-- NPC orders system styles -->
+<style>
+/* Стили для системы NPC и заказов */
+.npc-character {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin: 10px 0;
+  background: rgba(20, 25, 40, 0.7);
+  border-radius: 8px;
+  border: 1px solid #3a3a5a;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.npc-character:hover {
+  background: rgba(30, 35, 60, 0.7);
+  transform: translateY(-2px);
+}
+
+.npc-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 15px;
+  border: 2px solid #00cc99;
+}
+
+.npc-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.npc-info {
+  flex-grow: 1;
+}
+
+.npc-name {
+  font-weight: 600;
+  color: #00ffcc;
+  margin-bottom: 4px;
+}
+
+.npc-title {
+  font-size: 12px;
+  color: #a0a0d0;
+}
+
+.npc-reputation {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #ffcc00;
+}
+
+/* Стили для диалогового окна NPC */
+.npc-dialog {
+  display: flex;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(30, 35, 60, 0.5);
+  border-radius: 8px;
+}
+
+.npc-message {
+  flex-grow: 1;
+  padding: 10px;
+  font-style: italic;
+  color: #e0e0ff;
+}
+
+.npc-orders {
+  margin-top: 20px;
+}
+
+.npc-order-card {
+  background: rgba(20, 25, 40, 0.7);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #3a3a5a;
+}
+
+.npc-order-card h5 {
+  color: #00ffcc;
+  margin-bottom: 8px;
+}
+
+.order-requirements, .order-reward, .order-time-limit {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.order-time-limit {
+  color: #ffcc00;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Индикатор сложности задания */
+.order-difficulty {
+  display: flex;
+  margin-top: 10px;
+}
+
+.difficulty-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+  background: #2a2a4a;
+}
+
+.difficulty-dot.active {
+  background: #ffcc00;
+}
+
+/* Стили для активных заданий */
+.active-order-item {
+  background: rgba(20, 25, 40, 0.7);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-left: 4px solid #ffcc00;
+}
+
+.order-progress {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #a0a0d0;
+}
+
+.order-timer {
+  color: #ff5555;
+  font-weight: 600;
+}
+
+/* Стили для завершенных заданий */
+.completed-order-item {
+  opacity: 0.7;
+  border-left: 4px solid #00cc99;
+}
+
+/* Дополнительные стили для списка заказов */
+/* Контейнер NPC на базе */
+#npc-container {
+  margin-top: 20px;
+}
+
+/* Контейнер заказов в маркете – скрыт по умолчанию */
+#orders-content {
+  display: none;
+}
+
+/* Общий контейнер для секций заказов */
+.orders-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+/* Секции заказов (активные/доступные/завершённые) */
+.orders-section {
+  background: rgba(20, 25, 40, 0.7);
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid #3a3a5a;
+}
+
+.orders-section h4 {
+  color: #00ffcc;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+/* Карточка отдельного заказа в списках */
+.order-item {
+  background: rgba(30, 35, 60, 0.5);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #3a3a5a;
+}
+
+/* Шапка карточки заказа */
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* Имя NPC в карточке заказа */
+.order-npc {
+  font-size: 12px;
+  color: #a0a0d0;
+}
+
+/* Детали заказа (требуется/награда) */
+.order-details {
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+/* Остаток времени для активного заказа */
+.order-time-left {
+  color: #ffcc00;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 8px 0;
+}
+
+/* Сообщение, когда нет заказов */
+.no-orders {
+  text-align: center;
+  color: #93a3b8;
+  font-style: italic;
+  padding: 20px;
+}
+</style>
 </head>
 <body>
 <div class="container" id="app">
@@ -2157,7 +2384,7 @@ body.modal-open {
 <span class="click-indicator"><i class="fas fa-hand-pointer"></i>
 </span></div><div class="status-value" id="solar-efficiency">87%</div><div class="progress-bar"><div class="progress-fill" id="solar-progress" style="width: 87%"></div></div></div>
 <!-- AVATAR CARD (кликабельно) -->
-<div aria-label="Open profile" class="status-card red-glow" id="avatar-card" role="button">
+<div aria-label="Open profile" class="status-card red-glow clickable" id="avatar-card" role="button">
 <div class="avatar-row">
 <!-- <img class="avatar-img" src="images/avatar.png" alt="Avatar">  -->
 <div class="avatar-info">
@@ -3177,9 +3404,10 @@ body.modal-open {
                  * добывается в ледяных шахтах и используется для производства воды и кислорода.
                  */
                 { id: 4, name: "Лёд", vendor: "ЦЕХ ЛЬДА", rating: 4, amount: 50, price: 20 },
-                // Товары для рынка: биоматериалы и запчасти
-                { id: 5, name: "Биоматериал", vendor: "БИОФАБ", rating: 4, amount: 60, price: 15, resource: 'bio' },
-                { id: 6, name: "Запчасти", vendor: "ТЕХМАСТЕР", rating: 3, amount: 40, price: 25, resource: 'parts' }
+                // Новые товары для биоматериалов и запчастей. Эти позиции позволяют
+                // игрокам покупать и продавать биоматериал и запчасти напрямую на рынке.
+                { id: 5, name: "Биоматериал", vendor: "БИОФАБ", rating: 4, amount: 60, price: 15 },
+                { id: 6, name: "Запчасти", vendor: "ТЕХМАСТЕР", rating: 3, amount: 40, price: 25 }
             ],
             drones: 0,
             slots: 2,
@@ -4679,6 +4907,10 @@ document.querySelectorAll('.power-node').forEach(el => {
 
 /* Удалили дублирующую инициализацию туториала, которая всегда открывала модалку */
 document.addEventListener('DOMContentLoaded', () => {
+  // Reset tutorialSeen flag on every load to ensure tutorial opens
+  try {
+    localStorage.removeItem('tutorialSeen');
+  } catch (e) {}
   // Энерго-система
   const gained = regenSince(E.lastTs, nowTs());
   if (gained > 0) {
@@ -5016,9 +5248,9 @@ function tick(){
             else if (name.includes('энерг')) resource = 'energy';
             // Новый ресурс: лёд
             else if (name.includes('лёд') || name.includes('лед')) resource = 'ice';
-            // Новые ресурсы: биоматериалы и запчасти
-            else if (name.includes('био') || name.includes('bio')) resource = 'bio';
-            else if (name.includes('запчаст') || name.includes('parts')) resource = 'parts';
+            // Биоматериал и запчасти – определяем по названию (русские и латинские варианты)
+            else if (name.includes('био') || name.includes('bio') || name.includes('биомат')) resource = 'bio';
+            else if (name.includes('зап') || name.includes('part') || name.includes('запчаст')) resource = 'parts';
             item.resource = resource;
         });
     }
@@ -5130,8 +5362,9 @@ function tick(){
             "РЫНОК-АРЕС": { reputation: 0, discount: 0 },
             "Комбинат продовольствия": { reputation: 0, discount: 0 },
             "БАЗА МЕХАНИКОВ": { reputation: 0, discount: 0 },
-            "ПОЛЯРНАЯ СТАНЦИЯ": { reputation: 0, discount: 0 },
-            // Новые торговцы для биоматериалов и запчастей
+            "ПОЛЯРНАЯ СТАНЦИЯ": { reputation: 0, discount: 0 }
+            ,
+            // Новые продавцы для биоматериала и запчастей
             "БИОФАБ": { reputation: 0, discount: 0 },
             "ТЕХМАСТЕР": { reputation: 0, discount: 0 }
         },
@@ -6239,6 +6472,735 @@ function tick(){
     boot();
   }
 })();
+</script>
+<!-- Custom script to ensure tutorial modal and avatar profile work reliably -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Force tutorial modal to open on first load
+  const tutorialModal = document.getElementById('tutorial-modal');
+  if (tutorialModal) {
+    tutorialModal.classList.add('active');
+    document.body.classList.add('modal-open');
+    const startBtn = document.getElementById('start-game-btn');
+    const skipBtn  = document.getElementById('tutorial-skip');
+    function closeTutorial() {
+      tutorialModal.classList.remove('active');
+      document.body.classList.remove('modal-open');
+    }
+    if (startBtn) startBtn.addEventListener('click', closeTutorial);
+    if (skipBtn)  skipBtn.addEventListener('click', closeTutorial);
+    tutorialModal.addEventListener('click', (e) => {
+      if (e.target === tutorialModal) closeTutorial();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && tutorialModal.classList.contains('active')) {
+        closeTutorial();
+      }
+    });
+  }
+  // Bind avatar click to open profile modal
+  const avatarCard = document.getElementById('avatar-card');
+  const profileModal = document.getElementById('profile-modal');
+  const profileOverlay = document.getElementById('profile-overlay');
+  const profileClose1 = document.getElementById('profile-close');
+  const profileClose2 = document.getElementById('profile-close-2');
+  if (avatarCard && profileModal && profileOverlay) {
+    function openProfile() {
+      profileOverlay.classList.add('open');
+      profileModal.classList.add('open');
+      document.body.classList.add('modal-open');
+    }
+    function closeProfile() {
+      profileOverlay.classList.remove('open');
+      profileModal.classList.remove('open');
+      document.body.classList.remove('modal-open');
+    }
+    avatarCard.addEventListener('click', openProfile);
+    profileOverlay.addEventListener('click', closeProfile);
+    if (profileClose1) profileClose1.addEventListener('click', closeProfile);
+    if (profileClose2) profileClose2.addEventListener('click', closeProfile);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && profileModal.classList.contains('open')) {
+        closeProfile();
+      }
+    });
+  }
+});
+</script>
+<!-- NPC Orders and Contracts system scripts -->
+<script>
+// Система индивидуальных заказов от NPC
+const npcOrdersSystem = {
+  npcCharacters: {
+    boris: {
+      id: 'boris',
+      name: 'Борис',
+      title: 'Старший механик',
+      location: 'База',
+      reputation: 0,
+      specialization: 'parts',
+      personality: 'pragmatic',
+      avatar: 'npc_boris.png',
+      dialogue: {
+        greeting: "Привет, друг! Есть для тебя выгодное предложение.",
+        thanks: "Спасибо, ты выручил! Заходи ещё.",
+        busy: "Занят сейчас, зайди попозже."
+      }
+    },
+    drKlein: {
+      id: 'drKlein',
+      name: 'Доктор Клейн',
+      title: 'Главный ученый',
+      location: 'Лаборатория',
+      reputation: 0,
+      specialization: 'bio',
+      personality: 'intellectual',
+      avatar: 'npc_klein.png',
+      dialogue: {
+        greeting: "Ваше присутствие как нельзя кстати. Нужна помощь с одним исследованием.",
+        thanks: "Превосходно! Наука благодарна вам за вклад.",
+        busy: "Провожу эксперимент, не беспокоить."
+      }
+    }
+  },
+  availableOrders: [],
+  activeOrders: [],
+  completedOrders: [],
+  init() {
+    this.loadOrders();
+    this.generateInitialOrders();
+    // Обновляем доступные заказы каждые 30 минут
+    setInterval(() => this.refreshAvailableOrders(), 1800000);
+    // Проверяем активные заказы каждую минуту и обновляем интерфейс
+    setInterval(() => this.checkActiveOrders(), 60000);
+    // Первичное обновление интерфейса заказов
+    this.updateOrdersUI();
+  },
+  generateInitialOrders() {
+    // Генерация начальных заказов для каждого NPC
+    for (const npcId in this.npcCharacters) {
+      this.generateOrdersForNPC(npcId, 2);
+    }
+  },
+  generateOrdersForNPC(npcId, count) {
+    const npc = this.npcCharacters[npcId];
+    for (let i = 0; i < count; i++) {
+      const order = this.createOrderForNPC(npc);
+      this.availableOrders.push(order);
+    }
+  },
+  createOrderForNPC(npc) {
+    const orderTypes = this.getOrderTypesBySpecialization(npc.specialization);
+    const orderType = orderTypes[Math.floor(Math.random() * orderTypes.length)];
+    return {
+      id: `order_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      npcId: npc.id,
+      title: this.generateOrderTitle(orderType, npc),
+      description: this.generateOrderDescription(orderType, npc),
+      type: orderType,
+      requirements: this.generateRequirements(orderType, npc),
+      reward: this.generateReward(orderType, npc),
+      timeLimit: this.generateTimeLimit(orderType),
+      difficulty: this.calculateDifficulty(npc.reputation),
+      specialConditions: this.generateSpecialConditions(orderType),
+      createdAt: Date.now(),
+      status: 'available'
+    };
+  },
+  getOrderTypesBySpecialization(specialization) {
+    const types = {
+      parts: ['urgent_delivery', 'rare_parts', 'assembly'],
+      bio: ['sample_collection', 'experiment', 'research'],
+      energy: ['power_restoration', 'energy_transfer', 'grid_stabilization'],
+      oxygen: ['life_support', 'o2_distribution', 'filter_replacement']
+    };
+    return types[specialization] || ['general_task'];
+  },
+  generateOrderTitle(orderType, npc) {
+    const titles = {
+      urgent_delivery: `Срочная доставка для ${npc.name}`,
+      rare_parts: `Поиск редких компонентов`,
+      assembly: `Сборка устройства`,
+      sample_collection: `Сбор биологических образцов`,
+      experiment: `Помощь в эксперименте`,
+      research: `Исследовательская миссия`,
+      general_task: `Задание от ${npc.name}`
+    };
+    return titles[orderType] || `Задание от ${npc.name}`;
+  },
+  generateOrderDescription(orderType, npc) {
+    const descriptions = {
+      urgent_delivery: `${npc.name} срочно нужны детали для ремонта системы. Доставьте их как можно быстрее.`,
+      rare_parts: `${npc.name} ищет редкие компоненты для своего нового изобретения. Найдите их в указанном секторе.`,
+      sample_collection: `Доктору нужны образцы для исследования местной флоры. Соберите требуемые образцы.`
+    };
+    return descriptions[orderType] || `${npc.name} нуждается в вашей помощи.`;
+  },
+  generateRequirements(orderType, npc) {
+    const baseRequirements = {};
+    const npcSpecialization = npc.specialization;
+    // Базовые требования в зависимости от специализации NPC
+    switch (npcSpecialization) {
+      case 'parts':
+        baseRequirements.parts = 15 + Math.floor(Math.random() * 20);
+        break;
+      case 'bio':
+        baseRequirements.bio = 10 + Math.floor(Math.random() * 15);
+        break;
+      case 'energy':
+        baseRequirements.energy = 100 + Math.floor(Math.random() * 150);
+        break;
+      case 'oxygen':
+        baseRequirements.oxygen = 50 + Math.floor(Math.random() * 70);
+        break;
+    }
+    // Дополнительные требования в зависимости от типа задания
+    switch (orderType) {
+      case 'urgent_delivery':
+        baseRequirements.mvc = 5;
+        break;
+      case 'rare_parts':
+        baseRequirements.rare = 3 + Math.floor(Math.random() * 5);
+        break;
+      case 'experiment':
+        baseRequirements.bio = (baseRequirements.bio || 0) * 1.5;
+        break;
+    }
+    return baseRequirements;
+  },
+  generateReward(orderType, npc) {
+    const baseReward = {
+      mvc: 100 + (npc.reputation * 10),
+      reputation: 10 + Math.floor(npc.reputation / 10)
+    };
+    // Дополнительные награды в зависимости от типа задания
+    switch (orderType) {
+      case 'urgent_delivery':
+        baseReward.mvc = baseReward.mvc * 1.5;
+        baseReward.parts = 5;
+        break;
+      case 'rare_parts':
+        baseReward.mvc = baseReward.mvc * 2;
+        baseReward.rare = 2;
+        break;
+      case 'experiment':
+        baseReward.bio = 8;
+        baseReward.reputation = baseReward.reputation * 1.5;
+        break;
+    }
+    // Добавляем специализированную награду в зависимости от NPC
+    baseReward[npc.specialization] = 5 + Math.floor(npc.reputation / 5);
+    return baseReward;
+  },
+  generateTimeLimit(orderType) {
+    const baseTime = 3600000;
+    switch (orderType) {
+      case 'urgent_delivery':
+        return baseTime * 0.5;
+      case 'research':
+        return baseTime * 2;
+      default:
+        return baseTime;
+    }
+  },
+  calculateDifficulty(reputation) {
+    return Math.min(5, Math.max(1, Math.floor(reputation / 20) + 1));
+  },
+  generateSpecialConditions(orderType) {
+    const conditions = [];
+    switch (orderType) {
+      case 'rare_parts':
+        conditions.push({
+          type: 'specific_sector',
+          sector: Math.floor(Math.random() * 18) + 1
+        });
+        break;
+      case 'sample_collection':
+        conditions.push({
+          type: 'time_of_day',
+          value: 'day'
+        });
+        break;
+      case 'assembly':
+        conditions.push({
+          type: 'require_tool',
+          tool: 'precision_tools'
+        });
+        break;
+    }
+    return conditions;
+  },
+  acceptOrder(orderId) {
+    const orderIndex = this.availableOrders.findIndex(order => order.id === orderId);
+    if (orderIndex === -1) return false;
+    const order = this.availableOrders[orderIndex];
+    order.acceptedAt = Date.now();
+    order.status = 'active';
+    this.activeOrders.push(order);
+    this.availableOrders.splice(orderIndex, 1);
+    this.saveOrders();
+    this.showOrderAcceptedMessage(order);
+    // Обновляем интерфейс после принятия задания
+    this.updateOrdersUI();
+    return true;
+  },
+  completeOrder(orderId) {
+    const orderIndex = this.activeOrders.findIndex(order => order.id === orderId);
+    if (orderIndex === -1) return false;
+    const order = this.activeOrders[orderIndex];
+    // Проверяем выполнение условий
+    if (!this.checkOrderCompletion(order)) return false;
+    // Выдаем награду
+    this.giveReward(order);
+    // Обновляем репутацию с NPC
+    this.npcCharacters[order.npcId].reputation += order.reward.reputation;
+    order.completedAt = Date.now();
+    order.status = 'completed';
+    this.completedOrders.push(order);
+    this.activeOrders.splice(orderIndex, 1);
+    this.saveOrders();
+    this.showOrderCompletedMessage(order);
+    // Обновляем интерфейс после завершения задания
+    this.updateOrdersUI();
+    return true;
+  },
+  checkOrderCompletion(order) {
+    // Проверяем основные требования
+    for (const [resource, amount] of Object.entries(order.requirements)) {
+      if ((gameState.resources[resource] || 0) < amount) {
+        return false;
+      }
+    }
+    // Проверяем специальные условия
+    for (const condition of order.specialConditions) {
+      if (!this.checkSpecialCondition(condition)) {
+        return false;
+      }
+    }
+    return true;
+  },
+  checkSpecialCondition(condition) {
+    switch (condition.type) {
+      case 'specific_sector':
+        return gameState.missions.sector === condition.sector;
+      case 'time_of_day':
+        return this.getGameTimeOfDay() === condition.value;
+      case 'require_tool':
+        return (gameState.inventory && gameState.inventory[condition.tool] > 0);
+      default:
+        return true;
+    }
+  },
+  giveReward(order) {
+    for (const [resource, amount] of Object.entries(order.reward)) {
+      if (resource === 'reputation') continue;
+      if (gameState.resources[resource] !== undefined) {
+        updateResource(resource, amount);
+      } else if (gameState.inventory && gameState.inventory[resource] !== undefined) {
+        gameState.inventory[resource] += amount;
+      }
+    }
+  },
+  getGameTimeOfDay() {
+    const gameTime = gameState.gameTime || { hour: 12 };
+    return gameTime.hour >= 6 && gameTime.hour < 18 ? 'day' : 'night';
+  },
+  showOrderAcceptedMessage(order) {
+    const npc = this.npcCharacters[order.npcId];
+    showNotification(`Задание \"${order.title}\" принято! ${npc.dialogue.thanks}`, true);
+  },
+  showOrderCompletedMessage(order) {
+    const npc = this.npcCharacters[order.npcId];
+    showNotification(`Задание \"${order.title}\" выполнено! Получено: ${this.formatReward(order.reward)}`, true);
+  },
+  formatReward(reward) {
+    return Object.entries(reward)
+      .map(([resource, amount]) => {
+        if (resource === 'reputation') return `${amount} репутации`;
+        return `${amount} ${getResourceName(resource)}`;
+      })
+      .join(', ');
+  },
+  refreshAvailableOrders() {
+    // Удаляем старые не принятые заказы
+    this.availableOrders = this.availableOrders.filter(order => {
+      return Date.now() - order.createdAt < 86400000;
+    });
+    // Добавляем новые заказы
+    for (const npcId in this.npcCharacters) {
+      if (Math.random() < 0.7) {
+        this.generateOrdersForNPC(npcId, 1);
+      }
+    }
+    this.saveOrders();
+    // Обновляем интерфейс после изменения доступных заказов
+    this.updateOrdersUI();
+  },
+  saveOrders() {
+    localStorage.setItem('npcOrders', JSON.stringify({
+      availableOrders: this.availableOrders,
+      activeOrders: this.activeOrders,
+      completedOrders: this.completedOrders,
+      npcCharacters: this.npcCharacters
+    }));
+  },
+  loadOrders() {
+    const savedData = localStorage.getItem('npcOrders');
+    if (savedData) {
+      const data = JSON.parse(savedData);
+      this.availableOrders = data.availableOrders || [];
+      this.activeOrders = data.activeOrders || [];
+      this.completedOrders = data.completedOrders || [];
+      // Merge reputations if characters exist
+      if (data.npcCharacters) {
+        for (const id in data.npcCharacters) {
+          if (this.npcCharacters[id]) {
+            this.npcCharacters[id].reputation = data.npcCharacters[id].reputation;
+          }
+        }
+      }
+    }
+  },
+  interactWithNPC(npcId) {
+    const npc = this.npcCharacters[npcId];
+    if (!npc) return;
+    this.showNPCDialog(npc);
+  },
+  showNPCDialog(npc) {
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+          <h3>${npc.name} - ${npc.title}</h3>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="npc-dialog">
+            <div class="npc-avatar">
+              <img src="${npc.avatar}" alt="${npc.name}">
+            </div>
+            <div class="npc-message">
+              <p>${npc.dialogue.greeting}</p>
+            </div>
+          </div>
+          <div class="npc-orders">
+            <h4>Доступные задания:</h4>
+            ${this.renderNPCOrders(npc.id)}
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    // Обработчик закрытия модального окна
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+  },
+  renderNPCOrders(npcId) {
+    const orders = this.availableOrders.filter(order => order.npcId === npcId);
+    if (orders.length === 0) {
+      return `<p>${this.npcCharacters[npcId].dialogue.busy}</p>`;
+    }
+    return orders.map(order => `
+      <div class="npc-order-card">
+        <h5>${order.title}</h5>
+        <p>${order.description}</p>
+        <div class="order-requirements">
+          <strong>Требуется:</strong> ${this.formatRequirements(order.requirements)}
+        </div>
+        <div class="order-reward">
+          <strong>Награда:</strong> ${this.formatReward(order.reward)}
+        </div>
+        <div class="order-time-limit">
+          <i class="fas fa-clock"></i> ${this.formatTimeLimit(order.timeLimit)}
+        </div>
+        <button class="btn btn-primary accept-order" data-order-id="${order.id}">
+          Принять задание
+        </button>
+      </div>
+    `).join('');
+  },
+  formatRequirements(requirements) {
+    return Object.entries(requirements)
+      .map(([resource, amount]) => `${amount} ${getResourceName(resource)}`)
+      .join(', ');
+  },
+  formatTimeLimit(timeLimit) {
+    const minutes = Math.ceil(timeLimit / 60000);
+    return `Осталось: ${minutes} мин.`;
+  },
+  // Обновляет отображение списков заказов. Вызывается после изменений
+  // в availableOrders, activeOrders и completedOrders. Использует глобальную
+  // функцию updateOrdersLists, если она определена.
+  updateOrdersUI() {
+    if (typeof updateOrdersLists === 'function') {
+      updateOrdersLists();
+    }
+  },
+  // Проверяет активные заказы: завершает выполненные и удаляет просроченные.
+  checkActiveOrders() {
+    const now = Date.now();
+    for (let i = this.activeOrders.length - 1; i >= 0; i--) {
+      const order = this.activeOrders[i];
+      if (now > order.acceptedAt + order.timeLimit) {
+        showNotification(`Задание \"${order.title}\" провалено! Время истекло.`, false);
+        this.activeOrders.splice(i, 1);
+        continue;
+      }
+      if (this.checkOrderCompletion(order)) {
+        this.completeOrder(order.id);
+      }
+    }
+    this.saveOrders();
+    this.updateOrdersUI();
+  }
+};
+// Инициализация системы заказов
+npcOrdersSystem.init();
+
+// Добавляем NPC на экран базы
+function addNPCsToBase() {
+  const baseScreen = document.getElementById('base-screen');
+  if (!baseScreen) return;
+  // Проверяем, добавлен ли уже контейнер NPC
+  if (document.getElementById('npc-container')) return;
+  const npcContainer = document.createElement('div');
+  npcContainer.id = 'npc-container';
+  npcContainer.style.marginTop = '20px';
+  const title = document.createElement('h3');
+  title.className = 'section-title';
+  title.innerHTML = '<i class="fas fa-users"></i> Обитатели станции';
+  npcContainer.appendChild(title);
+  for (const npcId in npcOrdersSystem.npcCharacters) {
+    const npc = npcOrdersSystem.npcCharacters[npcId];
+    const npcElement = document.createElement('div');
+    npcElement.className = 'npc-character';
+    npcElement.innerHTML = `
+      <div class="npc-avatar">
+        <img src="${npc.avatar}" alt="${npc.name}">
+      </div>
+      <div class="npc-info">
+        <div class="npc-name">${npc.name}</div>
+        <div class="npc-title">${npc.title}</div>
+        <div class="npc-reputation">
+          <i class="fas fa-star"></i> Репутация: ${npc.reputation}
+        </div>
+      </div>
+      <i class="fas fa-comment-dots" style="color: #00cc99; font-size: 20px;"></i>
+    `;
+    npcElement.addEventListener('click', () => {
+      npcOrdersSystem.interactWithNPC(npcId);
+    });
+    npcContainer.appendChild(npcElement);
+  }
+  baseScreen.appendChild(npcContainer);
+}
+
+// Добавляем вкладку заказов и контент
+function addOrdersTab() {
+  const marketTabs = document.querySelector('.market-tabs');
+  if (!marketTabs) return;
+  // Проверяем, добавлена ли вкладка
+  if (document.getElementById('tab-orders')) return;
+  const ordersTab = document.createElement('div');
+  ordersTab.className = 'tab';
+  ordersTab.id = 'tab-orders';
+  ordersTab.textContent = 'Заказы';
+  ordersTab.addEventListener('click', () => {
+    document.querySelectorAll('.market-tabs .tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    ordersTab.classList.add('active');
+    showOrdersContent();
+  });
+  marketTabs.appendChild(ordersTab);
+  // Создаем контейнер для контента заказов
+  const marketItems = document.getElementById('market-items');
+  if (marketItems) {
+    const ordersContent = document.createElement('div');
+    ordersContent.id = 'orders-content';
+    ordersContent.style.display = 'none';
+    ordersContent.innerHTML = `
+      <div class="orders-container">
+        <div class="orders-section">
+          <h4>Активные задания</h4>
+          <div id="active-orders-list"></div>
+        </div>
+        <div class="orders-section">
+          <h4>Доступные задания</h4>
+          <div id="available-orders-list"></div>
+        </div>
+        <div class="orders-section">
+          <h4>Завершенные задания</h4>
+          <div id="completed-orders-list"></div>
+        </div>
+      </div>
+    `;
+    marketItems.parentNode.insertBefore(ordersContent, marketItems.nextSibling);
+  }
+}
+
+function showOrdersContent() {
+  const marketItems = document.getElementById('market-items');
+  const ordersContent = document.getElementById('orders-content');
+  if (marketItems) marketItems.style.display = 'none';
+  if (ordersContent) ordersContent.style.display = 'block';
+  updateOrdersLists();
+}
+
+function updateOrdersLists() {
+  renderOrdersList('active', npcOrdersSystem.activeOrders);
+  renderOrdersList('available', npcOrdersSystem.availableOrders);
+  renderOrdersList('completed', npcOrdersSystem.completedOrders);
+}
+
+function renderOrdersList(type, orders) {
+  const listElement = document.getElementById(`${type}-orders-list`);
+  if (!listElement) return;
+  if (orders.length === 0) {
+    listElement.innerHTML = `<p class="no-orders">Нет ${getOrderTypeName(type)} заданий</p>`;
+    return;
+  }
+  listElement.innerHTML = orders.map(order => {
+    const npc = npcOrdersSystem.npcCharacters[order.npcId];
+    let timeLeft = '';
+    if (order.status === 'active') {
+      const left = order.timeLimit - (Date.now() - order.acceptedAt);
+      timeLeft = left > 0 ? Math.ceil(left / 60000) : 0;
+    }
+    return `
+      <div class="order-item ${type}-order-item">
+        <div class="order-header">
+          <h5>${order.title}</h5>
+          <span class="order-npc">от ${npc.name}</span>
+        </div>
+        <p>${order.description}</p>
+        <div class="order-details">
+          <div><strong>Требуется:</strong> ${npcOrdersSystem.formatRequirements(order.requirements)}</div>
+          <div><strong>Награда:</strong> ${npcOrdersSystem.formatReward(order.reward)}</div>
+          ${type === 'active' ? `
+            <div class="order-time-left">
+              <i class="fas fa-clock"></i> 
+              Осталось: ${timeLeft} мин.
+            </div>
+          ` : ''}
+        </div>
+        ${type === 'active' ? `
+          <button class="btn btn-primary complete-order" data-order-id="${order.id}">
+            Завершить
+          </button>
+        ` : type === 'available' ? `
+          <button class="btn btn-primary accept-order" data-order-id="${order.id}">
+            Принять
+          </button>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function getOrderTypeName(type) {
+  const names = {
+    active: 'активных',
+    available: 'доступных',
+    completed: 'завершенных'
+  };
+  return names[type] || type;
+}
+
+// События для принятия и завершения заказов
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('accept-order')) {
+    const orderId = e.target.dataset.orderId;
+    npcOrdersSystem.acceptOrder(orderId);
+    // Закрываем модальное окно
+    const modal = e.target.closest('.modal');
+    if (modal) {
+      document.body.removeChild(modal);
+    }
+  } else if (e.target.classList.contains('complete-order')) {
+    const orderId = e.target.dataset.orderId;
+    npcOrdersSystem.completeOrder(orderId);
+    updateOrdersLists();
+  }
+});
+
+// Инициализация интерфейса NPC и вкладки заказов после загрузки
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(addNPCsToBase, 1000);
+  setTimeout(addOrdersTab, 1000);
+});
+/* === FIX: переключение между вкладками Рынка и вкладкой "Заказы" === */
+(function wireMarketTabsForOrders(){
+  function $(sel){ return document.querySelector(sel); }
+  function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
+
+  const tabsWrap = $('.market-tabs');
+  if (!tabsWrap) return;
+
+  // Проставим стабильные id базовым трём вкладкам (по порядку)
+  const tabs = $all('.market-tabs .tab');
+  if (tabs[0] && !tabs[0].id) tabs[0].id = 'tab-resources';
+  if (tabs[1] && !tabs[1].id) tabs[1].id = 'tab-equipment';
+  if (tabs[2] && !tabs[2].id) tabs[2].id = 'tab-contracts';
+
+  // Если контент заказов ещё не создан — создадим через существующую функцию
+  if (!document.getElementById('orders-content') && typeof addOrdersTab === 'function') {
+    addOrdersTab(); // создаст #orders-content и добавит саму вкладку "Заказы" :contentReference[oaicite:2]{index=2}
+  }
+
+  const showMarket = () => {
+    const items = document.getElementById('market-items');
+    const orders = document.getElementById('orders-content');
+    if (items) items.style.display = '';   // показать товары
+    if (orders) orders.style.display = 'none'; // спрятать заказы
+    if (typeof renderMarket === 'function') renderMarket();
+    if (typeof renderActiveEvents === 'function') renderActiveEvents();
+  };
+
+  const showOrders = () => {
+    const items = document.getElementById('market-items');
+    const orders = document.getElementById('orders-content');
+    if (items) items.style.display = 'none';
+    if (orders) orders.style.display = 'block';
+    if (typeof updateOrdersLists === 'function') updateOrdersLists();
+  };
+
+  // Навесим обработчики на базовые вкладки — вернуть список товаров
+  ['tab-resources','tab-equipment','tab-contracts'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.ordersWired) return;
+    el.dataset.ordersWired = '1';
+    el.addEventListener('click', () => {
+      $all('.market-tabs .tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      showMarket();
+    });
+  });
+
+  // Перестрахуемся и переназначим клик на вкладку "Заказы", если она есть
+  const ordersTab = document.getElementById('tab-orders');
+  if (ordersTab && !ordersTab.dataset.ordersWired) {
+    ordersTab.dataset.ordersWired = '1';
+    ordersTab.addEventListener('click', () => {
+      $all('.market-tabs .tab').forEach(t => t.classList.remove('active'));
+      ordersTab.classList.add('active');
+      showOrders();
+    });
+  }
+})();
+
+// Гарантируем инициализацию после вставки вкладки "Заказы"
+document.addEventListener('DOMContentLoaded', () => {
+  // если addOrdersTab вызывается с отложкой — подождём чуть больше
+  setTimeout(() => {
+    if (typeof wireMarketTabsForOrders === 'function') {
+      wireMarketTabsForOrders(); // если обёрнули в IIFE — просто повторный вызов ничего не сломает
+    }
+  }, 1100);
+});
+
 </script>
 </body>
 </html>
