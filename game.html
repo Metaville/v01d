@@ -1318,7 +1318,7 @@ body.modal-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px; /* отступ внутри оверлея для мобильных */
+  padding: 5px; /* отступ внутри оверлея для мобильных */
 }
 
 /* Блокируем прокрутку фона, когда открыта модалка */
@@ -2043,6 +2043,16 @@ body.modal-open {
 <div class="resource-item" id="parts-resource">
 <span>🛠️ <span id="parts-value">100</span></span>
 </div>
+<div class="resource-item" id="ice-resource">
+<span>❄️ <span id="ice-value">120</span></span>
+</div>
+    <!-- Отображение полимеров и редкоземов -->
+    <div class="resource-item" id="polymers-resource">
+        <span>🧬 <span id="polymers-value">0</span></span>
+    </div>
+    <div class="resource-item" id="rare-resource">
+        <span>💎 <span id="rare-value">0</span></span>
+    </div>
 </div>
 <!-- Модальное окно обучения -->
 <div class="modal" id="tutorial-modal">
@@ -2335,15 +2345,16 @@ body.modal-open {
 </div>
 <!-- Экран Маркет -->
 <div class="screen" id="market-screen">
-        <h2 class="section-title">Market V.01.D</h2>
-        <!-- Tabs for different categories. Only one tab (Resources) is functional in this prototype -->
-        <div class="market-tabs">
-          <div class="tab active" id="tab-resources">Resources</div>
-          <div class="tab" id="tab-equipment">Equipment</div>
-          <div class="tab" id="tab-contracts">Contracts</div>
-        </div>
-        <!-- Dynamic container for market offers. Items will be rendered here by JavaScript -->
-        <div id="market-items"></div>
+<h2 class="section-title">Market V.01.D</h2>
+<div class="market-tabs">
+  <div class="tab active">Resources</div>
+  <div class="tab">Equipment</div>
+  <div class="tab">Contracts</div>
+</div>
+  <!-- Container for active market events -->
+  <div id="market-events-container" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+  <!-- Dynamic list of market items will be rendered here -->
+  <div id="market-items"></div>
 </div>
 <!-- Экран Голосования -->
 <div class="screen" id="vote-screen">
@@ -2846,7 +2857,7 @@ body.modal-open {
 
       <p>Select to scan (cost: <span id="scan-cost">—</span> ⚡):</p>
 
-      <!-- Легенда зон: ОСТАЁТСЯ в шапке -->
+      <!-- Легенда зон: шапке -->
       <div class="scan-zones-info">
         <div class="zone-card">
           <div class="zone-header">
@@ -2874,7 +2885,7 @@ body.modal-open {
       </div>
     </div>
 
-    <!-- ВАЖНО: сетка секторов ПЕРЕНЕСЕНА сюда -->
+    <!-- сетка секторов  -->
     <div class="modal-body">
       <div class="sectors-grid">
         <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="3" >
@@ -3114,7 +3125,13 @@ body.modal-open {
                  * не отображается в общем счётчике, но хранится в состоянии. Для
                  * начала задаём небольшой стартовый запас.
                  */
-                ice: 120
+                ice: 120,
+                /**
+                 * Дополнительные ресурсы для торговли. Полимеры и редкоземы
+                 * хранятся в общем счётчике, чтобы отображаться на верхней панели.
+                 */
+                polymers: 0,
+                rare: 0
             },
 
             player: {
@@ -3167,157 +3184,16 @@ body.modal-open {
                 security: 45,
                 moon: 28
             },
-            /**
-             * Инвентарь игрока для предметов рынка, не отображаемых в ресурсах. Здесь будем хранить
-             * купленные товары (полимеры, редкоземы, оборудование и т.д.). Оксиген продаётся напрямую
-             * из ресурса oxygen, поэтому в инвентарь не включается.
-             */
-            inventory: {
-                polymers: 0,
-                rare: 0,
-                stealth: 0,
-                drill: 0,
-                drone: 0
-            },
             userVotes: 150,
-            /**
-             * Товары рынка. Для удобства каждый товар содержит базовую цену (basePrice), чтобы от неё
-             * рассчитывать динамические изменения, а также initialAmount — стартовое количество.
-             * Поле resource используется для обновления соответствующего ресурса игрока при покупке.
-             * Категория определяет, в какой вкладке отображается товар.
-             */
             marketItems: [
-                {
-                    id: 1,
-                    name: "Полимеры",
-                    vendor: "ГЛОРИЯ",
-                    rating: 4,
-                    amount: 85,
-                    initialAmount: 85,
-                    price: 12,
-                    basePrice: 12,
-                    category: 'resources',
-                    resource: 'polymers',
-                    sellable: false
-                },
-                {
-                    id: 2,
-                    name: "Редкоземы",
-                    vendor: "СИНДИКАТ-7",
-                    rating: 3,
-                    amount: 12,
-                    initialAmount: 12,
-                    price: 28,
-                    basePrice: 28,
-                    category: 'resources',
-                    resource: 'rare',
-                    sellable: false
-                },
-                {
-                    id: 3,
-                    name: "O₂",
-                    vendor: "БАР У ДЖО",
-                    rating: 5,
-                    amount: 150,
-                    initialAmount: 150,
-                    price: 10,
-                    basePrice: 10,
-                    category: 'resources',
-                    resource: 'oxygen',
-                    sellable: true
-                },
-                {
-                    id: 4,
-                    name: "Стелс‑модуль",
-                    vendor: "ЦЕХ МОДУЛЕЙ",
-                    rating: 4,
-                    amount: 1,
-                    initialAmount: 1,
-                    price: 450,
-                    basePrice: 450,
-                    category: 'equipment',
-                    resource: 'stealth',
-                    sellable: false
-                },
-                {
-                    id: 5,
-                    name: "Лазерный бур",
-                    vendor: "МЕХАНИКС",
-                    rating: 4,
-                    amount: 3,
-                    initialAmount: 3,
-                    price: 120,
-                    basePrice: 120,
-                    category: 'equipment',
-                    resource: 'drill',
-                    sellable: false
-                },
-                {
-                    id: 6,
-                    name: "Дрон‑майнер",
-                    vendor: "СИНДИКАТ-7",
-                    rating: 5,
-                    amount: 2,
-                    initialAmount: 2,
-                    price: 300,
-                    basePrice: 300,
-                    category: 'equipment',
-                    resource: 'drone',
-                    sellable: false
-                }
-                ,
-                {
-                    id: 7,
-                    name: "Топливные ячейки",
-                    vendor: "РЫНОК-АРЕС",
-                    rating: 4,
-                    amount: 40,
-                    initialAmount: 40,
-                    price: 18,
-                    basePrice: 18,
-                    category: 'resources',
-                    resource: 'energy',
-                    sellable: true
-                },
-                {
-                    id: 8,
-                    name: "Продовольственные пайки",
-                    vendor: "Комбинат продовольствия",
-                    rating: 3,
-                    amount: 60,
-                    initialAmount: 60,
-                    price: 14,
-                    basePrice: 14,
-                    category: 'resources',
-                    resource: 'bio',
-                    sellable: true
-                },
-                {
-                    id: 9,
-                    name: "Комплект запчастей",
-                    vendor: "БАЗА МЕХАНИКОВ",
-                    rating: 4,
-                    amount: 30,
-                    initialAmount: 30,
-                    price: 22,
-                    basePrice: 22,
-                    category: 'resources',
-                    resource: 'parts',
-                    sellable: true
-                },
-                {
-                    id: 10,
-                    name: "Лёд",
-                    vendor: "ПОЛЯРНАЯ СТАНЦИЯ",
-                    rating: 4,
-                    amount: 80,
-                    initialAmount: 80,
-                    price: 8,
-                    basePrice: 8,
-                    category: 'resources',
-                    resource: 'ice',
-                    sellable: true
-                }
+                { id: 1, name: "Полимеры", vendor: "ГЛОРИЯ", rating: 4, amount: 85, price: 12 },
+                { id: 2, name: "Редкоземы", vendor: "СИНДИКАТ-7", rating: 3, amount: 12, price: 28 },
+                { id: 3, name: "O₂", vendor: "БАР У ДЖО", rating: 5, amount: 150, price: 10 },
+                /**
+                 * Раздел «Цех модулей» был заменён на покупку и продажу льда. Этот ресурс
+                 * добывается в ледяных шахтах и используется для производства воды и кислорода.
+                 */
+                { id: 4, name: "Лёд", vendor: "ЦЕХ ЛЬДА", rating: 4, amount: 50, price: 20 }
             ],
             drones: 0,
             slots: 2,
@@ -3337,6 +3213,11 @@ body.modal-open {
             mvc: document.getElementById('mvc-value'),
             bio: document.getElementById('bio-value'),
             parts: document.getElementById('parts-value'),
+            // Добавлен новый ресурс "лёд"
+            ice: document.getElementById('ice-value'),
+            // Отображение количества полимеров и редкоземов
+            polymers: document.getElementById('polymers-value'),
+            rare: document.getElementById('rare-value'),
             missionSector: document.getElementById('mission-sector'),
             missionBelt: document.getElementById('mission-belt'),
             missionProgress: document.getElementById('mission-progress'),
@@ -3367,44 +3248,6 @@ body.modal-open {
         let o2Interval = null;
         let minerInterval = null;
 
-        // Текущая категория маркета (resources, equipment, contracts). Используется для фильтрации
-        // товаров при отрисовке. По умолчанию — ресурсы.
-        let currentMarketCategory = 'resources';
-
-        /**
-         * Массив событий, влияющих на рынок. Каждый объект содержит имя события,
-         * текст для уведомления и функцию effect(item), которая возвращает
-         * дополнительный множитель цены для конкретного товара. События
-         * запускаются случайно в updateMarketPrices() с небольшой вероятностью.
-         */
-        const marketEvents = [
-            {
-                name: 'Raider attack',
-                message: 'Raiders attacked supply convoys! Prices for parts and energy increased.',
-                effect: (item) => {
-                    // поднимаем цену на 25% для запчастей и энергии
-                    return ['parts', 'energy'].includes(item.resource) ? 1.25 : 1;
-                }
-            },
-            {
-                name: 'Rare resource surge',
-                message: 'A new vein of rare minerals was discovered. Prices for rare earths and polymers dropped.',
-                effect: (item) => {
-                    return ['rare', 'polymers'].includes(item.resource) ? 0.8 : 1;
-                }
-            },
-            {
-                name: 'Market crash',
-                message: 'Oversupply has caused a market crash! All prices temporarily drop.',
-                effect: () => 0.7
-            },
-            {
-                name: 'New shipment',
-                message: 'A large shipment has arrived. Supplies increased and prices are slightly lower.',
-                effect: () => 0.9
-            }
-        ];
-
         // Получение имени ресурса
         function getResourceName(resource) {
             const names = {
@@ -3416,7 +3259,9 @@ body.modal-open {
                 /**
                  * Название для льда. Используется в уведомлениях и подсказках.
                  */
-                ice: "льда"
+                ice: "льда",
+                polymers: "полимеров",
+                rare: "редкоземов"
             };
             return names[resource] || resource;
         }
@@ -3429,6 +3274,17 @@ body.modal-open {
             elements.mvc.textContent = gameState.resources.mvc.toLocaleString();
             elements.bio.textContent = gameState.resources.bio.toLocaleString();
             elements.parts.textContent = gameState.resources.parts.toLocaleString();
+            // Отобразить запас льда в верхней панели
+            if (elements.ice) {
+                elements.ice.textContent = gameState.resources.ice.toLocaleString();
+            }
+            // Отображаем запасы полимеров и редкоземов
+            if (elements.polymers) {
+                elements.polymers.textContent = gameState.resources.polymers.toLocaleString();
+            }
+            if (elements.rare) {
+                elements.rare.textContent = gameState.resources.rare.toLocaleString();
+            }
             
             // Генератор O2
             elements.o2GenerationValue.textContent = `${gameState.o2Generation.rate}/h`;
@@ -3546,19 +3402,9 @@ body.modal-open {
                 document.querySelectorAll('.screen').forEach(screen => {
                     screen.classList.remove('active');
                 });
-
+                
                 const screenId = this.getAttribute('data-screen');
                 document.getElementById(screenId).classList.add('active');
-
-                // Если пользователь переключился на экран маркета, убедимся, что предложения отрисованы
-                if (screenId === 'market-screen' && typeof renderMarket === 'function') {
-                    // Отрисовываем текущую категорию маркета
-                    renderMarket();
-                    // Привязываем клики к вкладкам (ресурсы, оборудование, контракты)
-                    if (typeof bindMarketTabs === 'function') {
-                        bindMarketTabs();
-                    }
-                }
             });
         });
 
@@ -4468,293 +4314,13 @@ wrap.innerHTML = `
             showNotification("Welcome to METAVILLE on the V.01.D platform!", true);
         }, 1000);
 
-        /**
-         * Инициализация рынка. Рисует интерфейс на основе gameState.marketItems и
-         * периодически обновляет цены. Вызывается после загрузки интерфейса.
-         */
-        function initMarket() {
-            renderMarket();
-            // Обновляем цены раз в 60 секунд
-            setInterval(updateMarketPrices, 60000);
-
-            // Обработчики переключения табов. В прототипе доступны только ресурсы
-            const resTab = document.getElementById('tab-resources');
-            const eqTab = document.getElementById('tab-equipment');
-            const contTab = document.getElementById('tab-contracts');
-            // Привязываем вкладки после инициализации
-            if (typeof bindMarketTabs === 'function') {
-                bindMarketTabs();
-            }
-        }
-
-        /**
-         * Формирует HTML-карточки товаров рынка и вставляет их в контейнер
-         * #market-items. В конце добавляет обработчики событий для кнопок покупки.
-         */
-        function renderMarket() {
-            const container = document.getElementById('market-items');
-            if (!container) return;
-            container.innerHTML = '';
-            let itemsRendered = 0;
-            gameState.marketItems.forEach((item, index) => {
-                if (item.category !== currentMarketCategory) return;
-                itemsRendered++;
-                // Формируем звёзды рейтинга: заполненные и пустые
-                const filledStars = '★'.repeat(item.rating);
-                const emptyStars = '☆'.repeat(5 - item.rating);
-                const priceLabel = item.amount > 1 ? `${item.price.toLocaleString()} MVC/unit` : `${item.price.toLocaleString()} MVC`;
-
-                const card = document.createElement('div');
-                card.className = 'offer-card';
-                // Собираем HTML
-                let html = '';
-                html += '<div class="offer-header">';
-                html += `<div class="offer-vendor">${item.vendor}</div>`;
-                html += `<div class="offer-rating">${filledStars}${emptyStars}</div>`;
-                html += '</div>';
-                html += `<div style="margin-bottom: 10px;">${item.name} • ${item.amount.toLocaleString()} ${item.amount !== 1 ? 'units' : 'unit'}</div>`;
-                html += '<div class="offer-details">';
-                html += `<div class="offer-price">${priceLabel}</div>`;
-                html += `<button class="btn buy-btn" data-index="${index}" style="padding: 8px 12px;">BUY</button>`;
-                if (item.sellable) {
-                    // Добавляем кнопку продажи, если товар можно продать обратно
-                    html += `<button class="btn btn-secondary sell-btn" data-index="${index}" style="padding: 8px 12px; margin-left: 6px;">SELL</button>`;
-                }
-                html += '</div>';
-                card.innerHTML = html;
-                container.appendChild(card);
-            });
-
-            // Если нет товаров в выбранной категории — выводим заглушку для Contracts
-            if (itemsRendered === 0 && currentMarketCategory === 'contracts') {
-                const msg = document.createElement('div');
-                msg.style.color = '#93a3b8';
-                msg.style.fontSize = '14px';
-                msg.style.textAlign = 'center';
-                msg.style.marginTop = '20px';
-                msg.textContent = 'Контракты будут доступны в будущих обновлениях.';
-                container.appendChild(msg);
-            }
-
-            attachMarketHandlers();
-        }
-
-        /**
-         * Прикрепляет обработчики нажатия на кнопки BUY, созданные динамически в renderMarket().
-         * Считывает индекс товара из data-index и обрабатывает покупку или продажу.
-         */
-        function attachMarketHandlers() {
-            // Покупка
-            const buyButtons = document.querySelectorAll('#market-items .buy-btn');
-            buyButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const index = parseInt(this.dataset.index);
-                    const item = gameState.marketItems[index];
-                    if (!item) return;
-                    // Проверяем, есть ли доступные единицы для покупки
-                    if (item.amount <= 0) {
-                        showNotification(`Item ${item.name} is out of stock!`, false);
-                        return;
-                    }
-                    const cost = item.price;
-                    // Проверяем наличие MVC у игрока
-                    if (!updateResource('mvc', -cost)) {
-                        return;
-                    }
-                    // Понижаем количество доступного товара
-                    item.amount--;
-                    // Добавляем в ресурсы/инвентарь
-                    switch (item.resource) {
-                        case 'polymers':
-                            gameState.inventory.polymers++;
-                            break;
-                        case 'rare':
-                            gameState.inventory.rare++;
-                            break;
-                        case 'oxygen':
-                            updateResource('oxygen', 1);
-                            break;
-                        case 'stealth':
-                            gameState.inventory.stealth++;
-                            break;
-                        case 'drill':
-                            gameState.inventory.drill++;
-                            break;
-                        case 'drone':
-                            gameState.inventory.drone++;
-                            break;
-                        case 'energy':
-                            updateResource('energy', 1);
-                            break;
-                        case 'bio':
-                            updateResource('bio', 1);
-                            break;
-                        case 'parts':
-                            updateResource('parts', 1);
-                            break;
-                        case 'ice':
-                            updateResource('ice', 1);
-                            break;
-                    }
-                    showNotification(`Purchased ${item.name} for ${cost} MVC`, true);
-                    // Пересчитываем цены на основе спроса/предложения
-                    updateMarketPrices();
-                    updateUI();
-                });
-            });
-            // Продажа (только для товаров, где sellable = true)
-            const sellButtons = document.querySelectorAll('#market-items .sell-btn');
-            sellButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const index = parseInt(this.dataset.index);
-                    const item = gameState.marketItems[index];
-                    if (!item || !item.sellable) return;
-                    // Продажа 10 единиц товара. Количество можно изменять по желанию
-                    const quantity = 10;
-                    let available = 0;
-                    // Определяем доступное количество в зависимости от типа ресурса или инвентаря
-                    switch (item.resource) {
-                        case 'oxygen':
-                        case 'energy':
-                        case 'bio':
-                        case 'parts':
-                        case 'ice':
-                            available = gameState.resources[item.resource];
-                            break;
-                        case 'polymers':
-                        case 'rare':
-                        case 'stealth':
-                        case 'drill':
-                        case 'drone':
-                            available = gameState.inventory[item.resource];
-                            break;
-                        default:
-                            available = 0;
-                    }
-                    if (available < quantity) {
-                        showNotification('Not enough items to sell!', false);
-                        return;
-                    }
-                    // списываем соответствующий ресурс или инвентарь
-                    if (['oxygen','energy','bio','parts','ice'].includes(item.resource)) {
-                        updateResource(item.resource, -quantity);
-                    } else {
-                        // списываем из инвентаря
-                        gameState.inventory[item.resource] -= quantity;
-                    }
-                    // На 80% от текущей цены
-                    const saleRevenue = Math.round(item.price * quantity * 0.8);
-                    updateResource('mvc', saleRevenue);
-                    // Возвращаем товар на рынок
-                    item.amount += quantity;
-                    showNotification(`Sold ${quantity} units of ${item.name} for ${saleRevenue} MVC`, true);
-                    updateMarketPrices();
-                    updateUI();
-                });
-            });
-        }
-
-        /**
-         * Обновляет цены на товары рынка в зависимости от базовой цены, случайного
-         * колебания и потенциальных событий. После пересчёта перерисовывает
-         * интерфейс и показывает уведомление, если изменение было значительным.
-         */
-        function updateMarketPrices() {
-            // Определяем, произойдёт ли специальное рыночное событие
-            let currentEvent = null;
-            if (Math.random() < 0.15) { // 15 % шанс запуска события
-                currentEvent = marketEvents[Math.floor(Math.random() * marketEvents.length)];
-                // Показываем уведомление о событии
-                showNotification(currentEvent.message, false);
-            }
-
-            gameState.marketItems.forEach(item => {
-                const oldPrice = item.price;
-                // Коэффициент спроса/предложения: если запас упал, цена растёт; если вырос — падает.
-                let demandFactor = 0;
-                if (item.initialAmount > 0) {
-                    demandFactor = (item.initialAmount - item.amount) / item.initialAmount;
-                }
-                demandFactor = Math.max(-1, Math.min(1, demandFactor));
-                // Множитель от спроса: до ±50 %
-                const supplyMul = 1 + demandFactor * 0.5;
-                // Случайный множитель ±5 %
-                const rand = 1 + (Math.random() * 0.1 - 0.05);
-                // Множитель от активного события (если есть)
-                const eventMul = currentEvent ? currentEvent.effect(item) : 1;
-                let newPrice = Math.round(item.basePrice * supplyMul * rand * eventMul);
-                if (newPrice < 1) newPrice = 1;
-                item.price = newPrice;
-                // При сильном изменении (>20 %) выводим уведомление
-                if (Math.abs(newPrice - oldPrice) / oldPrice > 0.2) {
-                    const direction = newPrice > oldPrice ? 'increased' : 'decreased';
-                    showNotification(`Price for ${item.name} has ${direction} to ${newPrice} MVC`, true);
-                }
-            });
-            renderMarket();
-        }
-
-        // Вызываем инициализацию рынка после полной загрузки DOM. Если документ
-        // уже загружен, запускаем сразу, иначе ждём события DOMContentLoaded.
-        (function(){
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initMarket);
-            } else {
-                initMarket();
-            }
-        })();
-
-        /**
-         * Помечает выбранный таб как активный и снимает подсветку с остальных.
-         * Используется для переключения категорий рынка.
-         * @param {HTMLElement} tabEl
-         */
-        function setActiveTab(tabEl) {
-            document.querySelectorAll('.market-tabs .tab').forEach(t => {
-                t.classList.remove('active');
-            });
-            if (tabEl) tabEl.classList.add('active');
-        }
-
-        /**
-         * Назначает обработчики на вкладки рынка. При клике меняет текущую категорию,
-         * активную вкладку и перерисовывает товары. Вызывается после перехода
-         * на экран маркета или при первой инициализации.
-         */
-        function bindMarketTabs() {
-            const resTab = document.getElementById('tab-resources');
-            const eqTab  = document.getElementById('tab-equipment');
-            const contTab= document.getElementById('tab-contracts');
-            if (resTab) {
-                resTab.onclick = () => {
-                    currentMarketCategory = 'resources';
-                    setActiveTab(resTab);
-                    renderMarket();
-                };
-            }
-            if (eqTab) {
-                eqTab.onclick = () => {
-                    currentMarketCategory = 'equipment';
-                    setActiveTab(eqTab);
-                    renderMarket();
-                };
-            }
-            if (contTab) {
-                contTab.onclick = () => {
-                    currentMarketCategory = 'contracts';
-                    setActiveTab(contTab);
-                    renderMarket();
-                };
-            }
-        }
-
 /**
  * Показывает уведомление.
  * @param {string} message - текст
  * @param {boolean} isSuccess - true => зелёное, false => красное
  * @param {number} ms - время показа
  */
-function showNotification(message, isSuccess = true, ms = 6000) {
+function showNotification(message, isSuccess = true, ms = 10000) {
   // ищем/создаём единственный элемент уведомления
   let el = document.getElementById('app-notification');
   if (!el) {
@@ -5448,6 +5014,772 @@ function tick(){
   } else {
     boot();
   }
+})();
+</script>
+<script>
+// === Enhanced dynamic market and event system integration ===
+(function() {
+    // Initialize base price and initial amount for market items and resource mapping
+    if (window.gameState && Array.isArray(gameState.marketItems)) {
+        gameState.marketItems.forEach(item => {
+            // Preserve original price and amount for calculations
+            if (typeof item.basePrice === 'undefined') item.basePrice = item.price;
+            if (typeof item.initialAmount === 'undefined') item.initialAmount = item.amount;
+            // Сохраняем изначальную цену для механики спроса/предложения
+            if (typeof item.initialPrice === 'undefined') item.initialPrice = item.price;
+            // Derive resource key from item name to assist events/effects
+            const name = (item.name || '').toLowerCase();
+            let resource = '';
+            if (name.includes('полим')) resource = 'polymers';
+            else if (name.includes('редк')) resource = 'rare';
+            else if (name.includes('o₂') || name.includes('o2') || name.includes('o₂')) resource = 'oxygen';
+            else if (name.includes('стелс')) resource = 'stealth';
+            else if (name.includes('модуль')) resource = 'equipment';
+            else if (name.includes('энерг')) resource = 'energy';
+            // Новый ресурс: лёд
+            else if (name.includes('лёд') || name.includes('лед')) resource = 'ice';
+            item.resource = resource;
+        });
+    }
+
+    /**
+     * Система спроса и предложения
+     * Управляет популярностью ресурсов и корректирует базовые цены исходя из спроса.
+     */
+    const supplyDemandSystem = {
+        // Базовая популярность ресурсов (10 – высокий спрос, 1 – низкий)
+        basePopularity: {
+            oxygen: 8,
+            energy: 7,
+            mvc: 6,
+            bio: 5,
+            parts: 7,
+            ice: 4,
+            polymers: 5,
+            rare: 3,
+            stealth: 2,
+            equipment: 3
+        },
+        // Текущий спрос на ресурсы
+        currentDemand: {},
+        // Влияющие факторы
+        demandFactors: {
+            timeOfDay: 1.0,
+            randomEvents: 1.0
+        },
+        init() {
+            // Инициализируем текущий спрос базовыми значениями
+            for (const [res, pop] of Object.entries(this.basePopularity)) {
+                this.currentDemand[res] = pop;
+            }
+            // Периодическое обновление спроса каждые 2 минуты
+            setInterval(() => this.updateDemand(), 120000);
+            // Применяем спрос при инициализации
+            this.applyDemandToPrices();
+        },
+        updateDemand() {
+            // Влияние времени суток: утром спрос выше
+            const hour = new Date().getHours();
+            // Sinusoid (peak around midday)
+            this.demandFactors.timeOfDay = 0.8 + Math.sin((hour - 6) * Math.PI / 12) * 0.4;
+            // Случайные колебания
+            this.demandFactors.randomEvents = 0.9 + Math.random() * 0.2;
+            // Пересчитываем спрос
+            for (const res in this.currentDemand) {
+                const base = this.basePopularity[res] || 1;
+                const fluctuation = 0.8 + Math.random() * 0.4;
+                // Обновляем текущий спрос, минимум 1
+                this.currentDemand[res] = Math.max(1,
+                    base * this.demandFactors.timeOfDay * this.demandFactors.randomEvents * fluctuation
+                );
+            }
+            // Применяем новые коэффициенты к ценам
+            this.applyDemandToPrices();
+        },
+        applyDemandToPrices() {
+            if (!window.gameState || !Array.isArray(gameState.marketItems)) return;
+            gameState.marketItems.forEach(item => {
+                const res = item.resource;
+                // Если ресурс участвует в системе спроса
+                if (res && this.currentDemand[res]) {
+                    const demand = this.currentDemand[res];
+                    // Нормализуем спрос (значения 0.7 – 1.3) на основе шкалы 1–10
+                    const demandMultiplier = 0.7 + (demand / 10) * 0.6;
+                    // Обновляем базовую цену от изначальной
+                    if (typeof item.initialPrice === 'number') {
+                        item.basePrice = Math.max(1, Math.round(item.initialPrice * demandMultiplier));
+                    }
+                }
+            });
+            // После изменения базовых цен пересчитываем рыночные цены
+            updateMarketPrices();
+        },
+        onPlayerAction(action, resource, amount) {
+            // amount – кол-во купленного/проданного товара
+            if (!resource || !this.currentDemand[resource]) return;
+            if (action === 'buy') {
+                // Покупка повышает спрос
+                this.currentDemand[resource] = Math.min(10,
+                    this.currentDemand[resource] + amount * 0.1
+                );
+            } else if (action === 'sell') {
+                // Продажа снижает спрос
+                this.currentDemand[resource] = Math.max(1,
+                    this.currentDemand[resource] - amount * 0.05
+                );
+            }
+            // После изменения спроса обновляем цены
+            this.applyDemandToPrices();
+        }
+    };
+
+    /**
+     * Система репутации с торговцами
+     * Позволяет получать скидки за регулярные сделки с одним продавцом.
+     */
+    const reputationSystem = {
+        // Репутация по продавцам. Ключ – название продавца.
+        vendors: {
+            "ГЛОРИЯ": { reputation: 0, discount: 0 },
+            "СИНДИКАТ-7": { reputation: 0, discount: 0 },
+            "БАР У ДЖО": { reputation: 0, discount: 0 },
+            "ЦЕХ ЛЬДА": { reputation: 0, discount: 0 },
+            // Дополнительные продавцы (задел на будущее)
+            "МЕХАНИКС": { reputation: 0, discount: 0 },
+            "РЫНОК-АРЕС": { reputation: 0, discount: 0 },
+            "Комбинат продовольствия": { reputation: 0, discount: 0 },
+            "БАЗА МЕХАНИКОВ": { reputation: 0, discount: 0 },
+            "ПОЛЯРНАЯ СТАНЦИЯ": { reputation: 0, discount: 0 }
+        },
+        init() {
+            // Загружаем сохранённую репутацию
+            const saved = localStorage.getItem('vendorReputation');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    // Объединяем с текущей структурой (чтобы новые продавцы имели дефолтные значения)
+                    for (const key in data) {
+                        if (!this.vendors[key]) this.vendors[key] = {};
+                        this.vendors[key].reputation = data[key].reputation || 0;
+                        this.vendors[key].discount = data[key].discount || 0;
+                    }
+                } catch (err) {
+                    console.warn('Error parsing vendorReputation', err);
+                }
+            }
+        },
+        // Сохранение
+        save() {
+            localStorage.setItem('vendorReputation', JSON.stringify(this.vendors));
+        },
+        // Обновляем репутацию и скидку после сделки
+        updateReputation(vendor, amount, isPurchase) {
+            if (!this.vendors[vendor]) this.vendors[vendor] = { reputation: 0, discount: 0 };
+            const repChange = isPurchase ? Math.max(1, Math.floor(amount / 50)) : Math.max(1, Math.floor(amount / 100));
+            this.vendors[vendor].reputation += repChange;
+            // Каждые 100 репутации повышается уровень скидки на 5%, максимум 25%
+            this.vendors[vendor].discount = Math.min(25,
+                Math.floor(this.vendors[vendor].reputation / 100) * 5
+            );
+            // Уведомление о новом уровне
+            if (this.vendors[vendor].reputation % 100 === 0 && typeof showNotification === 'function') {
+                showNotification(`Репутация с ${vendor} повышена! Теперь скидка ${this.vendors[vendor].discount}%`, true);
+            }
+            this.save();
+        },
+        // Возвращает цену с учётом скидки
+        applyDiscount(vendor, price) {
+            if (!this.vendors[vendor]) return price;
+            const disc = this.vendors[vendor].discount;
+            return disc > 0 ? Math.round(price * (1 - disc / 100)) : price;
+        },
+        // Получение подробной информации о репутации (для UI)
+        getReputationInfo(vendor) {
+            if (!this.vendors[vendor]) return { level: 1, progress: 0, nextLevel: 100, discount: 0 };
+            const rep = this.vendors[vendor].reputation;
+            const level = Math.floor(rep / 100) + 1;
+            const progress = rep % 100;
+            const nextLevel = level * 100;
+            return { level, progress, nextLevel, discount: this.vendors[vendor].discount };
+        }
+    };
+
+    /**
+     * Система контрактов
+     * Генерирует контракты, следит за их выполнением и начисляет награды.
+     */
+    const contractSystem = {
+        activeContracts: [],
+        completedContracts: [],
+        init() {
+            this.loadContracts();
+            // Генерация новых контрактов каждые 10 минут
+            setInterval(() => this.generateNewContracts(), 600000);
+            // Проверка статуса контрактов каждую минуту
+            setInterval(() => this.checkContracts(), 60000);
+        },
+        // Шаблоны контрактов
+        contractTypes: [
+            {
+                type: 'delivery',
+                name: 'Доставка ресурсов',
+                description: 'Доставьте указанные ресурсы на станцию %TARGET%',
+                reward: { mvc: 200, parts: 10 },
+                timeLimit: 7200000, // 2h
+                requirements: {}
+            },
+            {
+                type: 'collection',
+                name: 'Сбор ресурсов',
+                description: 'Соберите указанные ресурсы в секторе %SECTOR%',
+                reward: { mvc: 150, bio: 5 },
+                timeLimit: 3600000, // 1h
+                requirements: {}
+            },
+            {
+                type: 'protection',
+                name: 'Защита каравана',
+                description: 'Обеспечьте безопасность торгового каравана до станции %TARGET%',
+                reward: { mvc: 300, parts: 15 },
+                timeLimit: 5400000, //1.5h
+                requirements: { energy: 100 }
+            }
+        ],
+        generateNewContracts() {
+            // Количество контрактов 1–2
+            const count = 1 + Math.floor(Math.random() * 2);
+            for (let i = 0; i < count; i++) {
+                const tmpl = this.contractTypes[Math.floor(Math.random() * this.contractTypes.length)];
+                const contract = this.createFromTemplate(tmpl);
+                this.activeContracts.push(contract);
+            }
+            this.saveContracts();
+            this.updateContractsUI();
+        },
+        createFromTemplate(tmpl) {
+            // Глубокое копирование шаблона
+            const c = JSON.parse(JSON.stringify(tmpl));
+            c.id = Date.now() + Math.floor(Math.random() * 1000);
+            c.requirements = {};
+            if (c.type === 'delivery') {
+                const options = ['oxygen','energy','parts','bio'];
+                const res = options[Math.floor(Math.random() * options.length)];
+                c.requirements[res] = 50 + Math.floor(Math.random() * 100);
+                c.description = c.description.replace('%TARGET%', ['Альфа','Бета','Гамма','Дельта'][Math.floor(Math.random() * 4)]);
+            } else if (c.type === 'collection') {
+                c.requirements = {
+                    bio: 20 + Math.floor(Math.random() * 30),
+                    parts: 10 + Math.floor(Math.random() * 20)
+                };
+                c.description = c.description.replace('%SECTOR%', (3 + Math.floor(Math.random() * 15)).toString());
+            }
+            c.startTime = Date.now();
+            return c;
+        },
+        checkContracts() {
+            const now = Date.now();
+            for (let i = this.activeContracts.length - 1; i >= 0; i--) {
+                const c = this.activeContracts[i];
+                // Проверка таймера
+                if (now > c.startTime + c.timeLimit) {
+                    if (typeof showNotification === 'function') {
+                        showNotification(`Контракт "${c.name}" провален! Время истекло.`, false);
+                    }
+                    this.activeContracts.splice(i, 1);
+                    continue;
+                }
+                // Проверка выполнения требований
+                let done = true;
+                for (const [res, amt] of Object.entries(c.requirements)) {
+                    if ((gameState.resources[res] || 0) < amt) {
+                        done = false;
+                        break;
+                    }
+                }
+                if (done) {
+                    // Выдаем награды
+                    for (const [res, amt] of Object.entries(c.reward)) {
+                        updateResource(res, amt);
+                    }
+                    if (typeof showNotification === 'function') {
+                        showNotification(`Контракт "${c.name}" выполнен!`, true);
+                    }
+                    this.completedContracts.push(c);
+                    this.activeContracts.splice(i, 1);
+                }
+            }
+            this.saveContracts();
+            this.updateContractsUI();
+        },
+        acceptContract(id) {
+            const idx = this.activeContracts.findIndex(c => c.id === id);
+            if (idx !== -1) {
+                const c = this.activeContracts[idx];
+                c.accepted = true;
+                c.startTime = Date.now();
+                if (typeof showNotification === 'function') {
+                    showNotification(`Контракт "${c.name}" принят!`, true);
+                }
+                this.saveContracts();
+                this.updateContractsUI();
+            }
+        },
+        updateContractsUI() {
+            // TODO: integrate with UI if needed
+            console.log('Contracts UI updated', this.activeContracts);
+        },
+        saveContracts() {
+            localStorage.setItem('activeContracts', JSON.stringify(this.activeContracts));
+            localStorage.setItem('completedContracts', JSON.stringify(this.completedContracts));
+        },
+        loadContracts() {
+            const sa = localStorage.getItem('activeContracts');
+            const sc = localStorage.getItem('completedContracts');
+            if (sa) {
+                try { this.activeContracts = JSON.parse(sa); } catch {}
+            }
+            if (sc) {
+                try { this.completedContracts = JSON.parse(sc); } catch {}
+            }
+        }
+    };
+
+    // Market event definitions
+    const marketEvents = [
+        {
+            id: 'raider-attack',
+            name: 'Атака рейдеров',
+            message: 'Рейдеры атаковали караваны поставок! Цены на запчасти и энергию выросли.',
+            duration: 120000,
+            effect: (item) => {
+                return ['parts', 'energy'].includes(item.resource) ? 1.35 : 1;
+            },
+            icon: 'fa-bolt',
+            color: '#ff5555'
+        },
+        {
+            id: 'rare-resource-surge',
+            name: 'Обнаружение редких ресурсов',
+            message: 'Обнаружена новая жила редких минералов. Цены на редкоземы и полимеры упали.',
+            duration: 180000,
+            effect: (item) => {
+                return ['rare', 'polymers'].includes(item.resource) ? 0.7 : 1;
+            },
+            icon: 'fa-gem',
+            color: '#00ccff'
+        },
+        {
+            id: 'market-crash',
+            name: 'Обвал рынка',
+            message: 'Перепроизводство вызвало обвал рынка! Все цены временно снижены.',
+            duration: 90000,
+            effect: () => 0.75,
+            icon: 'fa-chart-line',
+            color: '#ffcc00'
+        },
+        {
+            id: 'new-shipment',
+            name: 'Новая поставка',
+            message: 'Прибыл крупный торговый караван. Запасы пополнены, цены немного снизились.',
+            duration: 150000,
+            effect: () => 0.9,
+            icon: 'fa-truck',
+            color: '#00cc99'
+        },
+        {
+            id: 'tech-breakthrough',
+            name: 'Технологический прорыв',
+            message: 'Учёные совершили прорыв! Цены на оборудование снизились.',
+            duration: 120000,
+            effect: (item) => {
+                return item.resource === 'equipment' ? 0.8 : 1;
+            },
+            icon: 'fa-microchip',
+            color: '#cc66ff'
+        },
+        {
+            id: 'oxygen-shortage',
+            name: 'Дефицит кислорода',
+            message: 'Авария на станции вызвала дефицит кислорода. Цены на O₂ взлетели.',
+            duration: 100000,
+            effect: (item) => {
+                return item.resource === 'oxygen' ? 1.8 : 1;
+            },
+            icon: 'fa-wind',
+            color: '#00f3ff'
+        }
+    ];
+
+    // Active market events currently affecting prices
+    let activeEvents = [];
+
+    // Render the list of market items dynamically based on current game state
+    function renderMarket() {
+        const container = document.getElementById('market-items');
+        if (!container || !window.gameState) return;
+        container.innerHTML = '';
+        gameState.marketItems.forEach(item => {
+            // Create card container
+            const card = document.createElement('div');
+            card.className = 'offer-card';
+            // Header: vendor and rating
+            const header = document.createElement('div');
+            header.className = 'offer-header';
+            const vendorDiv = document.createElement('div');
+            vendorDiv.className = 'offer-vendor';
+            vendorDiv.textContent = item.vendor;
+            const ratingDiv = document.createElement('div');
+            ratingDiv.className = 'offer-rating';
+            const filled = '★'.repeat(Math.min(5, item.rating));
+            const empty  = '☆'.repeat(Math.max(0, 5 - item.rating));
+            ratingDiv.textContent = filled + empty;
+            header.appendChild(vendorDiv);
+            header.appendChild(ratingDiv);
+            card.appendChild(header);
+            // Description line
+            const desc = document.createElement('div');
+            desc.style.marginBottom = '10px';
+            desc.textContent = `${item.name} • ${item.amount} unit`;
+            card.appendChild(desc);
+            // Details row with price and buy/sell buttons
+            const details = document.createElement('div');
+            details.className = 'offer-details';
+            const priceDiv = document.createElement('div');
+            priceDiv.className = 'offer-price';
+            const priceText = `${item.price} MVC${item.amount > 1 ? '/unit' : ''}`;
+            priceDiv.textContent = priceText;
+            details.appendChild(priceDiv);
+            // Determine sell price for display and interactions (80% of current price if not defined)
+            const sellPrice = item.sellPrice || Math.max(1, Math.floor(item.price * 0.8));
+            // Buy button
+            const buyBtn = document.createElement('button');
+            buyBtn.className = 'btn buy-btn';
+            buyBtn.dataset.index = item.id;
+            // Покупаем всегда по 1 единице товара; для модулей это один модуль
+            buyBtn.dataset.amount = 1;
+            buyBtn.dataset.price = item.price;
+            buyBtn.dataset.resource = item.resource;
+            buyBtn.style.padding = '8px 12px';
+            // Отображаем цену на кнопке покупки
+            buyBtn.textContent = 'BUY (' + item.price + ')';
+            buyBtn.addEventListener('click', function() {
+                const price = parseInt(this.dataset.price);
+                const amount = parseInt(this.dataset.amount); // всегда 1
+                const resource = this.dataset.resource;
+                // Стоимость с учётом репутации
+                const discounted = reputationSystem.applyDiscount(item.vendor, price);
+                const finalPrice = discounted * amount;
+                if (typeof updateResource === 'function') {
+                    // Списание средств; если не хватает — отменяем покупку
+                    if (!updateResource('mvc', -finalPrice)) return;
+                    // Обновляем запасы ресурса у игрока
+                    let resourceName = '';
+                    let resourceAmount = amount;
+                    switch (resource) {
+                        case 'polymers':
+                            resourceName = 'полимеры';
+                            // Увеличиваем запас полимеров
+                            updateResource('polymers', amount);
+                            break;
+                        case 'rare':
+                            resourceName = 'редкоземы';
+                            updateResource('rare', amount);
+                            break;
+                        case 'oxygen':
+                            updateResource('oxygen', amount);
+                            resourceName = 'O₂';
+                            break;
+                        case 'energy':
+                            updateResource('energy', amount);
+                            resourceName = 'энергия';
+                            break;
+                        case 'ice':
+                            updateResource('ice', amount);
+                            resourceName = 'лёд';
+                            break;
+                        case 'bio':
+                            updateResource('bio', amount);
+                            resourceName = 'биоматериалы';
+                            break;
+                        case 'parts':
+                            updateResource('parts', amount);
+                            resourceName = 'запчасти';
+                            break;
+                        case 'stealth':
+                            // покупка модуля стелса требует свободного слота
+                            if (gameState.slots > 0) {
+                                gameState.slots--;
+                                resourceName = 'стелс‑модуль';
+                            } else {
+                                showNotification && showNotification('Нет свободных слотов для модуля', false);
+                                // возвращаем средства
+                                updateResource('mvc', finalPrice);
+                                return;
+                            }
+                            break;
+                        case 'equipment':
+                            resourceName = item.name;
+                            break;
+                        default:
+                            // если ресурс неизвестен, просто используем название
+                            resourceName = item.name;
+                            break;
+                    }
+                    // Уменьшаем количество на рынке
+                    item.amount = Math.max(0, item.amount - amount);
+                    // Обновляем репутацию (покупка)
+                    reputationSystem.updateReputation(item.vendor, finalPrice, true);
+                    // Обновляем спрос
+                    supplyDemandSystem.onPlayerAction('buy', resource, amount);
+                    // Уведомление о покупке
+                    if (typeof showNotification === 'function') {
+                        const disc = reputationSystem.vendors[item.vendor] ? reputationSystem.vendors[item.vendor].discount : 0;
+                        const discText = disc > 0 ? ` (скидка ${disc}%)` : '';
+                        showNotification(`Куплено: ${resourceAmount > 0 ? resourceAmount + ' ' : ''}${resourceName} за ${finalPrice} MVC${discText}`, true);
+                    }
+                    // Обновляем интерфейс и цены
+                    updateUI && updateUI();
+                    updateMarketPrices();
+                    renderMarket();
+                }
+            });
+            details.appendChild(buyBtn);
+            // Sell button: selling returns less than buy price
+            const sellBtn = document.createElement('button');
+            sellBtn.className = 'btn btn-secondary sell-btn';
+            sellBtn.style.padding = '8px 12px';
+            sellBtn.dataset.sellPrice = sellPrice;
+            // Продаём по одной единице
+            sellBtn.dataset.amount = 1;
+            sellBtn.textContent = 'SELL (' + sellPrice + ')';
+            sellBtn.addEventListener('click', function() {
+                const sp = parseInt(this.dataset.sellPrice);
+                const amt = parseInt(this.dataset.amount); // всегда 1
+                if (typeof updateResource === 'function') {
+                    // Зачисляем MVC за продажу
+                    const totalRevenue = sp * amt;
+                    updateResource('mvc', totalRevenue);
+                    // Возвращаем товар на рынок
+                    item.amount += amt;
+                    // Снимаем ресурс у игрока
+                    switch (item.resource) {
+                        case 'oxygen': updateResource('oxygen', -amt); break;
+                        case 'energy': updateResource('energy', -amt); break;
+                        case 'ice': updateResource('ice', -amt); break;
+                        case 'bio': updateResource('bio', -amt); break;
+                        case 'parts': updateResource('parts', -amt); break;
+                        case 'polymers': updateResource('polymers', -amt); break;
+                        case 'rare': updateResource('rare', -amt); break;
+                        default: break;
+                    }
+                    // Обновляем репутацию (продажа)
+                    reputationSystem.updateReputation(item.vendor, totalRevenue, false);
+                    // Корректируем спрос
+                    supplyDemandSystem.onPlayerAction('sell', item.resource, amt);
+                    if (typeof showNotification === 'function') {
+                        showNotification(`Продажа: ${item.name} за ${totalRevenue} MVC`, true);
+                    }
+                    // Обновляем интерфейс и цены
+                    updateUI && updateUI();
+                    updateMarketPrices();
+                    renderMarket();
+                }
+            });
+            details.appendChild(sellBtn);
+            card.appendChild(details);
+            container.appendChild(card);
+        });
+    }
+
+    // Highlight price change visually on market cards
+    function highlightPriceChange(itemId, direction) {
+        const btn = document.querySelector(`.offer-card button[data-index="${itemId}"]`);
+        const card = btn ? btn.closest('.offer-card') : null;
+        if (!card) return;
+        const cls = direction === 'up' ? 'price-up' : 'price-down';
+        card.classList.add(cls);
+        setTimeout(() => card.classList.remove(cls), 2000);
+    }
+
+    // Render active events with countdown timers
+    function renderActiveEvents() {
+        const container = document.getElementById('market-events-container');
+        if (!container) return;
+        container.innerHTML = '';
+        activeEvents.forEach(event => {
+            const timeLeft = Math.ceil((event.endTime - Date.now()) / 1000);
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const evEl = document.createElement('div');
+            evEl.className = 'market-event';
+            evEl.innerHTML = `<div style="display:flex; align-items:center; gap:8px;">\n` +
+                `<i class="fas ${event.icon}" style="color:${event.color};"></i>\n` +
+                `<span>${event.name}</span>\n` +
+                `<span style="font-size:12px; color:#93a3b8;">${minutes}:${String(seconds).padStart(2,'0')}</span>\n` +
+            `</div>`;
+            evEl.style.background = 'rgba(20, 25, 40, 0.7)';
+            evEl.style.border = `1px solid ${event.color}`;
+            evEl.style.borderRadius = '8px';
+            evEl.style.padding = '8px 12px';
+            evEl.style.fontSize = '14px';
+            container.appendChild(evEl);
+        });
+    }
+
+    // Recalculate prices based on supply/demand and active events
+    function updateMarketPrices() {
+        if (!window.gameState) return;
+        gameState.marketItems.forEach(item => {
+            const oldPrice = item.price;
+            // Demand factor based on how much stock has been sold (initialAmount vs current)
+            let demandFactor = 0;
+            if (item.initialAmount > 0) {
+                demandFactor = (item.initialAmount - item.amount) / item.initialAmount;
+            }
+            demandFactor = Math.max(-1, Math.min(1, demandFactor));
+            const supplyMul = 1 + demandFactor * 0.5;
+            const rand = 1 + (Math.random() * 0.1 - 0.05);
+            // Apply effects from active events
+            let eventMul = 1;
+            activeEvents.forEach(evt => {
+                eventMul *= evt.effect(item);
+            });
+            let newPrice = Math.round(item.basePrice * supplyMul * rand * eventMul);
+            if (newPrice < 1) newPrice = 1;
+            item.price = newPrice;
+            // set sell price to be slightly lower than buy price (80% of buy price)
+            item.sellPrice = Math.max(1, Math.floor(newPrice * 0.8));
+            // Visually highlight significant changes (>10%)
+            if (oldPrice && Math.abs(newPrice - oldPrice) / oldPrice > 0.1) {
+                highlightPriceChange(item.id, newPrice > oldPrice ? 'up' : 'down');
+            }
+        });
+        // Re-render the market with updated prices
+        renderMarket();
+    }
+
+    // Activate a market event
+    function activateMarketEvent(event) {
+        const endTime = Date.now() + event.duration;
+        activeEvents.push(Object.assign({}, event, { endTime }));
+        // Notify players
+        if (typeof showNotification === 'function') {
+            showNotification(event.message, false);
+        }
+        updateMarketPrices();
+        // Schedule cleanup when event ends
+        setTimeout(() => {
+            activeEvents = activeEvents.filter(e => e.id !== event.id);
+            if (typeof showNotification === 'function') {
+                showNotification(`Событие \"${event.name}\" завершилось.`, true);
+            }
+            updateMarketPrices();
+            renderActiveEvents();
+        }, event.duration);
+    }
+
+    // Randomly trigger new events and remove expired ones
+    function handleMarketEvents() {
+        // 25% chance to trigger a new event if not too many active
+        if (Math.random() < 0.25 && activeEvents.length < 3) {
+            const available = marketEvents.filter(ev => !activeEvents.some(ae => ae.id === ev.id));
+            if (available.length) {
+                const ev = available[Math.floor(Math.random() * available.length)];
+                activateMarketEvent(ev);
+            }
+        }
+        // Filter out expired events
+        const nowTs = Date.now();
+        activeEvents = activeEvents.filter(ev => nowTs < ev.endTime);
+        renderActiveEvents();
+    }
+
+    // Initialize enhanced market: set up containers, render items, start event loop
+    function initEnhancedMarket() {
+        // Ensure containers exist (useful if HTML structure changed)
+        const marketScreen = document.getElementById('market-screen');
+        if (marketScreen) {
+            // Insert events container if missing
+            if (!document.getElementById('market-events-container')) {
+                const events = document.createElement('div');
+                events.id = 'market-events-container';
+                events.style.marginBottom = '15px';
+                events.style.display = 'flex';
+                events.style.flexWrap = 'wrap';
+                events.style.gap = '8px';
+                // Insert before items list or append at end
+                const itemsContainer = document.getElementById('market-items');
+                if (itemsContainer) {
+                    marketScreen.insertBefore(events, itemsContainer);
+                } else {
+                    marketScreen.appendChild(events);
+                }
+            }
+            // Insert items container if missing
+            if (!document.getElementById('market-items')) {
+                const items = document.createElement('div');
+                items.id = 'market-items';
+                marketScreen.appendChild(items);
+            }
+        }
+        // Render market for the first time
+        renderMarket();
+        renderActiveEvents();
+        // Start periodic event handler (increased frequency for more dynamics)
+        setInterval(handleMarketEvents, 20000);
+        // Update active event timers every second
+        setInterval(() => { renderActiveEvents(); }, 1000);
+        // Recalculate prices periodically even without events to add more dynamism
+        setInterval(() => { updateMarketPrices(); }, 20000);
+    }
+
+    // Inject CSS for price highlighting and event cards
+    (function() {
+        const style = document.createElement('style');
+        style.textContent = `\n.price-up { animation: pricePulseUp 2s ease; box-shadow: 0 0 15px rgba(0, 204, 153, 0.5); }\n` +
+            `.price-down { animation: pricePulseDown 2s ease; box-shadow: 0 0 15px rgba(255, 85, 85, 0.5); }\n` +
+            `@keyframes pricePulseUp { 0% { border-color: #00cc99; } 50% { border-color: #00ffcc; box-shadow: 0 0 20px rgba(0, 204, 153, 0.8); } 100% { border-color: #00cc99; } }\n` +
+            `@keyframes pricePulseDown { 0% { border-color: #ff5555; } 50% { border-color: #ff8888; box-shadow: 0 0 20px rgba(255, 85, 85, 0.8); } 100% { border-color: #ff5555; } }\n` +
+            `.market-event { transition: all 0.3s ease; }\n` +
+            `.market-event:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); }\n` +
+            `.vendor-reputation { display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; }\n` +
+            `.reputation-bar { flex-grow:1; height:6px; background:#1a1a2f; border-radius:3px; overflow:hidden; }\n` +
+            `.reputation-fill { height:100%; background:linear-gradient(90deg, #00cc99, #00ffcc); border-radius:3px; }\n` +
+            `.reputation-discount { color:#00ffcc; font-weight:600; }\n` +
+            `.contracts-container { margin-top:20px; }\n` +
+            `.contract-card { background:rgba(20, 25, 40, 0.7); border-radius:12px; padding:15px; margin-bottom:15px; border:1px solid #3a3a5a; position:relative; }\n` +
+            `.contract-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }\n` +
+            `.contract-title { font-size:16px; color:#00ffcc; margin-bottom:5px; }\n` +
+            `.contract-timer { font-size:12px; color:#ffcc00; background:rgba(255, 204, 0, 0.1); padding:4px 8px; border-radius:10px; }\n` +
+            `.contract-description { font-size:14px; margin-bottom:12px; color:#a0a0d0; }\n` +
+            `.contract-requirements { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }\n` +
+            `.contract-requirement { display:flex; align-items:center; gap:4px; font-size:12px; padding:4px 8px; background:rgba(30, 35, 60, 0.5); border-radius:8px; }\n` +
+            `.contract-reward { display:flex; align-items:center; gap:5px; font-size:14px; color:#ffcc00; margin-bottom:12px; }\n` +
+            `.contract-actions { display:flex; gap:10px; }\n` +
+            `.demand-indicator { display:inline-block; padding:2px 6px; border-radius:10px; font-size:11px; font-weight:600; margin-left:8px; }\n` +
+            `.demand-low { background:rgba(255, 85, 85, 0.2); color:#ff5555; }\n` +
+            `.demand-medium { background:rgba(255, 204, 0, 0.2); color:#ffcc00; }\n` +
+            `.demand-high { background:rgba(0, 204, 153, 0.2); color:#00cc99; }`;
+        document.head.appendChild(style);
+    })();
+
+    // Wait for DOM ready then initialize market enhancements
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            // Инициализируем рынок
+            initEnhancedMarket();
+            // Запускаем системы спроса, репутации и контрактов
+            supplyDemandSystem.init();
+            reputationSystem.init();
+            contractSystem.init();
+        }, { once: true });
+    } else {
+        initEnhancedMarket();
+        // Запускаем системы спроса, репутации и контрактов, если DOM уже готов
+        supplyDemandSystem.init();
+        reputationSystem.init();
+        contractSystem.init();
+    }
 })();
 </script>
 
