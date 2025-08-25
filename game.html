@@ -9,6 +9,13 @@
 <title>METAVILLE: V.01.D / Genesis Platform</title>
 <!-- TON Connect UI Kit -->
 <script defer="" src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();          // сообщаем, что UI готов
+  tg.expand();         // максимум по высоте (BottomSheet)
+</script>
 <!-- Модальное окно для подключения модулей -->
     <div class="modal" id="modules-modal" aria-hidden="true">
       <div class="modal-content" style="max-width: 640px;">
@@ -7387,8 +7394,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) hideHelp(); });
   document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') hideHelp(); });
 });
-</script>
-<script>
+
   (function () {
     const btn = document.getElementById('help-map');
     const modal = document.getElementById('info-map-modal');
@@ -7416,7 +7422,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   })();
 
-  <script>
 /**
  * Responsive Resource Bar — умный подбор режима, чтобы влезть в 1 ряд.
  * Алгоритм:
@@ -7590,8 +7595,23 @@ document.addEventListener('DOMContentLoaded', function() {
   // Первый запуск после отрисовки
   requestAnimationFrame(reflow);
 })();
-</script>
 
+  const tg = window.Telegram.WebApp;
+
+  // Попросить полноэкранный режим (убирает верх/низ Telegram)
+  if (typeof tg.requestFullscreen === 'function') {
+    tg.requestFullscreen().catch(console.warn);
+  }
+
+  // По желанию — фиксируем ориентацию
+  if (typeof tg.lockOrientation === 'function') {
+    tg.lockOrientation('landscape'); // или 'portrait'
+  }
+
+  // События статуса
+  tg.onEvent('fullscreenChanged', (isFs) => console.log('FS:', isFs));
+  tg.onEvent('fullscreenFailed',  (err)  => console.warn('FS fail:', err));
+</script>
 
 
 </body>
