@@ -171,6 +171,7 @@
             overflow-y: auto;
             padding: 15px;
             position: relative;
+            padding-top: calc(var(--topbar-h) + 8px);
         }
         
         .screen {
@@ -935,6 +936,7 @@
         .quest-card.completed {
             border-left: 4px solid #00cc99;
         }
+
 
         /* ===== Avatar card ===== */
 .avatar-card .avatar-row{
@@ -2232,6 +2234,73 @@ body.modal-open {
   font-style: italic;
   padding: 20px;
 }
+/* ——— InfoHelp (круглая кнопка "i" + модалка помощи) ——— */
+#map-screen { position: relative; } /* чтобы позиционировать кнопку внутри экрана */
+
+.help-fab {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: #1b2238;
+  border: 1px solid #2e3a5c;
+  color: #00e5ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  letter-spacing: .5px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 6px 16px rgba(0,0,0,.35);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.help-fab:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,0,0,.45); }
+.help-fab:active { transform: translateY(0); }
+
+/* Кнопка информации (фиксированная, поверх всего) */
+.help-fab {
+  position: fixed;                 /* фиксируем на экране */
+  right: 12px;
+  top: calc(var(--topbar-h) + 8px);/* чтобы не уткнуться в ресурс-бар */
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid #2a2a4a;
+  background: radial-gradient(45% 45% at 50% 50%, #101833 0%, #0d1428 55%, rgba(5,10,22,0.9) 100%);
+  color: #00e0ff;
+  font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,240,255,0.25);
+  z-index: 1201;                   /* ВЫШЕ ресурс-бара (100) и карт */
+  pointer-events: auto;
+}
+
+/* на очень узких экранах сдвинем чуть ниже */
+@media (max-width: 480px) {
+  .help-fab { top: calc(var(--topbar-h) + 6px); }
+}
+
+
+.modal.info-modal .modal-content { max-width: 560px; }
+.modal.info-modal .modal-body p,
+.modal.info-modal .modal-body li { color: #c9d3ea; }
+.modal.info-modal .tip {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed #39507a;
+  border-radius: 8px;
+  color: #9fb4d8;
+  background: rgba(20,30,55,.35);
+  font-size: 13px;
+}
+
+/* На очень узких экранах — сдвигаем кнопку чуть ниже, чтобы не конфликтовала с заголовком */
+@media (max-width: 420px) {
+  .help-fab { top: 52px; }
+}
+
 </style>
 </head>
 <body>
@@ -2329,6 +2398,7 @@ body.modal-open {
 <!-- Экран Карта -->
 <div class="screen active" id="map-screen">
 <h2 class="section-title">Scan radius of the platform</h2>
+<button class="help-fab" id="help-map" title="Как работает сканирование">i</button>
 <div class="map-container">
 <div class="map-circle inner-ring">
 </div>
@@ -3174,6 +3244,39 @@ body.modal-open {
 </div>
 </div>
 </div>
+<!-- InfoHelp: подсказка для экрана MAP -->
+<div class="modal info-modal" id="info-map-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Карта: сканирование секторов</h3>
+      <button class="close-modal" data-close="info-map-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <p><strong>Что делать на этой странице:</strong></p>
+      <ol>
+        <li>Выберите <em>сектор</em> в одном из поясов (0–50 / 50–100 / 100–150 км).</li>
+        <li>Нажмите <strong>SCAN</strong>, подтвердите действие в модалке.</li>
+        <li>Дождитесь окончания шкалы сканирования. Появится окно с найденным ресурсом и риском.</li>
+        <li>Нажмите <strong>Запустить сбор</strong> (Harvester), чтобы вывезти ресурс на склад.</li>
+      </ol>
+
+      <p><strong>Стоимость (за скан):</strong> 15 O₂ и 70 ⚡ (в демо значении фиксированные) — у вас эти цифры уже выводятся в интерфейсе результата сканирования. </p>
+
+      <p><strong>Риск сектора:</strong> влияет на шанс неблагоприятных событий и (в полном билде) на повышенный расход O₂/износ дронов.</p>
+
+      <p><strong>Ограничения:</strong></p>
+      <ul>
+        <li>Есть лимит запусков харвестера (счетчик показан на карточке миссии).</li>
+        <li>После завершения сканирования можно запустить сбор только по найденному результату.</li>
+      </ul>
+
+      <div class="tip">
+        Подсказки: ближний пояс — безопаснее, дальний — рисковее, но богаче; держите запас O₂ и ⚡; следите за «Risk level» в окне результатов.
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="rest-modal">
 <div class="modal-content">
 <div class="modal-header">
@@ -7200,7 +7303,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 1100);
 });
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const btn   = document.getElementById('help-map');
+  const modal = document.getElementById('info-map-modal');
+  const close = modal ? modal.querySelector('[data-close="info-map-modal"]') : null;
 
+  function openHelp(){ if (modal) modal.classList.add('active'); }
+  function hideHelp(){ if (modal) modal.classList.remove('active'); }
+
+  if (btn)   btn.addEventListener('click', openHelp);
+  if (close) close.addEventListener('click', hideHelp);
+  if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) hideHelp(); });
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') hideHelp(); });
+});
 </script>
+<script>
+  (function () {
+    const btn = document.getElementById('help-map');
+    const modal = document.getElementById('info-map-modal');
+
+    if (btn && modal) {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+      });
+      // Закрытие модалки по X
+      modal.querySelectorAll('.close-modal, [data-close="info-map-modal"]').forEach(el=>{
+        el.addEventListener('click', () => {
+          modal.classList.remove('active');
+          document.body.classList.remove('modal-open');
+        });
+      });
+      // Закрытие по клику на фон
+      modal.addEventListener('click', (ev) => {
+        if (ev.target === modal) {
+          modal.classList.remove('active');
+          document.body.classList.remove('modal-open');
+        }
+      });
+    }
+  })();
+</script>
+
 </body>
 </html>
