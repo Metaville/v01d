@@ -142,28 +142,35 @@
 
         
         /* верхняя панель ресурсов */
+/* верхняя панель ресурсов */
 .resource-bar{
   position: fixed;
   top: 0; left: 0; right: 0;
   height: var(--topbar-h);
   z-index: 100;
-  display: flex; align-items: center;
-  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  /* НОВОЕ: разрешаем перенос и добавляем зазоры */
+  flex-wrap: wrap;
+  column-gap: 10px;   /* расстояние по колонкам */
+  row-gap: 6px;       /* расстояние между строками */
+  padding: 6px 12px;  /* чуть больше вертикальный паддинг, чтобы вторая строка не липла */
   background: rgba(10,15,30,.9);
   border-bottom: 2px solid #2a2a4a;
-  /* если нужно — можно добавить blur:
-  backdrop-filter: blur(6px);
-  */
 }
-        
-        .resource-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-            font-weight: 600;
-            min-width: 70px;
-        }
+
+/* элементы, можно чуть компактнее на узких экранах */
+.resource-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 14px; font-weight: 600;
+  min-width: 70px;
+}
+
+/* Чуть сжимаем на очень узких устройствах */
+@media (max-width: 420px){
+  .resource-item { font-size: 12px; min-width: 60px; gap: 4px; }
+}
+
         
         /* Основной контент */
         .main-content {
@@ -2300,6 +2307,69 @@ body.modal-open {
 @media (max-width: 420px) {
   .help-fab { top: 52px; }
 }
+/* ===== Responsive Resource Bar (адаптив) ===== */
+:root{
+  --res-gap: 8px;
+  --res-row-gap: 6px;
+  --res-minw: 72px;    /* базовый минимум ширины карточки */
+  --res-pad-v: 6px;
+  --res-pad-h: 8px;
+  --res-label-f: 12px;
+  --res-value-f: 14px;
+}
+
+[data-resbar]{
+  display: flex;
+  align-items: center;
+  gap: var(--res-gap);
+  overflow: hidden;            /* без горизонтального скролла */
+}
+[data-resbar][data-rows="1"]{  /* один ряд */
+  flex-wrap: nowrap;
+}
+[data-resbar][data-rows="2"]{  /* два ряда */
+  flex-wrap: wrap;
+  row-gap: var(--res-row-gap);
+}
+
+[data-resbar] [data-res-item]{
+  flex: 0 1 auto;
+  min-width: var(--res-minw);
+  padding: var(--res-pad-v) var(--res-pad-h);
+  border-radius: 10px;
+  background: rgba(16,22,32,.5);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  contain: content; /* микро-опт. */
+}
+
+[data-resbar] [data-icon]{ width: 16px; height: 16px; flex: 0 0 auto; }
+[data-resbar] [data-label]{ font-size: var(--res-label-f); opacity: .8; }
+[data-resbar] [data-value]{ margin-left: auto; font-weight: 700; font-size: var(--res-value-f); white-space: nowrap; }
+[data-resbar] [data-unit]{ opacity: .75; font-size: 11px; margin-left: 4px; }
+[data-resbar] [data-delta]{ opacity: .75; font-size: 11px; margin-left: 6px; }
+
+/* Режимы уплотнения */
+[data-resbar][data-mode="1"] [data-unit],
+[data-resbar][data-mode="1"] [data-delta]{ display: none; }     /* скрыть единицы и дельту */
+[data-resbar][data-mode="2"] [data-label]{ display: none; }     /* скрыть подпись-лейбл */
+
+@media (max-width: 600px){
+  /* слегка компактнее на мобильном в любом режиме */
+  :root{
+    --res-gap: 6px;
+    --res-row-gap: 6px;
+    --res-minw: 64px;
+    --res-pad-v: 4px;
+    --res-pad-h: 6px;
+    --res-label-f: 11px;
+    --res-value-f: 13px;
+  }
+}
+
+/* подстраховка от горизонтального скролла */
+html, body { overflow-x: hidden; }
 
 </style>
 </head>
@@ -7345,7 +7415,184 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   })();
+
+  <script>
+/**
+ * Responsive Resource Bar — умный подбор режима, чтобы влезть в 1 ряд.
+ * Алгоритм:
+ *  1) пытаемся уложить всё в 1 ряд, повышая data-mode 0 -> 1 -> 2 (прячем unit/delta/label).
+ *  2) если не вышло — ставим 2 ряда (data-rows="2"), фиксируем data-mode=1 (компакт).
+ *  3) повторяем при ресайзе и при изменениях в баре.
+ */
+(function(){
+  // Найдём бар и его элементы по набору возможных селекторов
+  const BAR_SEL   = '.top-bar, #top-bar, .resource-bar, .header-resources';
+  const ITEM_SELS = ['.resource-item','.resource','.res-item','.stat','.stat-item','.bar-item'];
+
+  function findBar(){
+    return document.querySelector(BAR_SEL);
+  }
+
+  function markItems(bar){
+    // Пометим бар и его прямых (или почти прямых) детей как элементы ресурса
+    if (!bar) return [];
+    bar.setAttribute('data-resbar','1');
+    let items = [];
+    // сначала прямые дети
+    items = Array.from(bar.children);
+    // если пусто — пробуем более глубокий уровень
+    if (!items.length){
+      for (const sel of ITEM_SELS){
+        items = Array.from(bar.querySelectorAll(sel));
+        if (items.length) break;
+      }
+    }
+    items.forEach(el => el.setAttribute('data-res-item','1'));
+    // попытка промаркировать подузлы (иконка/лейбл/значение/единица/дельта)
+    items.forEach(el=>{
+      // иконка
+      const icon = el.querySelector('.icon, .res-icon, [data-icon]'); if (icon) icon.setAttribute('data-icon','');
+      // метка
+      const lab = el.querySelector('.label, .name, .title, [data-label]'); if (lab) lab.setAttribute('data-label','');
+      // значение
+      const val = el.querySelector('.value, .amount, .num, [data-value]') || el.lastElementChild;
+      if (val) val.setAttribute('data-value','');
+      // единицы
+      const unit = el.querySelector('.unit, .u, [data-unit]'); if (unit) unit.setAttribute('data-unit','');
+      // дельта/тренд
+      const delta = el.querySelector('.delta, .trend, [data-delta]'); if (delta) delta.setAttribute('data-delta','');
+    });
+    return items;
+  }
+
+  function fitsOneRow(bar){
+    // если содержимое шире контейнера — не помещается
+    return bar.scrollWidth <= bar.clientWidth + 1; // +1 на погрешность
+  }
+
+  function setMode(bar, mode){
+    bar.setAttribute('data-mode', String(mode));
+    // Дополнительно на каждом шаге слегка уменьшаем шрифты/отступы
+    const root = document.documentElement;
+    if (mode === 0){
+      root.style.setProperty('--res-minw','72px');
+      root.style.setProperty('--res-label-f','12px');
+      root.style.setProperty('--res-value-f','14px');
+      root.style.setProperty('--res-gap','8px');
+      root.style.setProperty('--res-pad-v','6px');
+      root.style.setProperty('--res-pad-h','8px');
+    } else if (mode === 1){
+      root.style.setProperty('--res-minw','66px');
+      root.style.setProperty('--res-label-f','11px');
+      root.style.setProperty('--res-value-f','13px');
+      root.style.setProperty('--res-gap','6px');
+      root.style.setProperty('--res-pad-v','4px');
+      root.style.setProperty('--res-pad-h','6px');
+    } else if (mode === 2){
+      root.style.setProperty('--res-minw','60px');
+      root.style.setProperty('--res-label-f','0px');  // скрываем label, но пусть останется
+      root.style.setProperty('--res-value-f','13px');
+      root.style.setProperty('--res-gap','6px');
+      root.style.setProperty('--res-pad-v','4px');
+      root.style.setProperty('--res-pad-h','6px');
+    }
+  }
+
+  function fitResourceBar(){
+    const bar = findBar();
+    if (!bar) return;
+
+    markItems(bar);
+
+    // сначала пробуем 1 ряд и обычный режим
+    bar.setAttribute('data-rows','1');
+    setMode(bar, 0);
+    if (fitsOneRow(bar)) return;
+
+    // уплотняем: скрываем unit/delta
+    setMode(bar, 1);
+    if (fitsOneRow(bar)) return;
+
+    // ещё уплотняем: скрываем label
+    setMode(bar, 2);
+    if (fitsOneRow(bar)) return;
+
+    // не поместилось — переходим на 2 ряда + компактный вид
+    bar.setAttribute('data-rows','2');
+    setMode(bar, 1);
+  }
+
+  // Запуск
+  document.addEventListener('DOMContentLoaded', fitResourceBar);
+  window.addEventListener('resize', fitResourceBar);
+
+  // Если у вас есть глобальная функция обновления UI — дернём и там
+  if (typeof window.updateUI === 'function') {
+    const orig = window.updateUI;
+    window.updateUI = function(){
+      const r = orig.apply(this, arguments);
+      try { fitResourceBar(); } catch(e){}
+      return r;
+    };
+  }
+
+  // Перехват быстрых изменений в баре — вдруг цены/значения прыгают часто
+  const barInit = ()=> {
+    const bar = findBar();
+    if (!bar) return;
+    const mo = new MutationObserver(()=>fitResourceBar());
+    mo.observe(bar, { childList:true, subtree:true, characterData:true });
+  };
+  document.addEventListener('DOMContentLoaded', barInit);
+
+})();
+
+(function(){
+  const ROOT = document.documentElement;
+  const bar  = document.querySelector('.resource-bar');
+  if (!bar) return;
+
+  // на всякий случай — принудительно включим wrap (дублирует CSS)
+  bar.style.flexWrap = 'wrap';
+
+  function isWrapped(){
+    if (!bar.firstElementChild) return false;
+    const top0 = bar.firstElementChild.getBoundingClientRect().top;
+    for (const el of bar.children){
+      if (el.getBoundingClientRect().top - top0 > 2) return true;
+    }
+    return false;
+  }
+
+  function apply(){
+    // Снимаем фикс. высоту и даём браузеру посчитать фактическую
+    // затем записываем в переменную, которую использует .main-content
+    // для верхнего отступа.
+    // (Ваша .main-content уже читает var(--topbar-h).)
+    const h = Math.ceil(bar.scrollHeight);
+    ROOT.style.setProperty('--topbar-h', h + 'px');
+  }
+
+  // Редко, но нужно: сначала проверить перенос, затем применить высоту
+  function reflow(){
+    // Перерасчёт высоты всегда по факту контента
+    apply();
+  }
+
+  // Отслеживаем ресайз окна и любые изменения внутри панели
+  window.addEventListener('resize', reflow);
+  const ro = new ResizeObserver(reflow);
+  ro.observe(bar);
+
+  const mo = new MutationObserver(reflow);
+  mo.observe(bar, { childList:true, subtree:true, characterData:true });
+
+  // Первый запуск после отрисовки
+  requestAnimationFrame(reflow);
+})();
 </script>
+
+
 
 </body>
 </html>
