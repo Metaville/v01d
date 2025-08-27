@@ -11,11 +11,7 @@
 <script defer="" src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.ready();          // сообщаем, что UI готов
-  tg.expand();         // максимум по высоте (BottomSheet)
-</script>
+
 <!-- Модальное окно для подключения модулей -->
     <div class="modal" id="modules-modal" aria-hidden="true">
       <div class="modal-content" style="max-width: 640px;">
@@ -2301,8 +2297,9 @@ body.modal-open {
 .modal.info-modal .modal-body p,
 .modal.info-modal .modal-body li { color: #c9d3ea; }
 .modal.info-modal .tip {
+    padding: 0 20px; /* Отступы слева и справа */
+  box-sizing: border-box;
   margin-top: 10px;
-  padding: 10px 12px;
   border: 1px dashed #39507a;
   border-radius: 8px;
   color: #9fb4d8;
@@ -2311,8 +2308,12 @@ body.modal-open {
 }
 
 /* На очень узких экранах — сдвигаем кнопку чуть ниже, чтобы не конфликтовала с заголовком */
-@media (max-width: 420px) {
-  .help-fab { top: 52px; }
+@media (max-width: 560px) {
+  .modal.info-modal .modal-content {
+    width: 100%;
+    margin: 0 16px;
+    max-width: calc(100% - 32px); /* Ширина минус отступы */
+  }
 }
 /* ===== Responsive Resource Bar (адаптив) ===== */
 :root{
@@ -3337,13 +3338,12 @@ html, body { overflow-x: hidden; }
         <li>Нажмите <strong>Запустить сбор</strong> (Harvester), чтобы вывезти ресурс на склад.</li>
       </ol>
 
-      <p><strong>Стоимость (за скан):</strong> 15 O₂ и 70 ⚡ (в демо значении фиксированные) — у вас эти цифры уже выводятся в интерфейсе результата сканирования. </p>
+      <p><strong>Стоимость (за скан):</strong> 15 O₂ и 70 ⚡  — у вас эти цифры выводятся в интерфейсе результата сканирования. </p>
 
-      <p><strong>Риск сектора:</strong> влияет на шанс неблагоприятных событий и (в полном билде) на повышенный расход O₂/износ дронов.</p>
+      <p><strong>Риск сектора:</strong> влияет на шанс неблагоприятных событий и на повышенный расход O₂/износ дронов.</p>
 
       <p><strong>Ограничения:</strong></p>
       <ul>
-        <li>Есть лимит запусков харвестера (счетчик показан на карточке миссии).</li>
         <li>После завершения сканирования можно запустить сбор только по найденному результату.</li>
       </ul>
 
@@ -7612,7 +7612,8 @@ document.addEventListener('DOMContentLoaded', function() {
   tg.onEvent('fullscreenChanged', (isFs) => console.log('FS:', isFs));
   tg.onEvent('fullscreenFailed',  (err)  => console.warn('FS fail:', err));
 </script>
-
-
-</body>
-</html>
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();          // сообщаем, что UI готов
+  tg.expand();         // максимум по высоте (BottomSheet)
+</script></html>
