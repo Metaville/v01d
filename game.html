@@ -113,10 +113,10 @@ html { height: -webkit-fill-available; }
 @media (max-width: 420px){
   .resource-item { font-size: 12px; min-width: 60px; gap: 4px; }
 }
-:root{
-  --topbar-h: 56px;    /* высота панели ресурсов (без safe-area) */
+:root{--topbar-h: 56px;    /* высота панели ресурсов (без safe-area) */
   --bottombar-h: 60px; /* высота нижнего меню (без safe-area) */
-  --menu-gap: 18px; /* это и есть отступ между низом экрана и меню */
+  --menu-gap: 8px; /* это и есть отступ между низом экрана и меню */
+  --topbar-gap: 16px;
 }
 
 /* Верхняя панель ресурсов — фикс, с учётом «чёлки» */
@@ -1946,6 +1946,28 @@ body.modal-open {
 }
 #solar-modal .modal-content { max-height: 85vh; overflow-y: auto; }
 
+/* === Top gap for resource bar === */
+.resource-bar{
+  top: calc(env(safe-area-inset-top) + var(--topbar-gap)) !important;
+  height: var(--topbar-h) !important;
+  padding-top: 0 !important;
+}
+.main-content{
+  padding-top: calc(env(safe-area-inset-top) + var(--topbar-gap) + var(--topbar-h)) !important;
+}
+
+/* === Bottom gap for nav menu === */
+.nav-menu{
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(env(safe-area-inset-bottom) + var(--menu-gap)) !important;
+  height: var(--bottombar-h) !important;
+  padding-bottom: 0 !important;
+  z-index: 100;
+}
+.main-content{
+  padding-bottom: calc(var(--bottombar-h) + var(--menu-gap)) !important;
+}
 </style>
 <!-- Drone UI styles -->
 <style>
