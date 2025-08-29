@@ -2,13 +2,11 @@
 
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<meta content="yes" name="apple-mobile-web-app-capable"/>
-<meta content="yes" name="mobile-web-app-capable"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
 <title>METAVILLE: V.01.D / Genesis Platform</title>
-<!-- TON Connect UI Kit -->
-<script defer="" src="https://unpkg.com/@tonconnect/ui-kit/dist/tonconnect-ui-kit.umd.js"></script>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -102,14 +100,26 @@
   width: 100%;
   height: 100%;
 }
+/* Базовая высота */
+html, body { height: 100%; }
+#app { min-height: 100vh; }
+
+/* Современные браузеры (правильная высота с учётом UI) */
+@supports (height: 100dvh) {
+  #app { min-height: 100dvh; }
+}
+
+/* iOS-хаки (старые Safari) */
+html { height: -webkit-fill-available; }
+#app { min-height: -webkit-fill-available; }
+
+/* Если будешь использовать JS-переменную --app-h (см. пункт 5), оставь так: */
+/* #app { min-height: var(--app-h, 100vh); } */
+
         .container {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
         }
         
         body {
@@ -172,6 +182,35 @@
 /* Чуть сжимаем на очень узких устройствах */
 @media (max-width: 420px){
   .resource-item { font-size: 12px; min-width: 60px; gap: 4px; }
+}
+:root{
+  --topbar-h: 56px;    /* высота панели ресурсов (без safe-area) */
+  --bottombar-h: 60px; /* высота нижнего меню (без safe-area) */
+}
+
+/* Верхняя панель ресурсов — фикс, с учётом «чёлки» */
+.resource-bar{
+  position: fixed; top: 0; left: 0; right: 0;
+  height: calc(var(--topbar-h) + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+  z-index: 100;
+  /* твои стили ... */
+}
+
+/* Нижняя навигация — фикс, с учётом домашней полоски */
+.nav-menu{
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: calc(var(--bottombar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+  /* твои стили ... */
+}
+
+/* Прокручиваемый контент — даём отступы, чтобы его не перекрывали панели */
+.main-content{
+  padding-top: calc(var(--topbar-h) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--bottombar-h) + env(safe-area-inset-bottom));
+  overflow-y: auto;
 }
 
         
@@ -4598,23 +4637,43 @@ if (closeBtn) {
   // Сцена: Открытие капсулы
   function renderCapsuleOpen() {
     sceneTitle.textContent = "ОТКРЫТИЕ КАПСУЛЫ";
-    sceneContent.innerHTML = `
+    let content = "";
+    content += `
       <p>Вы нажимаете большую красную кнопку на панели управления. Слышится шипение и капсула медленно открывается.</p>
       <p>Перед вами - ангар с сотнями пустых капсул проекта «Феникс». Холодный воздух густой, с примесью озона и машинного масла. Тусклый свет прожекторов отражается на влажном металле пола.</p>
       <p>Из тьмы выходит мужчина в поцарапанной куртке с нашивкой Свободных Гильдий. Его лицо знакомо.</p>
       <p><span class="npc">Борис</span>: "Слушай, друг... Я знаю, ты тут новенький и ищешь способы зацепиться. (Он понижает голос.) Сделаешь дельце - не только кредиты получишь, но и я кое-что расскажу про ту самую аварию на секторе G-7. Про твоего напарника. Договорились?"</p>
       <p>Он коротко объясняет правила выживания, фракции и опасности города. Затем протягивает контейнер.</p>
     `;
-    choicesContainer.innerHTML = `
+
+    let choicesHTML = "";
+
+    choicesHTML += `
       <button id="fj-accept">▶ Договорились. Давай посылку.</button>
       <button id="fj-accept-1">▶ Сначала скажи, что знаешь.</button>
     `;
+
+    choicesContainer.innerHTML = choicesHTML;
+
     document.getElementById('fj-accept').onclick = () => makeFirstJobChoice(1);
+    const btnAccept1 = document.getElementById('fj-accept-1');
+    btnAccept1.onclick = () => makeFirstJobChoice(2);
+
+    if (gameState.borisAnswer) {
+      content += `
+        <p><span class="npc">Борис</span>: "Сначала работа. Потом слова".</p>
+      `;
+      btnAccept1.style.display = 'none';
+    }
+
+    sceneContent.innerHTML = content;
 
     if (!gameState.capsuleOpened) {
       sceneBox.classList.add('capsule-animation');
       gameState.capsuleOpened = true;
     }
+
+    
   }
 
   // Сцена: Курьерское событие
@@ -4695,6 +4754,10 @@ if (closeBtn) {
           <p><span class="npc">Борис</span> замирает. Его лицо сначала выражает жадность, а затем панический страх. Он молча протягивает руку, явно желая забрать чип.</p>
         `;
       }
+    } else if (!gameState.inventory.includes("Таинственный Чип")) {
+      content += `
+        <p><span class="npc">Борис</span> "Посылку доставил... молодец. А вот насчёт твоего напарника... он тяжко вздыхает. Видишь ли, без дополнительных усилий с твоей стороны мои источники молчат. Информация нынче дорога. Понимаешь?"</p>
+      `;
     }
 
     sceneContent.innerHTML = content;
@@ -4702,6 +4765,9 @@ if (closeBtn) {
     let choicesHTML = "";
     if (gameState.inventory.includes("Таинственный Чип") && gameState.parcelDeliveredLate) {
       choicesHTML += `<button id="fj-back-2">▶ Отправиться к Тетке Марго</button>`;
+    } else if (!gameState.inventory.includes("Таинственный Чип")) {
+      choicesHTML += `<button id="fj-back-4">▶ «Я всё сделал! Говори!»</button>`;
+      choicesHTML += `<button id="fj-back-5">▶ «Что мне ещё нужно сделать?»</button>`;
     } else {
       choicesHTML += `<button id="">▶ Отдать чип Борису «Мне нужна информация, а не проблемы. Рассказывай про напарника.»</button>`;
       choicesHTML += `<button id="">▶ Оставить чип себе «Сначала расскажи про напарника. Потом, может, и отдам.»</button>`;
@@ -4720,6 +4786,7 @@ if (closeBtn) {
     document.getElementById('fj-back-1')?.addEventListener('click', () => makeFirstJobChoice(1));
     document.getElementById('fj-back-2')?.addEventListener('click', () => makeFirstJobChoice(2));
     document.getElementById('fj-back-3')?.addEventListener('click', () => makeFirstJobChoice(3));
+    document.getElementById('fj-back-4')?.addEventListener('click', () => makeFirstJobChoice(4));
   }
 
   // Сцена: Встреча с Марго
@@ -4811,6 +4878,10 @@ if (closeBtn) {
 
     if (s === 'capsule_open') {
       if (choice === 1) setFirstJobScene('courier_event');
+      if (choice === 2) {
+        gameState.borisAnswer = true
+        setFirstJobScene('capsule_open');
+      }
       return;
     }
 
@@ -8125,4 +8196,22 @@ document.addEventListener('DOMContentLoaded', function() {
   const tg = window.Telegram.WebApp;
   tg.ready();          // сообщаем, что UI готов
   tg.expand();         // максимум по высоте (BottomSheet)
-</script></html>
+</script>
+<script>
+(function () {
+  function setAppHeight() {
+    // 1vh = 1% текущей высоты окна без адресной строки
+    document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+  }
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', setAppHeight);
+
+  // Если запуск внутри Telegram WebApp — разворачиваем на всю высоту
+  if (window.Telegram && window.Telegram.WebApp) {
+    Telegram.WebApp.expand();
+    Telegram.WebApp.onEvent('viewportChanged', setAppHeight);
+  }
+})();
+</script>
+</html>
