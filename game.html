@@ -89,8 +89,8 @@ html { height: -webkit-fill-available; }
 .resource-bar{
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: var(--topbar-h);
-  z-index: 100;
+  height: calc(var(--topbar-h) + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
   display: flex;
   align-items: center;
   /* НОВОЕ: разрешаем перенос и добавляем зазоры */
@@ -100,6 +100,8 @@ html { height: -webkit-fill-available; }
   padding: 6px 12px;  /* чуть больше вертикальный паддинг, чтобы вторая строка не липла */
   background: rgba(10,15,30,.9);
   border-bottom: 2px solid #2a2a4a;
+  z-index: 100;
+}
 }
 
 /* элементы, можно чуть компактнее на узких экранах */
@@ -118,24 +120,49 @@ html { height: -webkit-fill-available; }
   --menu-gap: 28px; /* это и есть отступ между низом экрана и меню */
   --topbar-gap: 28px;
 }
+  
+.resource-bar::before{
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
 
-/* Верхняя панель ресурсов — фикс, с учётом «чёлки» */
-.resource-bar{
-  position: fixed; top: 0; left: 0; right: 0;
-  height: calc(var(--topbar-h) + env(safe-area-inset-top));
-  padding-top: env(safe-area-inset-top);
-  z-index: 100;
-  /* твои стили ... */
+  /* выдвигаем псевдо-элемент ВЫШЕ панели на размер safe-area + gap */
+  top: calc(-1 * (env(safe-area-inset-top) + var(--topbar-gap)));
+  height: calc(env(safe-area-inset-top) + var(--topbar-gap));
+
+  background-color: var(--bar-bg);
+  pointer-events: none; /* не блокирует тапы */
 }
-
 /* Нижняя навигация — фикс, с учётом домашней полоски */
 .nav-menu{
-  position: fixed; bottom: 0; left: 0; right: 0;
+  position: fixed; 
+  bottom: 0; 
+  left: 0; 
+  right: 0;
   height: calc(var(--bottombar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex; 
+  align-items: center; 
+  justify-content: space-around;
+  background: rgba(10,15,30,.95);
+  background-color: var(--bar-bg);
+  border-top: 2px solid #2a2a4a;
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 100;
 }
 
+.nav-menu::after{
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+
+  /* выдвигаем псевдо-элемент НИЖЕ панели на размер safe-area + gap */
+  bottom: calc(-1 * (env(safe-area-inset-bottom) + var(--menu-gap)));
+  height: calc(env(safe-area-inset-bottom) + var(--menu-gap));
+
+  background-color: var(--bar-bg);
+  pointer-events: none;
+}
 /* Прокручиваемый контент — даём отступы, чтобы его не перекрывали панели */
 .main-content{
   padding-top: calc(var(--topbar-h) + env(safe-area-inset-top));
@@ -499,17 +526,7 @@ html { height: -webkit-fill-available; }
             text-align: center;
         }
         
-        /* нижняя навигация */
-.nav-menu{
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: var(--bottombar-h);
-  z-index: 100;
-  display: flex; align-items: center; justify-content: space-around;
-  background: rgba(10,15,30,.95);
-  border-top: 2px solid #2a2a4a;
-  padding-bottom: env(safe-area-inset-bottom);
-}
+
         
         .nav-item {
             flex: 1;
@@ -1498,6 +1515,11 @@ body.modal-open {
 :root{
   --topbar-h: 90px;      /* фактическая высота .resource-bar */
   --bottombar-h: 90px;   /* фактическая высота .nav-menu (под иконки) */
+    --topbar-gap: 18px;    /* отступ сверху */
+  --menu-gap: 18px;       /* отступ снизу */
+
+  /* новый цвет, которым закрасим зазоры */
+  --bar-bg: #0a0a15;
 }
 
 
