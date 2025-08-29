@@ -10,80 +10,7 @@
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<!-- Модальное окно для подключения модулей -->
-    <div class="modal" id="modules-modal" aria-hidden="true">
-      <div class="modal-content" style="max-width: 640px;">
-        <div class="modal-header">
-          <h3 class="modal-title"><i class="fas fa-sitemap"></i> Station Modules</h3>
-          <button class="close-modal" data-close="modules-modal">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="modules-legend" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-            <span class="sr-badge good">Installed</span>
-            <span class="sr-badge info">Available</span>
-            <span class="sr-badge warn">Locked</span>
-          </div>
-          <!-- Ветка развития (простая вертикальная) -->
-          <div class="module-tree">
-            <div class="module-node installed" data-id="core">
-              <div class="node-head"><strong>Core</strong> <small>base system</small></div>
-              <div class="node-desc">Main control unit (pre‑installed)</div>
-            </div>
-            <div class="module-branch"></div>
-            <div class="module-node" data-id="power">
-              <div class="node-head"><strong>Power Unit</strong></div>
-              <div class="node-desc">Provides basic power distribution</div>
-              <div class="node-actions">
-                <button class="btn connect-btn" data-module="power">Connect</button>
-              </div>
-            </div>
-            <div class="module-branch"></div>
-            <div class="module-node" data-id="o2">
-              <div class="node-head"><strong>O₂ Plant</strong></div>
-              <div class="node-desc">Requires: Power Unit</div>
-              <div class="node-actions">
-                <button class="btn connect-btn" data-module="o2">Connect</button>
-              </div>
-            </div>
-            <div class="module-branch"></div>
-            <div class="module-node" data-id="scanner">
-              <div class="node-head"><strong>Scanner Mk.I</strong></div>
-              <div class="node-desc">Requires: Power Unit</div>
-              <div class="node-actions">
-                <button class="btn connect-btn" data-module="scanner">Connect</button>
-              </div>
-            </div>
-            <div class="module-branch"></div>
-            <div class="module-node" data-id="stealth">
-              <div class="node-head"><strong>Stealth Suite</strong></div>
-              <div class="node-desc">Requires: Scanner Mk.I</div>
-              <div class="node-actions">
-                <button class="btn connect-btn" data-module="stealth">Connect</button>
-              </div>
-            </div>
-          </div>
-          <div class="sr-sep"></div>
-          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;">
-            <div>Free slots: <strong id="modules-slots">-</strong></div>
-            <div class="hint" style="font-size:12px;color:#93a3b8;">Each module uses 1 slot</div>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn ghost" data-close="modules-modal">Close</button>
-        </div>
-      </div>
-    </div>
 
-<script>
-  window.addEventListener('DOMContentLoaded', () => {
-    if (window.TonConnectUI) {
-      // init, если нужно
-    } else {
-      // локально/без сети — просто не шумим
-      // console.warn('TonConnect UI not loaded'); // можно оставить как warn
-    }
-  });
-</script>
 <link href="https://metaville.github.io/v01d/manifest.json" rel="tonconnect"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 <style>
@@ -113,7 +40,7 @@ html, body { height: 100%; }
 html { height: -webkit-fill-available; }
 #app { min-height: -webkit-fill-available; }
 
-/* Если будешь использовать JS-переменную --app-h (см. пункт 5), оставь так: */
+/* Если использовать JS-переменную --app-h , оставь так: */
 /* #app { min-height: var(--app-h, 100vh); } */
 
         .container {
@@ -186,7 +113,7 @@ html { height: -webkit-fill-available; }
 :root{
   --topbar-h: 56px;    /* высота панели ресурсов (без safe-area) */
   --bottombar-h: 60px; /* высота нижнего меню (без safe-area) */
-    --menu-gap: 18px; /* это и есть отступ между низом экрана и меню */
+  --menu-gap: 18px; /* это и есть отступ между низом экрана и меню */
 }
 
 /* Верхняя панель ресурсов — фикс, с учётом «чёлки» */
@@ -204,7 +131,6 @@ html { height: -webkit-fill-available; }
   height: calc(var(--bottombar-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 100;
-  /* твои стили ... */
 }
 
 /* Прокручиваемый контент — даём отступы, чтобы его не перекрывали панели */
@@ -3655,6 +3581,70 @@ html, body { overflow-x: hidden; }
     </div>
   </div>
 </div>
+<!-- Модальное окно для подключения модулей -->
+    <div class="modal" id="modules-modal" aria-hidden="true">
+      <div class="modal-content" style="max-width: 640px;">
+        <div class="modal-header">
+          <h3 class="modal-title"><i class="fas fa-sitemap"></i> Station Modules</h3>
+          <button class="close-modal" data-close="modules-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="modules-legend" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <span class="sr-badge good">Installed</span>
+            <span class="sr-badge info">Available</span>
+            <span class="sr-badge warn">Locked</span>
+          </div>
+          <!-- Ветка развития (простая вертикальная) -->
+          <div class="module-tree">
+            <div class="module-node installed" data-id="core">
+              <div class="node-head"><strong>Core</strong> <small>base system</small></div>
+              <div class="node-desc">Main control unit (pre‑installed)</div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="power">
+              <div class="node-head"><strong>Power Unit</strong></div>
+              <div class="node-desc">Provides basic power distribution</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="power">Connect</button>
+              </div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="o2">
+              <div class="node-head"><strong>O₂ Plant</strong></div>
+              <div class="node-desc">Requires: Power Unit</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="o2">Connect</button>
+              </div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="scanner">
+              <div class="node-head"><strong>Scanner Mk.I</strong></div>
+              <div class="node-desc">Requires: Power Unit</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="scanner">Connect</button>
+              </div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="stealth">
+              <div class="node-head"><strong>Stealth Suite</strong></div>
+              <div class="node-desc">Requires: Scanner Mk.I</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="stealth">Connect</button>
+              </div>
+            </div>
+          </div>
+          <div class="sr-sep"></div>
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;">
+            <div>Free slots: <strong id="modules-slots">-</strong></div>
+            <div class="hint" style="font-size:12px;color:#93a3b8;">Each module uses 1 slot</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn ghost" data-close="modules-modal">Close</button>
+        </div>
+      </div>
+    </div>
+
 
 <script>
         // Состояние игры (исправленное)
@@ -8214,5 +8204,15 @@ document.addEventListener('DOMContentLoaded', function() {
     Telegram.WebApp.onEvent('viewportChanged', setAppHeight);
   }
 })();
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (window.TonConnectUI) {
+      // init, если нужно
+    } else {
+      // локально/без сети — просто не шумим
+      // console.warn('TonConnect UI not loaded'); // можно оставить как warn
+    }
+  });
 </script>
 </html>
