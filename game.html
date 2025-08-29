@@ -75,16 +75,12 @@ html { height: -webkit-fill-available; }
     display: flex;
     flex-direction: column;
     position: relative;
-
     /* Поддержка «чёлки» на iPhone */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
 }
-
-        
-        /* верхняя панель ресурсов */
 /* верхняя панель ресурсов */
 .resource-bar{
   position: fixed;
@@ -102,8 +98,6 @@ html { height: -webkit-fill-available; }
   border-bottom: 2px solid #2a2a4a;
   z-index: 100;
 }
-}
-
 /* элементы, можно чуть компактнее на узких экранах */
 .resource-item {
   display: flex; align-items: center; gap: 5px;
