@@ -10,6 +10,9 @@
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+<!-- Solana web3.js в виде IIFE (даёт глобальный solanaWeb3) -->
+<script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+
 
 <link href="https://metaville.github.io/v01d/manifest.json" rel="tonconnect"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
@@ -1493,8 +1496,8 @@ body.modal-open {
 
 /* === фиксированные верх/низ + отступы контента === */
 :root{
-  --topbar-h: 56px;      /* фактическая высота .resource-bar */
-  --bottombar-h: 60px;   /* фактическая высота .nav-menu (под иконки) */
+  --topbar-h: 90px;      /* фактическая высота .resource-bar */
+  --bottombar-h: 90px;   /* фактическая высота .nav-menu (под иконки) */
 }
 
 
@@ -2476,6 +2479,11 @@ html, body { overflow-x: hidden; }
     <div class="resource-item" id="rare-resource">
         <span>💎 <span id="rare-value">0</span></span>
     </div>
+
+<button id="phantom-connect-btn" class="btn btn-primary">
+  <i class="fa-solid fa-wallet"></i>  Phantom
+</button>
+<span id="phantom-addr" style="margin-left:8px;font-weight:600;"></span>
 </div>
 <!-- Модальное окно обучения -->
 <div class="modal" id="tutorial-modal">
@@ -8214,5 +8222,136 @@ document.addEventListener('DOMContentLoaded', function() {
       // console.warn('TonConnect UI not loaded'); // можно оставить как warn
     }
   });
+
 </script>
+<script>
+(() => {
+  // --- Провайдер Phantom ---
+  function getPhantom() {
+    const p = window.solana;
+    return p && p.isPhantom ? p : null;
+  }
+
+  // --- Состояние/удобства ---
+  const elBtn  = () => document.getElementById('phantom-connect-btn');
+  const elAddr = () => document.getElementById('phantom-addr');
+
+  function short(addr){ return addr ? addr.slice(0,4) + '…' + addr.slice(-4) : ''; }
+
+  // Сохраняем адрес в твоё состояние игры (если есть gameState)
+  function setPlayerAddress(addr){
+    try {
+      window.gameState = window.gameState || {};
+      window.gameState.player = { ...(window.gameState.player||{}), solAddress: addr, wallet:'phantom' };
+    } catch(_) {}
+  }
+
+  function updateUiConnected(addr){
+    if (elBtn())  elBtn().textContent = 'Отключить Phantom';
+    if (elAddr()) elAddr().textContent = addr ? short(addr) : '';
+    if (typeof showNotification === 'function' && addr){
+      showNotification('Подключён Phantom: ' + short(addr), true);
+    }
+  }
+
+  function updateUiDisconnected(){
+    if (elBtn())  elBtn().textContent = 'Подключить Phantom';
+    if (elAddr()) elAddr().textContent = '';
+    if (typeof showNotification === 'function'){
+      showNotification('Phantom отключён', false);
+    }
+  }
+
+  // --- Подключение ---
+  async function connectPhantom(){
+    const provider = getPhantom();
+    if (!provider){
+      alert('Phantom не найден. Установи расширение (desktop) или открой игру во встроенном браузере Phantom (mobile).');
+      return;
+    }
+    // onlyIfTrusted = true позволит авто-подключаться, если уже подтверждено ранее
+    const { publicKey } = await provider.connect({ onlyIfTrusted:false });
+    const addr = publicKey.toString();
+    setPlayerAddress(addr);
+    updateUiConnected(addr);
+
+    // События кошелька
+    provider.on('accountChanged', (pk) => {
+      if (pk) {
+        const a = pk.toString();
+        setPlayerAddress(a);
+        updateUiConnected(a);
+      } else {
+        // Пользователь снял доступ
+        setPlayerAddress(null);
+        updateUiDisconnected();
+      }
+    });
+  }
+
+  // --- Отключение ---
+  async function disconnectPhantom(){
+    const provider = getPhantom();
+    if (provider && provider.isConnected){
+      try { await provider.disconnect(); } catch(_) {}
+    }
+    setPlayerAddress(null);
+    updateUiDisconnected();
+  }
+
+  // --- Обработчик кнопки ---
+  function bindUi(){
+    const btn = elBtn();
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      const provider = getPhantom();
+      if (provider && provider.isConnected) {
+        await disconnectPhantom();
+      } else {
+        await connectPhantom();
+      }
+    });
+  }
+
+  // --- Пример: подпись сообщения (вход без сервера) ---
+  async function signLoginMessage(){
+    const provider = getPhantom();
+    if (!provider || !provider.publicKey) throw new Error('Phantom не подключён');
+    const msg = new TextEncoder().encode('Login to METAVILLE @ ' + new Date().toISOString());
+    const { signature } = await provider.signMessage(msg, 'utf8');
+    // Отправь подпись на свой бэк (если есть) для верификации
+    return signature;
+  }
+  window.signLoginWithPhantom = signLoginMessage;
+
+  // --- Пример: перевод SOL (devnet) ---
+  async function sendSolDevnet(toAddress, lamports){
+    const provider = getPhantom();
+    if (!provider || !provider.publicKey) throw new Error('Phantom не подключён');
+
+    const { Connection, clusterApiUrl, PublicKey, SystemProgram, Transaction } = solanaWeb3;
+    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+
+    const fromPubkey = provider.publicKey;
+    const toPubkey   = new PublicKey(toAddress);
+
+    const tx = new Transaction().add(SystemProgram.transfer({
+      fromPubkey, toPubkey, lamports
+    }));
+    tx.feePayer = fromPubkey;
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+    const signed = await provider.signTransaction(tx);
+    const sig = await connection.sendRawTransaction(signed.serialize());
+    await connection.confirmTransaction(sig, 'confirmed');
+    return sig;
+  }
+  window.sendSolDevnet = sendSolDevnet;
+
+  // Авто-инициализация UI
+  document.addEventListener('DOMContentLoaded', bindUi, { once:true });
+})();
+</script>
+
+
 </html>
