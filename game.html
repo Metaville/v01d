@@ -2501,15 +2501,16 @@ html, body { overflow-x: hidden; }
 <div class="resource-item" id="mvc-resource">
 <span>MVC: <span id="mvc-value">500</span></span>
 </div>
+<div class="resource-item" id="ice-resource">
+<span>❄️ <span id="ice-value">120</span></span>
+</div>
 <div class="resource-item" id="bio-resource">
 <span>🧪 <span id="bio-value">100</span></span>
 </div>
 <div class="resource-item" id="parts-resource">
 <span>🛠️ <span id="parts-value">100</span></span>
 </div>
-<div class="resource-item" id="ice-resource">
-<span>❄️ <span id="ice-value">120</span></span>
-</div>
+
 <!-- Отображение полимеров и редкоземов -->
     <div class="resource-item" id="polymers-resource">
         <span>🧬 <span id="polymers-value">0</span></span>
@@ -3741,7 +3742,8 @@ html, body { overflow-x: hidden; }
                  */
                 o2Accum: 0,
                 iceAccum: 0,
-                energyAccum: 0
+                energyAccum: 0,
+                buffer: 0   
             },
             missions: {
                 scanning: false,
@@ -3832,6 +3834,18 @@ html, body { overflow-x: hidden; }
         let scanInterval = null;
         let o2Interval = null;
         let minerInterval = null;
+        // Ускоритель для демо (1 = нормальная скорость)
+        window.DEMO_SPEED = window.DEMO_SPEED || 8;
+        // Живой апдейтер UI майнера: момент открытия и форматтер времени
+        window._o2Ui = window._o2Ui || { openedAt: 0 };
+        function o2fmt(ms){
+          const s = Math.floor(ms/1000);
+          const h = String(Math.floor(s/3600)).padStart(2,'0');
+          const m = String(Math.floor((s%3600)/60)).padStart(2,'0');
+          const ss = String(s%60).padStart(2,'0');
+          return `${h}:${m}:${ss}`;
+        }
+
 
         // Получение имени ресурса
         function getResourceName(resource) {
@@ -5074,11 +5088,20 @@ if (closeBtn) {
         function updateO2Generation() {
             const rate = gameState.o2Generation.rate;
             if (!rate || rate <= 0) return;
+
+             
+            // DEBUG тики генерации
+            gameState.o2Generation._ticks = (gameState.o2Generation._ticks || 0) + 1;
+            gameState.o2Generation._lastTick = Date.now();
+// DEBUG: отметим сам факт тика
+  gameState.o2Generation._ticks = (gameState.o2Generation._ticks || 0) + 1;
+  gameState.o2Generation._lastTick = Date.now();
+  
             // Константы расхода: сколько льда и энергии требуется на одну единицу кислорода.
             const ICE_PER_O2 = 0.2;
             const ENERGY_PER_O2 = 2;
             // Производство в этот тик (единиц O₂/сек) — делим годовой расход на 3600
-            const produced = rate / 3600;
+            const produced = (rate / 3600) * (window.DEMO_SPEED || 1);
             // Проверим, хватает ли сырья на текущий тик
             const minIce = ICE_PER_O2 * produced;
             const minEnergy = ENERGY_PER_O2 * produced;
@@ -5112,12 +5135,12 @@ if (closeBtn) {
                 }
                 gameState.o2Generation.energyAccum -= energyToSpend;
             }
-            // Производим кислород из накопления
-            const o2ToProduce = Math.floor(gameState.o2Generation.o2Accum);
-            if (o2ToProduce > 0) {
-               // updateResource('oxygen', o2ToProduce);
-                gameState.o2Generation.buffer += o2ToProduce;
-            }
+           // Производим кислород из накопления
+const o2ToProduce = Math.floor(gameState.o2Generation.o2Accum);
+if (o2ToProduce > 0) {
+    gameState.o2Generation.o2Accum -= o2ToProduce; // снять произведённое
+    gameState.o2Generation.buffer = (gameState.o2Generation.buffer || 0) + o2ToProduce;
+}
         }
         
         // Майнер кислорода
@@ -5141,6 +5164,7 @@ function initO2Miner() {
       .o2m-new-center b{font-size:32px;margin-bottom:4px;color:#00ffcc;}
       .o2m-new-center span{font-size:12px;letter-spacing:1px;color:#88a7c9;text-transform:uppercase;}
       .o2m-new-metrics{display:flex;flex-direction:column;gap:12px;width:100%;}
+
       .o2m-new-card{background:linear-gradient(180deg,#0d172c,#0b1424);border:1px solid #1e2d46;border-radius:12px;padding:12px;box-shadow:0 0 12px #00f3ff20;}
       .o2m-new-card h4{margin:0 0 6px;font-size:12px;color:#a0c4ed;letter-spacing:.6px;text-transform:uppercase;}
       .o2m-new-card .value{font-size:22px;font-weight:700;color:#00ffcc;}
@@ -5149,6 +5173,24 @@ function initO2Miner() {
       .o2m-new-card .value.lime{color:#00ff99;}
       .o2m-new-card .hint{font-size:10px;color:#88a0c7;margin-top:4px;}
       .o2m-new-actions{display:flex;justify-content:center;margin-top:10px;}
+      /* --- DEBUG line for O₂ miner --- */
+.o2m-debug{
+  width:100%; padding:8px 10px; border-radius:8px;
+  background:#0b1424; border:1px dashed #23344a;
+  color:#88a7c9; font:12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  word-break: break-word;
+}
+.o2m-debug b{ color:#eaf6ff; }
+.o2m-dot{
+  display:inline-block; width:8px; height:8px; margin-right:6px;
+  border-radius:50%; background:#00ffcc; vertical-align:middle;
+  animation:o2pulse 1.2s ease-in-out infinite;
+}
+@keyframes o2pulse{
+  0%,100%{ opacity:.35; transform:scale(.8); }
+  50%    { opacity:1;    transform:scale(1.05); }
+}
+
     `;
     document.head.appendChild(style);
   }
@@ -5194,6 +5236,11 @@ wrap.innerHTML = `
           </div>
         </div>
       </div>
+      <div class="o2m-debug" id="o2m-debug">
+  <span class="o2m-dot"></span>
+  <b>debug</b> — waiting…
+</div>
+
       <div class="o2m-new-actions">
         <button id="o2m-claim" class="btn primary">Забрать O₂</button>
         <button id="o2m-new-close" class="btn ghost">Закрыть</button>
@@ -5210,11 +5257,43 @@ wrap.innerHTML = `
   const stateEl = document.getElementById('o2m-state');
   const stateHint = document.getElementById('o2m-state-hint');
   const closeBtn = document.getElementById('o2m-new-close');
-
-  
   const claimBtn = document.getElementById('o2m-claim');
+  const bufferEl = document.getElementById('o2m-buffer');
+  const debugEl  = document.getElementById('o2m-debug');
+  // Буфер O₂ (целые единицы, готовые к забору)
+const buf = Math.floor(gameState.o2Generation.buffer || 0);
+if (bufferEl) bufferEl.textContent = buf.toLocaleString();
 
-  // Простейшая логика «Забрать O₂»: выдаём накопленное целое значение, если есть
+// Строка debug: виден живой «пульс» и текущие значения
+const rate = gameState.o2Generation.rate || 0;
+const producedPerSec = rate / 3600;
+const o2a = +(gameState.o2Generation.o2Accum  || 0);
+const ia  = +(gameState.o2Generation.iceAccum || 0);
+const ea  = +(gameState.o2Generation.energyAccum || 0);
+const ticks = gameState.o2Generation._ticks || 0;
+const last  = gameState.o2Generation._lastTick
+  ? new Date(gameState.o2Generation._lastTick).toLocaleTimeString()
+  : '—';
+
+const spin = window._o2Spin || (window._o2Spin = { idx:0, frames:['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'] });
+const frame = spin.frames[(spin.idx++) % spin.frames.length];
+if (debugEl) {
+  debugEl.innerHTML =
+    `<span class="o2m-dot"></span>`+
+    `<b>${frame}</b> rate=${rate.toFixed(1)}/h `+
+    `| +${producedPerSec.toFixed(3)}/s `+
+    `| acc(o2:${o2a.toFixed(3)} ice:${ia.toFixed(3)} en:${ea.toFixed(3)}) `+
+    `| buf:${buf} | ticks:${ticks} | last:${last}`;
+}
+
+// Если в сейве не было поля — инициализируем
+if (typeof gameState.o2Generation.buffer === 'undefined') {
+  gameState.o2Generation.buffer = 0;
+}
+
+// Кадры «спиннера» для бегущего индикатора
+// (SPIN removed; using window._o2Spin)
+// Простейшая логика «Забрать O₂»: выдаём накопленное целое значение, если есть
   claimBtn?.addEventListener('click', () => {
     const buf = Math.floor(gameState.o2Generation.buffer || 0);
     if (buf > 0) {
@@ -5259,7 +5338,57 @@ wrap.innerHTML = `
     }
     stateEl.textContent = state;
     stateHint.textContent = hint;
+  
+  // --- Онлайн-обновление debug линии и чисел ---
+  try {
+    const now = Date.now();
+    // Буфер
+    const buf = Math.floor(gameState.o2Generation.buffer || 0);
+    const bufferEl = document.getElementById('o2m-buffer');
+    if (bufferEl) bufferEl.textContent = buf.toLocaleString();
+
+    // Кнопка «Забрать O₂»
+    const claimBtn = document.getElementById('o2m-claim');
+    if (claimBtn) {
+      claimBtn.disabled = buf <= 0;
+      claimBtn.classList.toggle('is-ready', buf > 0);
+    }
+
+    // Параметры
+    const rateNow = gameState.o2Generation.rate || 0;
+    const producedPerSec = (rateNow / 3600) * (window.DEMO_SPEED || 1);
+    const o2a = +(gameState.o2Generation.o2Accum  || 0);
+    const ia  = +(gameState.o2Generation.iceAccum || 0);
+    const ea  = +(gameState.o2Generation.energyAccum || 0);
+    const ticks = gameState.o2Generation._ticks || 0;
+    const lastTick = gameState.o2Generation._lastTick || now;
+
+    // Таймеры
+    const uptime   = (window._o2Ui && window._o2Ui.openedAt) ? o2fmt(now - window._o2Ui.openedAt) : '00:00:00';
+    const since    = now - lastTick;
+    const nextInMs = Math.max(0, 1000 - (since % 1000));
+
+    // Спиннер
+    const spin = window._o2Spin || (window._o2Spin = { idx:0, frames:['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'] });
+    const frame = spin.frames[(spin.idx++) % spin.frames.length];
+
+    // Вывод
+    const debugEl  = document.getElementById('o2m-debug');
+    if (debugEl) {
+      debugEl.innerHTML =
+        `<span class="o2m-dot"></span>`+
+        `<b>${frame}</b> `+
+        `rate=${rateNow.toFixed(1)}/h | +${producedPerSec.toFixed(3)}/s `+
+        `| acc(o2:${o2a.toFixed(3)} ice:${ia.toFixed(3)} en:${ea.toFixed(3)}) `+
+        `| buf:${buf} | ticks:${ticks} | last:${new Date(lastTick).toLocaleTimeString()} `+
+        `| tickAgo:${(since/1000).toFixed(1)}s | next:${(nextInMs/1000).toFixed(1)}s `+
+        `| uptime:${uptime}`;
+    }
+  } catch(e) {
+    // не мешаем остальному UI
   }
+
+}
 
   // Первый рендер и интервал обновления UI
   updateMinerUI();
@@ -5276,6 +5405,27 @@ wrap.innerHTML = `
       if (m) m.classList.remove('active');
     }
   });
+
+  // === LIVE UI updates for miner ===
+  window._o2Ui.openedAt = Date.now();
+  if (typeof minerInterval !== 'undefined' && minerInterval) {
+    clearInterval(minerInterval);
+  }
+  updateMinerUI();
+  minerInterval = setInterval(updateMinerUI, 250);
+  // Ensure close button stops the interval too
+  (function(){
+    const closeBtn = document.getElementById('o2m-new-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        if (typeof minerInterval !== 'undefined' && minerInterval) {
+          clearInterval(minerInterval);
+          minerInterval = null;
+        }
+      });
+    }
+  })();
+
 }
 
         
@@ -5286,10 +5436,17 @@ wrap.innerHTML = `
         });
         
         // Закрытие майнера кислорода
-        document.querySelector('#o2-miner-modal .close-modal').addEventListener('click', function() {
-            clearInterval(minerInterval);
+        {
+  const x = document.querySelector('#o2-miner-modal .close-modal');
+  if (x) {
+    x.addEventListener('click', function() {
+clearInterval(minerInterval);
             document.getElementById('o2-miner-modal').classList.remove('active');
-        });
+        
+    });
+  }
+}
+
 
         // Старт игры
         document.getElementById('start-game-btn').addEventListener('click', function() {
