@@ -3730,7 +3730,7 @@ html, body { overflow-x: hidden; }
         restProgress: 0
     },
             o2Generation: {
-                rate: 5,
+                rate: 10,
                 progress: 0,
                 maxRate: 100,
                 /**
@@ -3771,7 +3771,7 @@ html, body { overflow-x: hidden; }
             marketItems: [
                 { id: 1, name: "Полимеры", vendor: "ГЛОРИЯ", rating: 4, amount: 85, price: 12 },
                 { id: 2, name: "Редкоземы", vendor: "СИНДИКАТ-7", rating: 3, amount: 12, price: 28 },
-                { id: 3, name: "O₂", vendor: "БАР У ДЖО", rating: 5, amount: 150, price: 10 },
+                { id: 3, name: "O₂", vendor: "БАР У ДЖО", rating: 5, amount: 150, price: 7 },
                 /**
                  * Раздел «Цех модулей» был заменён на покупку и продажу льда. Этот ресурс
                  * добывается в ледяных шахтах и используется для производства воды и кислорода.
@@ -4122,7 +4122,7 @@ document.getElementById('confirm-scan').addEventListener('click', function() {
                     scanInterval = null; // обнуляем ссылку
 
                     showNotification("Sector scanning complete!", true);
-                    updateResource('oxygen', -25);
+                    updateResource('oxygen', -10);
                     
                     clearInterval(scanInterval);
                     document.getElementById('harvest-btn').disabled = 
@@ -4195,7 +4195,7 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
     }
     
     // Расход ресурсов на отправку
-    if (updateResource('oxygen', -15) && updateResource('energy', -70)) {
+    if (updateResource('oxygen', -10) && updateResource('energy', -70)) {
         const res = gameState.missions.scannedResources;
         updateResource(res.type, res.amount);
         
@@ -5726,7 +5726,9 @@ function bindSleepButtons(){
       const amount = parseInt(btn.dataset.amount || '0', 10);
 
       // начисляем твоей энергосистемой
-      addEnergy(amount);
+      if (typeof updateResource === 'function') {
+      updateResource('energy', amount); // это обновит gameState и сразу перерисует панель
+    }
       E.nodes[id] = E.nodes[id] || { readyAt: 0 };
       E.nodes[id].readyAt = Date.now() + E_CFG.nodeRestoreMs;
       saveState();
@@ -8550,3 +8552,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 </html>
+<!-- ECONOMY UI PATCH: show full scan/harvest costs -->
+<script>
+;(() => {
+  if (window.__econUIPatch__) return; window.__econUIPatch__ = true;
+  const COST = { scanFinishO2: 10, harvestO2: 10, harvestEnergy: 70 };
+  function formatCost() { return `${COST.scanFinishO2 + COST.harvestO2} O₂ + ${COST.harvestEnergy}⚡`; }
+  function patchScanModal(){
+    const modal = document.getElementById('scan-result-modal') || document.querySelector('.scan-result-modal');
+    if (!modal) return;
+    let row = modal.querySelector('.cost-full');
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'cost-full';
+      row.style.cssText = 'margin-top:6px; opacity:.9;';
+      const hdr = modal.querySelector('.header, .title, h3, h4');
+      const anchor = hdr ? (hdr.nextElementSibling || hdr) : modal.firstElementChild || modal;
+      anchor.parentNode.insertBefore(row, anchor);
+    }
+    row.textContent = `Total cost (scan+collect): ${formatCost()}`;
+  }
+  ['showScanResultModal','openScanResult','renderScanResult'].forEach(fn => {
+    const f = window[fn];
+    if (typeof f === 'function' && !f.__econWrap) {
+      window[fn] = function(){ try { patchScanModal(); } catch(e){} return f.apply(this, arguments); };
+      window[fn].__econWrap = true;
+    }
+  });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', patchScanModal, { once: true });
+  } else {
+    patchScanModal();
+  }
+})();
+</script>
