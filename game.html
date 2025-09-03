@@ -3594,37 +3594,37 @@ html, body { overflow-x: hidden; }
 <article class="stat-card">
 <div class="stat-title">Огневая мощь (FP)</div>
 <div class="stat-value">139</div>
-<div class="progress"><div class="bar" style="--p:62%"></div></div>
+<div class="su-progress"><div class="bar" style="--p:62%"></div></div>
 <div class="stat-desc">Эффективность в боевых сценариях, защита караванов</div>
 </article>
 <article class="stat-card">
 <div class="stat-title">Статус (HT)</div>
 <div class="stat-value">Titan [3]</div>
-<div class="progress"><div class="bar" style="--p:55%"></div></div>
+<div class="su-progress"><div class="bar" style="--p:55%"></div></div>
 <div class="stat-desc">Доступ к закрытым зонам, дипломатия с фракциями</div>
 </article>
 <article class="stat-card">
 <div class="stat-title">Энергия (EN)</div>
 <div class="stat-value">143/160</div>
-<div class="progress"><div class="bar" style="--p:89%"></div></div>
+<div class="su-progress"><div class="bar" style="--p:89%"></div></div>
 <div class="stat-desc">Количество действий за ход, работа в токсичных зонах</div>
 </article>
 <article class="stat-card">
 <div class="stat-title">Защита (ED)</div>
 <div class="stat-value">151</div>
-<div class="progress"><div class="bar" style="--p:75%"></div></div>
+<div class="su-progress"><div class="bar" style="--p:75%"></div></div>
 <div class="stat-desc">Устойчивость к радиации/токсинам, сохранность груза</div>
 </article>
 <article class="stat-card">
 <div class="stat-title">Здоровье (HP)</div>
 <div class="stat-value">137/200</div>
-<div class="progress"><div class="bar" style="--p:68%"></div></div>
+<div class="su-progress"><div class="bar" style="--p:68%"></div></div>
 <div class="stat-desc">Выживаемость и скорость восстановления</div>
 </article>
 <article class="stat-card">
 <div class="stat-title">Опыт (XP)</div>
 <div class="stat-value">150/200</div>
-<div class="progress"><div class="bar" style="--p:75%"></div></div>
+<div class="su-progress"><div class="bar" style="--p:75%"></div></div>
 <div class="stat-desc">Прокачка характеристик</div>
 </article>
 </section>
@@ -4592,7 +4592,7 @@ document.querySelectorAll('.quest-actions .btn-primary').forEach(btn => {
   } catch (e) {
     console.error('Error relocating drone elements', e);
   }
-  // Кнопка "Accept" в карточке  квеста (data-quest="awakening")
+  // Кнопка "Accept" в карточке квеста (data-quest="awakening")
   const acceptBtn = document.querySelector('[data-quest="awakening"]');
   const modal = document.getElementById('quest-awake-modal');
   const closeBtn = document.getElementById('quest-awake-close');
@@ -4766,16 +4766,16 @@ if (closeBtn) {
       gameState.capsuleOpened = true;
     }
 
-
+    
   }
 
   // Сцена: Курьерское событие
   function renderCourierEvent() {
     sceneTitle.textContent = "ДОРОГА С БАЗАРА";
     sceneContent.innerHTML = `
-      <p>Вы сжимаете в руке контейнер от Бориса, прокладывая путь через
+      <p>Вы сжимаете в руке контейнер от Бориса, прокладывая путь через 
 гулкую толпу Рынка Тени.</p>
-      <p>По мере удаления от ядра рынка шум стихает, сменяясь
+      <p>По мере удаления от ядра рынка шум стихает, сменяясь 
 эхом ваших шагов по металлическим мосткам.</p>
       <p>Вдруг из переулка раздаётся взрыв и крики, а в воздухе — запах гари и палёной электроники.</p>
     `;
@@ -4790,101 +4790,117 @@ if (closeBtn) {
   // Сцена: Умирающий курьер
   function renderDyingCourier() {
     sceneTitle.textContent = "СЦЕНА КРУШЕНИЯ";
-    //
-    let content = "";
-    if (!gameState.inventory.includes("Жетон Ордена Спасения")) {
-      content = `
-        <p>Разрушенный транспорт дымится, осколки стекла и металла разбросаны повсюду. На холодном бетоне лежит умирающий курьер в форме Ордена Спасения. Его дрожащая рука протягивает странный технологический чип, микросхемы которого светятся бледным фиолетовым светом, похожим на свет кристаллов Третьей Волны.</p>
-        <p>Курьер хрипит: "Возьми… этот чип… доставь в Шанхайскую Иглу… спаси… данные… «Кентавр»…"</p>
-        <p>Он вручает вам чип и умирает.</p>
-      `;
-    } else {
-      content = `
-        <p>Вы аккуратно обыскиваете карманы курьера.</p>
-        <p>Под пропитанным кровью комбинезоном находите:</p>
-        <p>**Опознавательный жетон Ордена Спасения**
-        (серийный номер: X7B-42R, имя: Логан Кейн)</p>
-        <p>**Смятое голо-письмо** дочери ("Вернись живым, папа")</p>
-      `;
-    }
-    sceneContent.innerHTML = content;
-
-    let choicesHTML = "";
-    if (!gameState.inventory.includes("Жетон Ордена Спасения")) {
-      choicesHTML = `
-        <button id="fj-dying-1">▶ Обыскать тело курьера</button>
-        <button id="fj-dying-2">▶ Взять только чип и уйти</button>
-      `;
-    } else {
-      choicesHTML = `
-        <button id="fj-dying-3">▶ Продолжить доставку</button>
-      `;
-    }
-    choicesContainer.innerHTML = choicesHTML;
-
-    document.getElementById('fj-dying-1')?.addEventListener('click', () => makeFirstJobChoice(1));
-    document.getElementById('fj-dying-2')?.addEventListener('click', () => makeFirstJobChoice(2));
-    document.getElementById('fj-dying-3')?.addEventListener('click', () => makeFirstJobChoice(3));
-
+    sceneContent.innerHTML = `
+      <p>Разрушенный транспорт дымится, осколки стекла и металла разбросаны повсюду. На холодном бетоне лежит умирающий курьер в форме Ордена Спасения. Его дрожащая рука протягивает странный технологический чип, микросхемы которого светятся бледным фиолетовым светом, похожим на свет кристаллов Третьей Волны.</p>
+      <p>Курьер хрипит: "Возьми… этот чип… доставь в Шанхайскую Иглу… спаси… данные… «Кентавр»…"</p>
+      <p>Он вручает вам чип и умирает.</p>
+    `;
+    choicesContainer.innerHTML = `
+      <button id="fj-dying-1">▶ Обыскать тело курьера</button>
+      <button id="fj-dying-2">▶ Взять только чип и уйти</button>
+    `;
+    document.getElementById('fj-dying-1').onclick = () => makeFirstJobChoice(1);
+    document.getElementById('fj-dying-2').onclick = () => makeFirstJobChoice(2);
   }
 
   // Сцена: Доставка посылки
   function renderDeliverParcel() {
     sceneTitle.textContent = "ДОСТАВКА ПОСЫЛКИ";
-
-    let content = "";
-      content = `
-        <p>Вы приходите к пункту назначения - тёмный склад с мигающей вывеской. Клиент сидит в полумраке. Его глаза скрыты за затемнёнными очками, а движения неестественно точны.</p>
-      `;
-
-    sceneContent.innerHTML = content;
-
-    let choicesHTML = "";
-    choicesHTML = `
-      <button id="fj-deliver-1">▶ Доставить посылку раньше срока</button>
+    sceneContent.innerHTML = `
+      <p>Вы приходите к пункту назначения - тёмный склад с мигающей вывеской. Клиент сидит в полумраке. Его глаза скрыты за затемнёнными очками, а движения неестественно точны.</p>
     `;
-    if (!gameState.parcelDeliveredEarly) {
-      if (gameState.inventory.includes("Таинственный Чип")) {
-        choicesHTML += `
-          <button id="fj-deliver-2">▶ Доставить посылку с опозданием</button>
-        `;
-      } else {
-        choicesHTML += `
-          <button id="fj-deliver-3">▶ Доставить посылку с опозданием</button>
-        `;
-      }
-    }
-    choicesContainer.innerHTML = choicesHTML;
-
-    document.getElementById('fj-deliver-2')?.addEventListener('click', () => makeFirstJobChoice(2));
-    document.getElementById('fj-deliver-3')?.addEventListener('click', () => makeFirstJobChoice(3));
-    document.getElementById('fj-deliver-1')?.addEventListener('click', () => makeFirstJobChoice(1));
-
+    choicesContainer.innerHTML = `
+      <button id="fj-deliver-1">▶ Доставить посылку раньше срока</button>
+      <button id="fj-deliver-2">▶ Доставить посылку с опозданием</button>
+    `;
+    document.getElementById('fj-deliver-1').onclick = () => makeFirstJobChoice(1);
+    document.getElementById('fj-deliver-2').onclick = () => makeFirstJobChoice(2);
   }
 
-  // Сцена: Доставка посылки
-  function renderAgentScene() {
-    sceneTitle.textContent = "ДОСТАВКА ПОСЫЛКИ";
+  // Сцена: Возвращение к Борису
+  function renderBackToBoris() {
+    sceneTitle.textContent = "ВОЗВРАЩЕНИЕ К БОРИСУ";
+
     let content = "";
+    if (gameState.parcelDeliveredEarly) {
       content = `
-        <p>Клиент снимает затемнённые очки. Его глаза - бионические импланты
-        с холодным синим свечением, и вы сразу понимаете - перед вами
-        агент Нео-Лотос.</p>
-        <p><span class="npc">Агент:</span> "Опоздание на 47 минут. Непрофессионально.
-Гильдии теряют репутацию. Ваше вознаграждение урезано на 60%".</p>
-        <p>Он переводит уценённую сумму. Его пальцы стучат по столу.</p>
-        <p><span class="npc">Агент:</span> "Передайте Борису: его кредит доверия исчерпан".</p>
+        <p><span class="npc">Борис</span>: "Мой курьер... на три часа раньше! Отлично. Держи кредиты, как и договаривались". Он отсчитывает вам щедрую сумму.</p>
       `;
+    } else if (gameState.parcelDeliveredLate) {
+      content = `
+        <p><span class="npc">Борис</span> в панике: "Дружище… это же данные «Кентавра»! Откуда у тебя такая опасная штука? Орден Спасения своих вещей просто так не бросает!" Он даёт координаты Марго.</p>
+        <p><span class="npc">Борис:</span> "Она поможет... или сольёт тебя Ордену. Рулетка."</p>
+      `;
+    } else {
+      content = `
+        <p><span class="npc">Борис</span>: "Где посылка?! Я доверил тебе простую работу, а ты..."</p>
+        <p>Репутация с Борисом испорчена.</p>
+      `;
+    }
+
+    if (gameState.inventory.includes("Таинственный Чип") && !gameState.parcelDeliveredLate) {
+      content += `<p>Вы показываете Борису странный чип, найденный у курьера.</p>`;
+      if (!gameState.chipExamined) {
+        content += `<p><span class="npc">Борис</span> замирает. Его лицо сначала выражает жадность, а затем панический страх. Он молча протягивает руку, явно желая забрать чип.</p>`;
+      } else {
+        content += `
+          <p><span class="npc">Борис</span> замирает. Его лицо сначала выражает жадность, а затем панический страх. Он молча протягивает руку, явно желая забрать чип.</p>
+        `;
+      }
+    } else if (!gameState.inventory.includes("Таинственный Чип")) {
+      content += `
+        <p><span class="npc">Борис</span> "Посылку доставил... молодец. А вот насчёт твоего напарника... он тяжко вздыхает. Видишь ли, без дополнительных усилий с твоей стороны мои источники молчат. Информация нынче дорога. Понимаешь?"</p>
+      `;
+    }
 
     sceneContent.innerHTML = content;
 
     let choicesHTML = "";
-    choicesHTML = `
-      <button id="fj-agent-1">▶ Вернуться к Борису</button>
-    `;
+    if (gameState.inventory.includes("Таинственный Чип") && gameState.parcelDeliveredLate) {
+      choicesHTML += `<button id="fj-back-2">▶ Отправиться к Тетке Марго</button>`;
+    } else if (!gameState.inventory.includes("Таинственный Чип")) {
+      choicesHTML += `<button id="fj-back-4">▶ «Я всё сделал! Говори!»</button>`;
+      choicesHTML += `<button id="fj-back-5">▶ «Что мне ещё нужно сделать?»</button>`;
+    } else {
+      choicesHTML += `<button id="">▶ Отдать чип Борису «Мне нужна информация, а не проблемы. Рассказывай про напарника.»</button>`;
+      choicesHTML += `<button id="">▶ Оставить чип себе «Сначала расскажи про напарника. Потом, может, и отдам.»</button>`;
+    }
+    // if (gameState.inventory.includes("Таинственный Чип") && !gameState.chipExamined) {
+    //   choicesHTML += `<button id="fj-back-1">▶ Изучить чип перед встречей</button>`;
+    // }
+
+    // if (gameState.chipExamined) {
+    //   choicesHTML += `<button id="fj-back-2">▶ Отправиться к Тетке Марго</button>`;
+    // } else {
+    //   choicesHTML += `<button id="fj-back-3">▶ Доставить чип по назначению</button>`;
+    // }
     choicesContainer.innerHTML = choicesHTML;
 
-    document.getElementById('fj-agent-1').onclick = () => makeFirstJobChoice(1);
+    document.getElementById('fj-back-1')?.addEventListener('click', () => makeFirstJobChoice(1));
+    document.getElementById('fj-back-2')?.addEventListener('click', () => makeFirstJobChoice(2));
+    document.getElementById('fj-back-3')?.addEventListener('click', () => makeFirstJobChoice(3));
+    document.getElementById('fj-back-4')?.addEventListener('click', () => makeFirstJobChoice(4));
+  }
+
+  // Сцена: Встреча с Марго
+  function renderMargoEvent() {
+    sceneTitle.textContent = "ВСТРЕЧА С ТЁТКОЙ МАРГО";
+    sceneContent.innerHTML = `
+      <p>Вы приходите по координатам в заброшенный район.</p>
+      <p>После связи через коммуникатор появляется загадочная женщина.</p>
+      <p><span class="npc">Марго</span>: "Откуда у тебя этот чип?"</p>
+    `;
+    choicesContainer.innerHTML = `
+      <button id="fj-margo-1">▶ Рассказать правду</button>
+      <button id="fj-margo-2">▶ Солгать</button>
+      <br>
+      <button id="fj-margo-3">▶ Активировать чип в её устройстве</button>
+      <button id="fj-margo-4">▶ Отказаться от активации</button>
+    `;
+    document.getElementById('fj-margo-1').onclick = () => makeFirstJobChoice(1);
+    document.getElementById('fj-margo-2').onclick = () => makeFirstJobChoice(2);
+    document.getElementById('fj-margo-3').onclick = () => makeFirstJobChoice(3);
+    document.getElementById('fj-margo-4').onclick = () => makeFirstJobChoice(4);
   }
 
   // Сцена: Доставка чипа
@@ -4904,265 +4920,6 @@ if (closeBtn) {
     document.getElementById('fj-chip-1').onclick = () => makeFirstJobChoice(1);
     document.getElementById('fj-chip-2').onclick = () => makeFirstJobChoice(2);
     document.getElementById('fj-chip-3').onclick = () => makeFirstJobChoice(3);
-  }
-  
-  // Сцена: Возвращение к Борису
-  function renderBackToBoris() {
-    sceneTitle.textContent = "ВОЗВРАЩЕНИЕ К БОРИСУ";
-    let content = "";
-    if (gameState.inventory.includes("Жетон Ордена Спасения")) {
-      content = `
-        <p>Вы застаёте <span class="npc">Бориса</span> в напряжённом ожидании. Он нервно перебирает детали какого-то устройства.
-Увидев вас, он резко вскакивает.</p>
-        <p><span class="npc">Борис:</span> "Чёрт возьми! Где ты пропадал? От Нео-Лотос уже приходили -
-их агент был в ярости! Из-за твоего опоздания мне теперь придётся..."</p>
-        <p>Вы молча кладёте на стол жетон и фрагмент чипа Кентавра.</p>
-        <p><span class="npc">Борис</span> указывает на чип:
-        <p><span class="npc">Борис:</span> "Эту штуку надо срочно передать Марго в Шанхайскую Иглу.
-Только она знает, что с этим делать. А жетон лучше уничтожить. Или спрятать так, чтобы никто не нашёл."</p>
-      `;
-    } else if (gameState.parcelDeliveredEarly && gameState.inventory.includes("Таинственный Чип")) {
-      content = `
-        <p><span class="npc">Борис</span>: "Мой курьер... на три часа раньше! Отлично. Держи кредиты, как и договаривались". Он отсчитывает вам щедрую сумму.</p>
-      `;
-    } else if (gameState.parcelDeliveredLate && gameState.inventory.includes("Таинственный Чип")) {
-      content = `
-        <p><span class="npc">Борис</span> в панике: "Дружище… это же данные «Кентавра»! Откуда у тебя такая опасная штука? Орден Спасения своих вещей просто так не бросает!" Он даёт координаты Марго.</p>
-        <p><span class="npc">Борис:</span> "Она поможет... или сольёт тебя Ордену. Рулетка."</p>
-      `;
-    } else if (gameState.parcelDeliveredLate && !gameState.inventory.includes("Таинственный Чип")) {
-      content = `
-        <p><span class="npc">Борис</span> молча проверяет транзакцию. Его лицо темнеет.</p>
-        <p><span class="npc">Борис:</span> "Проклятье... Мало того что опоздал, так ещё и
-посадил меня на радиатор с Нео-Лотос! Из-за таких как ты
-мы теряем контракты!".</p>
-      `;
-    } else {
-      content = `
-        <p><span class="npc">Борис</span> "Посылку доставил... молодец. А вот насчёт твоего напарника... он тяжко вздыхает. Видишь ли, без дополнительных усилий с твоей стороны мои источники молчат. Информация нынче дорога. Понимаешь?"</p>
-      `;
-    }
-
-    if (gameState.inventory.includes("Таинственный Чип") && !gameState.parcelDeliveredLate) {
-      content += `<p>Вы показываете Борису странный чип, найденный у курьера.</p>`;
-      if (!gameState.chipExamined) {
-        content += `<p><span class="npc">Борис</span> замирает. Его лицо сначала выражает жадность, а затем панический страх. Он молча протягивает руку, явно желая забрать чип.</p>`;
-      } else {
-        content += `
-          <p><span class="npc">Борис</span> замирает. Его лицо сначала выражает жадность, а затем панический страх. Он молча протягивает руку, явно желая забрать чип.</p>
-        `;
-      }
-    }
-
-    sceneContent.innerHTML = content;
-
-    let choicesHTML = "";
-    if (gameState.inventory.includes("Жетон Ордена Спасения")) {
-      choicesHTML += `<button id="fj-back-2">▶ Отправиться к Тетке Марго</button>`;
-    } else if (gameState.inventory.includes("Таинственный Чип") && gameState.parcelDeliveredLate) {
-      choicesHTML += `<button id="fj-back-2">▶ Отправиться к Тетке Марго</button>`;
-    } else if (gameState.parcelDeliveredEarly && !gameState.inventory.includes("Таинственный Чип")) {
-      choicesHTML += `<button id="fj-back-4">▶ «Я всё сделал! Говори!»</button>`;
-      choicesHTML += `<button id="fj-back-5">▶ «Что мне ещё нужно сделать?»</button>`;
-    } else if (gameState.parcelDeliveredLate && !gameState.inventory.includes("Таинственный Чип")) {
-      choicesHTML += `<button id="fj-back-6">▶ «А что с информацией о напарнике?»</button>`;
-      choicesHTML += `<button id="fj-back-7">▶ «Мне нужна другая работа»</button>`;
-    } else {
-      choicesHTML += `<button id="fj-back-8">▶ Отдать чип Борису «Мне нужна информация, а не проблемы. Рассказывай про напарника.»</button>`;
-      choicesHTML += `<button id="fj-back-9">▶ Оставить чип себе «Сначала расскажи про напарника. Потом, может, и отдам.»</button>`;
-    }
-    // if (gameState.inventory.includes("Таинственный Чип") && !gameState.chipExamined) {
-    //   choicesHTML += `<button id="fj-back-1">▶ Изучить чип перед встречей</button>`;
-    // }
-
-    // if (gameState.chipExamined) {
-    //   choicesHTML += `<button id="fj-back-2">▶ Отправиться к Тетке Марго</button>`;
-    // } else {
-    //   choicesHTML += `<button id="fj-back-3">▶ Доставить чип по назначению</button>`;
-    // }
-    choicesContainer.innerHTML = choicesHTML;
-
-    document.getElementById('fj-back-2')?.addEventListener('click', () => makeFirstJobChoice(2));
-    document.getElementById('fj-back-4')?.addEventListener('click', () => makeFirstJobChoice(4));
-    document.getElementById('fj-back-5')?.addEventListener('click', () => makeFirstJobChoice(5));
-    document.getElementById('fj-back-6')?.addEventListener('click', () => makeFirstJobChoice(6));
-    document.getElementById('fj-back-7')?.addEventListener('click', () => makeFirstJobChoice(7));
-    document.getElementById('fj-back-8')?.addEventListener('click', () => makeFirstJobChoice(8));
-    document.getElementById('fj-back-9')?.addEventListener('click', () => makeFirstJobChoice(9));
-  }
-
-  // Сцена: Возвращение к Борису Финал
-  function renderBackToBorisFinal() {
-    sceneTitle.textContent = "ВОЗВРАЩЕНИЕ К БОРИСУ";
-
-    let content = "";
-    if (gameState.final === 1) {
-      content = `
-        <p><span class="npc">Борис</span>, понизив голос до шепота, говорит: «Орден. Я сказал. Но если ты умный, то поймёшь: чтобы узнать за что - нужно найти кого. Ищи того, кто работал в том секторе до аварии. Старые техники-«призраки». Но это уже не моя история. И я советую тебе забыть эту. Жить будешь дольше».</p>
-      `;
-    } else if (gameState.final === 2) {
-      content = `
-        <p><span class="npc">Борис</span> ухмыляется: «Вот это правильный настрой! Есть одно дельце... Рискованное. Но за него я расскажу всё, что знаю».</p>
-      `;
-    }
-    sceneContent.innerHTML = content;
-
-    let choicesHTML = "";
-    if (gameState.final === 1 || gameState.final === 2) {
-      choicesHTML += `<button id="fj-final-1">▶ Завершить квест</button>`;
-    }
-    choicesContainer.innerHTML = choicesHTML;
-  }
-
-  // Сцена: Встреча с Марго: Интерлюдия
-  function renderMargoEventInterlude() {
-    sceneTitle.textContent = "ВОЗВРАЩЕНИЕ К БОРИСУ";
-    let content = "";
-    if (!gameState.inventory.includes("Таинственный Чип")) {
-      content = `
-        <p>Вы протягиваете чип. <span class="npc">Борис</span> жадно хватает его: "Твой напарник полез в дела Ордена с данными 'Кентавра' - его убрали. Держись подальше от этой истории".</span></p>
-        <i>Через несколько часов до вас доходят вести о разгроме склада Гильдий.</i>
-        <p>К вам подбегает перепуганный гонец, суёт в руку координаты: "Марго ждёт в Шанхайской Игле. Спросишь её - останешься жив".</p>
-      `;
-    } else {
-      content = `
-        <p>Вы прячете чип.</p>
-        <p><span class="npc">Бориc</span> мрачнеет: "Твой напарник видел то, что не должен был. Его забрали люди Ордена. Теперь и ты на крючке".</span></p>
-        <p>Едва вы уходите, как получаете шифрованное сообщение: "Носишь в кармане смерть. Приходи в Шанхайскую Иглу к Марго - получишь шанс выжить". </p>
-        <i>Связь обрывается.</i>
-      `;
-    }
-    sceneContent.innerHTML = content;
-
-    let choicesHTML = "";
-    if (!gameState.inventory.includes("Таинственный Чип")) {
-      choicesHTML = `
-        <button id="fj-interlude-1">▶ Отправиться к Марго</button>
-      `;
-    } else {
-      choicesHTML = `
-        <button id="fj-interlude-2">▶ Отправиться к Марго</button>
-      `;
-    }
-    choicesContainer.innerHTML = choicesHTML;
-
-    document.getElementById('fj-interlude-1')?.addEventListener('click', () => makeFirstJobChoice(1));
-    document.getElementById('fj-interlude-2')?.addEventListener('click', () => makeFirstJobChoice(2));
-  }
-
-  // Сцена: Встреча с Марго
-  function renderMargoEvent() {
-    sceneTitle.textContent = "ВСТРЕЧА С ТЁТКОЙ МАРГО";
-    let content = "";
-    if (gameState.inventory.includes("Таинственный Чип")) {
-      content = `
-        <p>Вы спускаетесь в затопленные уровни Шанхайской Иглы.
-          Воздух влажный, пахнет ржавым металлом и йодом.
-          В полумраке бара, за стойкой из старого титанового сплава,
-          вас ждет женщина с огненными волосами. Она молча берет чип,
-          её пальцы поворачивают артефакт, изучая свечение кристаллов.
-        </p>
-        <p><span class="npc">Марго:</span> "Любопытно... Так близко к сердцу города, и такой артефакт оказывается в руках курьера. Расскажи, как он к тебе попал".</p>
-        <i>Она смотрит на вас, и вы чувствуете, что этот ответ определит ваше будущее на платформе.</i>
-      `;
-    } else {
-      content = `
-        <p>Вы спускаетесь в затопленные уровни Шанхайской Иглы.
-          Воздух влажный, пахнет ржавым металлом и йодом.
-          В полумраке бара, за стойкой из старого титанового сплава,
-          вас ждет женщина с огненными волосами.
-        </p>
-        <p><span class="npc">Марго:</span> "Вижу по твоим глазам - приходишь с пустыми руками. 
-          *Она откладывает тряпку, которой протирала стакан.* 
-          Борис уже связался со мной. Рассказывай, как все было?"
-        </p>
-        <i>Вы объясняете, что отдали чип Борису, и что теперь склад Гильдий разгромлен.</i>
-        <p><span class="npc">Марго</span> тяжело вздыхает, по её лицу пробегает тень беспокойства:
-          "Старый грешник... Вечно влипает в истории. Теперь этот чип в руках Ордена. И они точно знают, что ты его видел."
-        </p>
-      `;
-    }
-    sceneContent.innerHTML = content;
-
-    let choicesHTML = "";
-    if (gameState.inventory.includes("Таинственный Чип")) {
-      choicesHTML = `
-        <button id="fj-margo-1">▶ Рассказать правду «Нашёл умирающего курьера Ордена. Он просил доставить...»</button>
-        <button id="fj-margo-2">▶ Солгать «Нашёл в руинах на уровне G-7. Думал, безделушка...»</button>
-      `;
-    } else if (gameState.inventory.includes("Жетон3 Ордена3 Спасения3")) {
-    
-    } else {
-      choicesHTML = `
-        <button id="fj-margo-3">▶ "Ты мне поможешь?"</button>
-      `;
-    }
-
-    choicesContainer.innerHTML = choicesHTML;
-
-    document.getElementById('fj-margo-1')?.addEventListener('click', () => makeFirstJobChoice(1));
-    document.getElementById('fj-margo-2')?.addEventListener('click', () => makeFirstJobChoice(2));
-    document.getElementById('fj-margo-3')?.addEventListener('click', () => makeFirstJobChoice(3));
-    document.getElementById('fj-margo-4')?.addEventListener('click', () => makeFirstJobChoice(4));
-  }
-
-  // Сцена: Встреча с Марго: Финал
-  function renderMargoEventFinal() {
-    sceneTitle.textContent = "ВСТРЕЧА С ТЁТКОЙ МАРГО";
-    let content = "";
-    console.log(gameState.final)
-    if (gameState.final === 1) {
-      content = `
-        <p><span class="npc">Марго</span> медленно кивает, в её глазах мелькает уважение:
-        "Честность - редкий товар. Орден не прощает таких потерь. Тебе нужны союзники. 
-        Иди к Гуманистам в мед-сектор, они помогут и спрячут."</p>
-      `;
-    } else if (gameState.final === 2) {
-      content = `
-        <i>Зрачки <span class="npc">Марго</span> сужаются, улавливая микродрожь в вашем голосе.</i>
-        <p>"Врёшь. Но дело своё знаешь. С таким подходом тебе в Теневой Синдикат надо,
-          к моим... партнёрам. Деньги там хорошие, если выживешь. Либо можешь вернуться к Гильдиям - Борис будет рад старательному вруну, 
-          у него всегда есть грязная работа для таких, как ты."</p>
-      `;
-    } else if (gameState.final === 3) {
-      content = `
-        <p><span class="npc">Марго</span> внимательно смотрит на вас, затем медленно улыбается: 
-          "Помочь? Дорогой, я уже помогаю. <i>Она проводит рукой по стойке.</i> Я даю тебе выбор - это больше, 
-          чем делают большинство в этом городе."</p>
-        <i><span class="npc">Марго</span> наливает вам мутноватой жидкости в стакан и отодвигает его в вашу сторону.</i>
-        <p>"У тебя есть несколько путей. Можешь попытаться выручить Бориса и вернуть чип или
-          найти техников-«призраков» - старая гвардия, они ненавидят Орден и сделают тебе новые документы."
-        </p>
-      `;
-    }
-    sceneContent.innerHTML = content;
-
-    let choicesHTML = "";
-    if (gameState.final === 1) {
-      choicesHTML = `
-        <button id="fj-fac-1">▶ Присоединиться к Гуманистам</button>
-        <button id="fj-fac-2">▶ Остаться независимым агентом</button>
-      `;
-    } else if (gameState.final === 2) {
-      choicesHTML = `
-        <button id="fj-fac-3">▶ Присоединиться к Теневому Синдикату</button>
-        <button id="fj-fac-4">▶ Присоединиться к Гильдиям</button>
-        <button id="fj-fac-2">▶ Остаться независимым агентом</button>
-      `;
-    } else if (gameState.final === 3) {
-      choicesHTML = `
-        <button id="fj-fac-5">▶ Миссия похищения чипа</button>
-        <button id="fj-fac-6">▶ Найти техников-«призраков»</button>
-      `;
-    } 
-    choicesContainer.innerHTML = choicesHTML;
-
-    document.getElementById('fj-fac-1')?.addEventListener('click', () => finishFirstJob('Гуманисты'));
-    document.getElementById('fj-fac-2')?.addEventListener('click', () => finishFirstJob('Теневой Синдикат'));
-    document.getElementById('fj-fac-3')?.addEventListener('click', () => finishFirstJob('Независимый'));
-    document.getElementById('fj-fac-4')?.addEventListener('click', () => finishFirstJob('Гильдии'));
-    document.getElementById('fj-fac-5')?.addEventListener('click', () => finishFirstJob(5));
-    document.getElementById('fj-fac-5')?.addEventListener('click', () => finishFirstJob(6));
   }
 
   // Сцена: Выбор фракции
@@ -5197,18 +4954,14 @@ if (closeBtn) {
     gameState.currentFirstJobScene = name;
     syncStats();
     switch(name){
-      case 'capsule_open':            renderCapsuleOpen(); break;
-      case 'courier_event':           renderCourierEvent(); break;
-      case 'dying_courier':           renderDyingCourier(); break;
-      case 'deliver_parcel':          renderDeliverParcel(); break;
-      case 'back_to_boris':           renderBackToBoris(); break;
-      case 'back_to_boris_final':     renderBackToBorisFinal(); break;
-      case 'agent_scene':             renderAgentScene(); break;
-      case 'margo_event_interlude':   renderMargoEventInterlude(); break;
-      case 'margo_event':             renderMargoEvent(); break;
-      case 'margo_event_final':       renderMargoEventFinal(); break;
-      case 'deliver_chip':            renderDeliverChip(); break;
-      case 'faction_choice':          renderFactionChoice(); break;
+      case 'capsule_open':   renderCapsuleOpen(); break;
+      case 'courier_event':  renderCourierEvent(); break;
+      case 'dying_courier':  renderDyingCourier(); break;
+      case 'deliver_parcel': renderDeliverParcel(); break;
+      case 'back_to_boris':  renderBackToBoris(); break;
+      case 'margo_event':    renderMargoEvent(); break;
+      case 'deliver_chip':   renderDeliverChip(); break;
+      case 'faction_choice': renderFactionChoice(); break;
     }
   }
 
@@ -5227,10 +4980,7 @@ if (closeBtn) {
 
     if (s === 'courier_event') {
       if (choice === 1) setFirstJobScene('dying_courier');   // пойти на звук
-      if (choice === 2) {
-        gameState.parcelDeliveredEarly = true;
-        setFirstJobScene('deliver_parcel');  // игнорировать и везти
-      }
+      if (choice === 2) setFirstJobScene('deliver_parcel');  // игнорировать и везти
       return;
     }
 
@@ -5242,17 +4992,8 @@ if (closeBtn) {
       if (choice === 1) {
         // условные последствия: лут плохой тон → -реп, +энергия/ресурс? настрой по желанию
         gameState.reputation = Math.max(0, (gameState.reputation ?? 0) - 1);
-        // пока обыскивает курьера, опоздает, но находит
-        gameState.inventory.push("Жетон Ордена Спасения");
-        setFirstJobScene('dying_courier');
       }
-      if (choice === 2) {
-        setFirstJobScene('deliver_parcel');
-      }
-      if (choice === 3) {
-        gameState.parcelDeliveredLate = true;
-        setFirstJobScene('agent_scene');
-      }
+      setFirstJobScene('deliver_parcel');
       return;
     }
 
@@ -5260,78 +5001,42 @@ if (closeBtn) {
       if (choice === 1) { // раньше срока
         gameState.parcelDeliveredEarly = true;
         gameState.reputation = (gameState.reputation ?? 0) + 1;
-        setFirstJobScene('back_to_boris');
       }
-      if (choice === 2) { // с опозданием, с чипом
+      if (choice === 2) { // с опозданием
         gameState.parcelDeliveredLate = true;
-        setFirstJobScene('back_to_boris');
       }
-      if (choice === 3) { // с опозданием, без чипа, пропущено событие dying courier
-        gameState.parcelDeliveredLate = true;
-        setFirstJobScene('agent_scene');
-      }
-      return;
-    }
-
-    if (s === 'agent_scene') {
-      if (choice === 1) { // с опозданием
-        setFirstJobScene('back_to_boris');
-      }
+      setFirstJobScene('back_to_boris');
       return;
     }
 
     if (s === 'back_to_boris') {
+      if (choice === 1) {
+        gameState.chipExamined = true;
+        setFirstJobScene('back_to_boris'); // перерисовать сцену с новыми репликами
+        return;
+      }
       if (choice === 2) {
         setFirstJobScene('margo_event');
         return;
       }
-      if (choice === 4) {
-        gameState.final = 1;
-        setFirstJobScene('back_to_boris_final');
+      if (choice === 3) {
+        setFirstJobScene('deliver_chip');
         return;
       }
-      if (choice === 5) {
-        gameState.final = 2;
-        setFirstJobScene('back_to_boris_final');
-        return;
-      }
-      if (choice === 8) {
-        gameState.inventory = gameState.inventory.filter(item => item !== "Таинственный Чип");
-        setFirstJobScene('margo_event_interlude');
-        return;
-      }
-      if (choice === 9) {
-        setFirstJobScene('margo_event_interlude');
-        return;
-      }
-
-    }
-
-    if (s === 'margo_event_interlude') {
-      if (choice === 1) {
-        gameState.final = 1;
-      }
-      if (choice === 2) {
-        gameState.final = 2;
-      }
-      setFirstJobScene('margo_event');
-      return;
     }
 
     if (s === 'margo_event') {
       if (choice === 1) {
-        gameState.final = 1;
         if (!gameState.traits.includes("Честный")) gameState.traits.push("Честный");
       }
       if (choice === 2) {
-        gameState.final = 2;
         if (!gameState.traits.includes("Лжец")) gameState.traits.push("Лжец");
       }
       if (choice === 3) {
-        gameState.final = 3;
+        gameState.chipExamined = true; // активировали — теперь знаем, что внутри
       }
       // и после любой ветки даём выбрать фракцию
-      setFirstJobScene('margo_event_final');
+      setFirstJobScene('faction_choice');
       return;
     }
 
@@ -9039,5 +8744,176 @@ document.addEventListener('click', (e)=>{
       document.querySelectorAll('[data-tab="orders"]').forEach(n => n.style.display = 'none');
     });
   } catch(e) { console.warn('NPC Orders disable stub error:', e); }
+})();
+</script>
+
+
+<script id="solar-upgrade-sync">
+(function(){
+  try{
+    const GS = window.gameState || (window.gameState = {resources:{}});
+    const S = (GS.solar = GS.solar || {});
+    function sync(){ if (typeof window.getSolarEffectiveCap==='function'){ S.cap = window.getSolarEffectiveCap(); } }
+    sync();
+    setInterval(sync, 5000);
+  }catch(e){}
+})();
+</script>
+
+
+<style id="solar-upgrade-modal-css">
+  .su-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:99998}
+  .su-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#0b1220;color:#fff;
+         width:min(520px,90vw);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.45);z-index:99999;
+         padding:20px 20px 16px}
+  .su-modal h3{margin:0 0 8px;font:600 20px/1.3 system-ui,Segoe UI,Roboto,sans-serif}
+  .su-modal p{margin:8px 0 16px;color:#c7d0e0}
+  .su-costs{display:flex;gap:12px;margin:6px 0 12px}
+  .su-pill{display:inline-flex;align-items:center;gap:6px;background:#111a2e;border:1px solid #1f2c4a;
+        padding:8px 12px;border-radius:999px}
+  .su-pill i{color:#00ccff}
+  .su-actions{display:flex;gap:10px;margin-top:8px}
+  .su-btn-solid{flex:1 1 0;background:#2563eb;border:none;color:#fff;padding:12px 14px;border-radius:12px;
+             font-weight:600;cursor:pointer}
+  .su-btn-ghost{flex:1 1 0;background:transparent;border:1px solid #3b4a6b;color:#d0d8ea;
+             padding:12px 14px;border-radius:12px;font-weight:600;cursor:pointer}
+  .su-note{font-size:12px;color:#9fb0cc;margin-top:6px}
+  .su-progress{height:8px;background:#111827;border-radius:999px;overflow:hidden;margin-top:8px}
+  .su-progress > span{display:block;height:100%;background:#10b981}
+  .su-level-line{display:flex;justify-content:space-between;margin-top:6px;color:#9fb0cc;font-size:12px}
+  .su-disabled{opacity:.5;pointer-events:none}
+</style>
+
+
+
+<div id="solar-upgrade-overlay" class="su-overlay" style="display:none"></div>
+<div id="solar-upgrade-modal" class="su-modal" style="display:none">
+  <h3><i class="fas fa-solar-panel"></i> Upgrade solar array</h3>
+  <p id="solar-upgrade-desc">Increase array output by <strong>+10%</strong> (up to +100%).</p>
+  <div class="su-costs">
+    <div class="su-pill"><i class="fas fa-coins"></i> <span id="solar-cost-mvc">150 MVC</span></div>
+    <div class="su-pill"><i class="fas fa-tools"></i> <span id="solar-cost-parts">10 ⚙️</span></div>
+  </div>
+  <div class="su-level-line"><span>Level: <strong id="solar-upg-level">0</strong>/10</span><span>Max +100%</span></div>
+  <div class="su-progress"><span id="solar-upg-bar" style="width:0%"></span></div>
+  <div class="su-actions">
+    <button class="su-btn-ghost" id="solar-upgrade-cancel">Cancel</button>
+    <button class="su-btn-solid" id="solar-upgrade-confirm">Confirm</button>
+  </div>
+  <div class="su-note">Price grows by 30% each level. Stored locally.</div>
+</div>
+
+<script id="solar-upgrade-logic">
+(function(){
+  const GS = window.gameState || (window.gameState = {resources:{energy:0}});
+  GS.solar = GS.solar || {};
+  const S = GS.solar;
+
+  if (typeof S.baseCap !== 'number') S.baseCap = typeof S.cap==='number'? S.cap : 120;
+  if (typeof S.upgradeLevel !== 'number') S.upgradeLevel = 0;
+
+  function effectiveCap(){
+    const lvl = Math.max(0, Math.min(10, S.upgradeLevel|0));
+    return Math.round(S.baseCap * (1 + 0.10 * lvl));
+  }
+  function getUpgradeCost(level){
+    const lvl = Math.max(0, level|0);
+    const mvcBase = 150, partsBase = 10, g = 1.3;
+    return { mvc: Math.round(mvcBase * Math.pow(g, lvl)), parts: Math.round(partsBase * Math.pow(g, lvl)) };
+  }
+  function updateLegend(){
+    const lvl = S.upgradeLevel|0, c = getUpgradeCost(lvl), maxed = lvl>=10;
+    const btn = document.getElementById('solar-btn-upgrade');
+    if (btn){ btn.textContent = maxed ? 'Max level reached' : 'Upgrade array'; btn.disabled = !!maxed; }
+  }
+
+  const overlay = document.getElementById('solar-upgrade-overlay');
+  const modal = document.getElementById('solar-upgrade-modal');
+  const bCancel = document.getElementById('solar-upgrade-cancel');
+  const bConfirm = document.getElementById('solar-upgrade-confirm');
+  const txtMvc = document.getElementById('solar-cost-mvc');
+  const txtParts = document.getElementById('solar-cost-parts');
+  const lvlSpan = document.getElementById('solar-upg-level');
+  const bar = document.getElementById('solar-upg-bar');
+  const desc = document.getElementById('solar-upgrade-desc');
+
+  function openModal(){
+    const lvl = S.upgradeLevel|0;
+    const c = getUpgradeCost(lvl);
+    const cur = Math.round((S.baseCap||120) * (1 + 0.10*lvl));
+    const next = Math.round((S.baseCap||120) * (1 + 0.10*Math.min(10, lvl+1)));
+    const delta = Math.max(0, next - cur);
+    if (txtMvc) txtMvc.textContent = c.mvc + ' MVC';
+    if (txtParts) txtParts.textContent = c.parts + ' ⚙️';
+    if (lvlSpan) lvlSpan.textContent = String(lvl);
+    if (bar) bar.style.width = (lvl*10)+'%';
+    if (desc) desc.innerHTML = 'Increase array output by <strong>+10%</strong>.<br>' +
+                                'Output: <strong>'+cur+'⚡/h</strong> → <strong>'+next+'⚡/h</strong> ' +
+                                (lvl>=10 ? '(max)' : '(+'+delta+' ⚡/h)');
+    if (overlay) overlay.style.display = 'block';
+    if (modal) modal.style.display = 'block';
+  }
+  function closeModal(){
+    if (modal) modal.style.display = 'none';
+    if (overlay) overlay.style.display = 'none';
+  }
+  if (bCancel) bCancel.addEventListener('click', closeModal);
+  if (overlay) overlay.addEventListener('click', closeModal);
+
+  // Confirm: pay & apply
+  if (bConfirm){
+    bConfirm.addEventListener('click', function(){
+      const lvl = S.upgradeLevel|0;
+      if (lvl>=10) { closeModal(); return; }
+      const cost = getUpgradeCost(lvl);
+      function pay(){
+        if (typeof window.updateResource==='function'){
+          if (!updateResource('mvc', -cost.mvc)) return false;
+          if (!updateResource('parts', -cost.parts)) { updateResource('mvc', +cost.mvc); return false; }
+        }
+        return true;
+      }
+      if (!pay()) return;
+      S.upgradeLevel = Math.min(10, lvl+1);
+      if (!S.upgrades) S.upgrades = {};
+      if (!S.upgrades.tracker) S.upgrades.tracker = true;
+      try { localStorage.setItem('mv_solar_state_v2', JSON.stringify(S)); }catch(e){}
+      try {
+        if (typeof window.showNotification==='function') showNotification(`Solar upgraded to L${S.upgradeLevel} (+${S.upgradeLevel*10}%)`, true);
+        if (typeof window.updateSolarEnv==='function') updateSolarEnv();
+        if (typeof window.updateSolarCard==='function') updateSolarCard();
+      } catch(e){}
+      updateLegend();
+      closeModal();
+    });
+  }
+
+  // Export openModal for external calls and update legend
+  try { window.__suOpenUpgradeModal = openModal; } catch(e){}
+  try { S.cap = effectiveCap(); } catch(e){}
+  updateLegend();
+})();
+</script>
+
+<script id="su-upgrade-hijack">
+(function(){
+  function handler(ev){
+    var trg = ev.target && (ev.target.closest ? ev.target.closest('#solar-btn-upgrade') : null);
+    if (trg){
+      ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation();
+      try { window.__suOpenUpgradeModal && window.__suOpenUpgradeModal(); } catch(e){}
+      return false;
+    }
+  }
+  document.addEventListener('click', handler, true);
+  document.addEventListener('touchstart', handler, true);
+  function patch(){
+    var b = document.getElementById('solar-btn-upgrade');
+    if (b){
+      b.onclick = function(e){ if (e && e.preventDefault) e.preventDefault(); try{ window.__suOpenUpgradeModal(); }catch(err){} return false; };
+    }
+  }
+  patch();
+  try{ new MutationObserver(patch).observe(document.body, {subtree:true, childList:true}); }catch(e){}
 })();
 </script>
