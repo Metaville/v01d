@@ -13,7 +13,6 @@
 <!-- Solana web3.js в виде IIFE (даёт глобальный solanaWeb3) -->
 <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 
-
 <link href="https://metaville.github.io/v01d/manifest.json" rel="tonconnect"/>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 <style>
@@ -927,7 +926,6 @@ html { height: -webkit-fill-available; }
             border-left: 4px solid #00cc99;
         }
 
-
         /* ===== Avatar card ===== */
 .avatar-card .avatar-row{
   display:flex; align-items:center; gap:12px;
@@ -1117,7 +1115,6 @@ html { height: -webkit-fill-available; }
   box-shadow: 0 0 25px rgba(0,255,204,0.9);
   animation: none;
 }
-
 
 #rest-capsule-card:hover {
     transform: scale(1.03);
@@ -1391,7 +1388,6 @@ body.modal-open {
   margin-top: 4px;
 }
 
-
 /* Красноватая подсветка карточки */
 .red-glow {
   box-shadow: 0 0 10px rgba(255, 77, 77, 0.7),
@@ -1408,7 +1404,6 @@ body.modal-open {
   z-index: 900;
 }
 .overlay.open{ opacity:1; pointer-events: auto; }
-
 
 .modal-close{
   position:absolute; top:10px; right:12px;
@@ -1516,7 +1511,6 @@ body.modal-open {
   --bar-bg: #0a0a15;
 }
 
-
 /* сам прокручиваемый контент — добавим отступы,
    чтобы его не перекрывали бары */
 .main-content{
@@ -1611,7 +1605,6 @@ body.modal-open {
   .o2m-toprow{ grid-template-columns: 1fr; }
   .o2m-grid{ grid-template-columns: 1fr; }
 }
-
 
 /* Footer actions */
 .o2m-foot{
@@ -1722,7 +1715,6 @@ body.modal-open {
 @media (max-width:390px){
   #scan-modal .ring-label{ font-size:11px; padding:5px 8px; }
 }
-
 
 /* === Power nodes (размер, интерактивность, редкость) === */
 :root{
@@ -2299,7 +2291,6 @@ body.modal-open {
   .help-fab { top: calc(var(--topbar-h) + 6px); }
 }
 
-
 .modal.info-modal .modal-content { max-width: 560px; }
 .modal.info-modal .modal-body p,
 .modal.info-modal .modal-body li { color: #c9d3ea; }
@@ -2482,7 +2473,6 @@ body.modal-open {
   cursor: pointer;
 }
 
-
 /* подстраховка от горизонтального скролла */
 html, body { overflow-x: hidden; }
 
@@ -2509,7 +2499,6 @@ html, body { overflow-x: hidden; }
 /* Avoid style conflicts by increasing specificity for oxygen highlight on cards */
 .card.highlight-oxygen { /* inherit prior highlight-oxygen declarations */ }
 </style>
-
 
 <style>#upgrade-btn{display:none!important}</style>
 
@@ -3297,6 +3286,12 @@ html, body { overflow-x: hidden; }
         <div class="progress-bar"><div class="progress-fill" id="solar-modal-progress" style="width:87%"></div></div>
       </div>
       <div id="solar-debug-info"></div>
+      <div class="withdraw-block" style="margin-top:10px; display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center">
+        <input id="solar-withdraw-amount" type="number" min="0" placeholder="Amount ⚡" style="background:rgba(255,255,255,.06);border:1px solid #3a3a5a;border-radius:8px;padding:8px 10px;color:#fff;outline:none">
+        <button class="btn" id="solar-btn-withdraw"><i class="fas fa-hand-holding"></i> Withdraw</button>
+        <button class="btn" id="solar-btn-withdraw-all"><i class="fas fa-battery-empty"></i> Withdraw all</button>
+      </div>
+    
     </div>
         <!-- Environment / mechanics info -->
 <div class="solar-env">
@@ -3353,7 +3348,6 @@ html, body { overflow-x: hidden; }
       <button class="btn" id="solar-btn-clean"><i class="fas fa-broom"></i> Clean panels</button>
       <button class="btn" id="solar-btn-repair"><i class="fas fa-tools"></i> Repair micro‑cracks</button>
       <button class="btn btn-primary" id="solar-btn-upgrade"><i class="fas fa-arrow-up"></i> Upgrade array</button>
-      <button class="btn" id="solar-btn-discharge"><i class="fas fa-bolt"></i> Discharge to grid</button>
       <button class="btn ghost" data-close="solar-modal">Close</button>
     </div>
   </div>
@@ -3734,7 +3728,6 @@ html, body { overflow-x: hidden; }
       </div>
     </div>
 
-
 <script>
         // Состояние игры (исправленное)
         const gameState = {
@@ -3887,7 +3880,6 @@ html, body { overflow-x: hidden; }
           const ss = String(s%60).padStart(2,'0');
           return `${h}:${m}:${ss}`;
         }
-
 
         // Получение имени ресурса
         function getResourceName(resource) {
@@ -4111,7 +4103,6 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
   startScanning(sectorData);
 });
 
-
         // Функция сканирования сектора
         function startScanning(sectorData) {
              // Сброс состояния миссии перед началом нового сканирования
@@ -4184,7 +4175,6 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
             }, 200);
         }
 
-
 // Обработчик кнопки "Запустить сбор"
 document.getElementById('start-harvest')?.addEventListener('click', function() {
     sendHarvester();
@@ -4200,8 +4190,6 @@ document.getElementById('cancel-harvest')?.addEventListener('click', function() 
 document.querySelector('#scan-result-modal .close-modal').addEventListener('click', function() {
     document.getElementById('scan-result-modal').classList.remove('active');
 });
-
-
 
 // функция для показа результатов сканирования
 function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
@@ -4469,7 +4457,6 @@ setInterval(() => {
     
 }, 1000);
 
-
 function renderReputation(reps){
   const grid = document.getElementById('rep-grid');
   if(!grid) return;
@@ -4585,7 +4572,6 @@ document.querySelectorAll('.quest-actions .btn-primary').forEach(btn => {
     }
   });
 });
-
 
   // === Квест "Awakening": открытие из меню, логика сцен ===
 (function(){
@@ -5323,7 +5309,6 @@ wrap.innerHTML = `
     </div>
   `;
 
-
   // Ссылки на элементы
   const rateEl  = document.getElementById('o2m-rate');
   const energyEl = document.getElementById('o2m-energy');
@@ -5523,7 +5508,6 @@ if (typeof gameState.o2Generation.buffer === 'undefined') {
   }
 }
 
-
         // Старт игры
         document.getElementById('start-game-btn')?.addEventListener('click', function() {
             document.getElementById('tutorial-modal').classList.remove('active');
@@ -5656,8 +5640,6 @@ function updateEnergyUI(){
   if (el) el.textContent = Math.floor(E.energy);
 }
 
-
-
 /** Оффлайн/онлайн регенерация по времени */
 function regenSince(last, now){
   if (now <= last) return 0;
@@ -5743,7 +5725,6 @@ function bindSleepButtons(){
     });
   });
 }
-
 
 (() => {
   const $  = s => document.querySelector(s);
@@ -5895,7 +5876,6 @@ document.querySelectorAll('.power-node').forEach(el => {
   window.addEventListener('keydown', e => (e.key === 'Escape' && modal.classList.contains('open')) && close());
 })();
 
-
 (function(){
   const tutorial = document.getElementById('tutorial-modal');
   if (!tutorial) return;
@@ -5969,7 +5949,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Убрали форс-показ туториала. Теперь он контролируется через localStorage и показывается только один раз.
 </script>
 
-
 <script>
 
 // ===== Solar Panels mini-system (mechanics v2) =====
@@ -6005,7 +5984,8 @@ document.addEventListener('DOMContentLoaded', () => {
     //dayCycleSec: 600,         // длина «дня» (сек) — удобно для демо
     dayCycleSec: 1200,   // длина суток в секундах (пример: 1200 = 20 минут на весь цикл)
 daylightHours: 8,    // часов света в 24-часовых сутках (8ч день / 16ч ночь)
-    _accum: 0,                // дробные ⚡ до округления
+    _accum: 0,
+  _ticks: 0,                // дробные ⚡ до округления
     _lastTick: now()
   });
 
@@ -6056,7 +6036,6 @@ const TICK_MS = 1000;             // шаг тика
   return 0.5 * (1 + Math.cos(Math.PI * x));          // день (мягко)
 }
 
-
   // --- эффективность модулей (0..1) ---
   function efficiency(){
     const cleanMul = 1 - clamp(S.dirt * DIRT_PENALTY, 0, 0.6);        // до -60%
@@ -6084,6 +6063,9 @@ const TICK_MS = 1000;             // шаг тика
 // --- тик производства ---
 function tick(){
     const t = now();
+  // DEBUG(solar): count global ticks for solar view
+  S._ticks = (S._ticks || 0) + 1;
+  S._lastTick = t;
 
     // износ/грязь/авточистка — посекундно, но задано "в минуту"
     S.condition = clamp(S.condition - (WEAR_RATE_PER_MIN/60), 0, 100);
@@ -6166,18 +6148,35 @@ function tick(){
     const outNow = Math.round(S.cap * (efficiency() * WEATHER_MUL[S.weather] * irradiance(now()))); // ⚡/ч оценка
     const battPct= Math.round((S.battery / S.batteryCap) * 100);
 
-    //  отладочная информация
+        //  отладочная информация
     const debugEl = _dbg('solar-debug-info');
     if (debugEl) {
-        debugEl.innerHTML = `
-            <div style="font-size: 12px; color: #93a3b8; margin-top: 10px;">
-                Debug: Battery=${S.battery}/${S.batteryCap}, 
-                Energy=${GS.resources.energy||0}, 
-                Target=${GRID_TARGET}
-            </div>
-        `;
-    }
+      const nowMs   = now();
+      const last    = S._lastTick || nowMs;
+      const since   = nowMs - last;
+      const tickMs  = (typeof TICK_MS==='number' ? TICK_MS : 1000);
+      const nextIn  = Math.max(0, tickMs - (since % tickMs));
 
+      // spinner
+      const spin = window._solarSpin || (window._solarSpin = { i:0, frames:['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'] });
+      const frame = spin.frames[(spin.i++) % spin.frames.length];
+
+      const effDbg = (typeof effPct !== 'undefined') ? effPct : Math.round((S.eff || 1) * 100);
+      const outDbg = (typeof outNow !== 'undefined') ? outNow : Math.round(S.out || 0);
+
+      debugEl.innerHTML = `
+        <div style="font:12px/1.4 system-ui,Segoe UI,Roboto,sans-serif;color:#93a3b8;margin-top:10px;word-break:break-word">
+          <b>${frame}</b>
+          cap=${S.cap} | out=${outDbg}⚡/h | eff=${effDbg}% |
+          batt=${Math.round(S.battery)}/${S.batteryCap} |
+          acc=${(S._accum||0).toFixed(2)} |
+          ticks=${S._ticks||0} |
+          last:${new Date(last).toLocaleTimeString()} |
+          tickAgo:${(since/1000).toFixed(1)}s |
+          next:${(nextIn/1000).toFixed(1)}s |
+          grid:${(GS.resources.energy||0)}/${(typeof GRID_TARGET!=='undefined'?GRID_TARGET:'—')}
+        </div>`;
+    }
 
     effEl  && (effEl.textContent  = effPct + '%');
     battEl && (battEl.textContent = clamp(battPct,0,100) + '%');
@@ -6216,35 +6215,42 @@ function tick(){
     } catch(e){}
   }
 
-  // --- actions (кнопки в модалке) ---
+  
+  // --- energy transfer helpers ---
+  function transferFromBattery(amount){
+    const take = Math.max(0, Math.min(amount, Math.floor(S.battery)));
+    if (take <= 0) return 0;
+    S.battery -= take;
+    if (typeof updateResource === 'function') {
+      updateResource('energy', take);
+    } else {
+      window.GS = window.GS || { resources: {} };
+      GS.resources.energy = (GS.resources.energy || 0) + take;
+    }
+    return take;
+  }
+// --- actions (кнопки в модалке) ---
   function bindActions(){
-    
-    // Discharge: send energy from battery to grid up to GRID_TARGET, keeping 20% SoC
-    document.getElementById('solar-btn-discharge')?.addEventListener('click', () => {
-      const MIN_SOC = 0.20;
-      const energyNow = (window.GS && GS.resources && typeof GS.resources.energy === 'number') ? GS.resources.energy : 0;
-      const need = Math.max(0, (typeof GRID_TARGET !== 'undefined' ? GRID_TARGET : 400) - energyNow);
-      const maxGive = Math.max(0, S.battery - S.batteryCap * MIN_SOC);
-      const want = need > 0 ? need : 0; // if grid is full, default to 0 (no-op)
-      const give = Math.min(maxGive, want);
-
-      if (give <= 0) {
-        if (typeof showNotification === 'function') {
-          const reason = maxGive <= 0 ? 'battery at 20% min' : 'grid at target';
-          showNotification(`Nothing to discharge (${reason}).`, false);
-        }
-        return;
-      }
-      S.battery -= give;
-      if (typeof updateResource === 'function') {
-        updateResource('energy', give);
-      } else {
-        window.GS = window.GS || { resources: {} };
-        GS.resources.energy = (GS.resources.energy || 0) + give;
-      }
+// Withdraw: custom amount (no min SoC, no grid cap)
+    document.getElementById('solar-btn-withdraw')?.addEventListener('click', () => {
+      const input = document.getElementById('solar-withdraw-amount');
+      const want = Math.max(0, Math.floor(Number(input?.value || 0)));
+      const took = transferFromBattery(want);
       if (typeof showNotification === 'function') {
-        showNotification(`Discharged ${Math.round(give)} ⚡ to grid`, true);
+        if (took > 0) showNotification(`Withdrawn ${took} ⚡ from battery`, true);
+        else showNotification('Nothing to withdraw', false);
       }
+      updateCard(); updateModal(); updateSolarEnv(); persist();
+    });
+
+    // Withdraw ALL: drain battery to 0 immediately
+    document.getElementById('solar-btn-withdraw-all')?.addEventListener('click', () => {
+      const took = transferFromBattery(Math.floor(S.battery));
+      if (typeof showNotification === 'function') {
+        if (took > 0) showNotification(`Withdrawn ALL: ${took} ⚡`, true);
+        else showNotification('Battery is empty', false);
+      }
+      const input = document.getElementById('solar-withdraw-amount'); if (input) input.value = '';
       updateCard(); updateModal(); updateSolarEnv(); persist();
     });
 // Clean: просто убираем грязь
@@ -8706,8 +8712,6 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
-
-
 <script>
 // BEGIN PATCH: infrastructure (DEBUG, Timers, Modal, helpers)
 window.DEBUG = false; // flip to true for verbose debug rendering
@@ -8771,7 +8775,6 @@ document.addEventListener('click', (e)=>{
 })();
 </script>
 
-
 <script id="solar-upgrade-sync">
 (function(){
   try{
@@ -8783,7 +8786,6 @@ document.addEventListener('click', (e)=>{
   }catch(e){}
 })();
 </script>
-
 
 <style id="solar-upgrade-modal-css">
   .su-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:99998}
@@ -8807,8 +8809,6 @@ document.addEventListener('click', (e)=>{
   .su-level-line{display:flex;justify-content:space-between;margin-top:6px;color:#9fb0cc;font-size:12px}
   .su-disabled{opacity:.5;pointer-events:none}
 </style>
-
-
 
 <div id="solar-upgrade-overlay" class="su-overlay" style="display:none"></div>
 <div id="solar-upgrade-modal" class="su-modal" style="display:none">
