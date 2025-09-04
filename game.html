@@ -2549,6 +2549,12 @@ html, body { overflow-x: hidden; }
 
 
   <style>#start-harvest{display:inline-flex !important}</style>
+
+  <style>
+    @media (max-width: 420px){
+      #solar-modal .withdraw-buttons{ grid-template-columns: 1fr !important; }
+    }
+  </style>
 </head>
 <body>
 <div class="container" id="app">
@@ -2577,7 +2583,7 @@ html, body { overflow-x: hidden; }
     <div class="resource-item" id="polymers-resource">
         <span>🧬 <span id="polymers-value">0</span></span>
     </div>
-      
+      <div class="withdraw-hint" style="margin-top:6px;color:#93a3b8;font-size:12px;opacity:.9">Снятие происходит мгновенно и не ограничено целями сети. «Снять всё» опустошит батарею до 0.</div>
     <div class="resource-item" id="rare-resource">
         <span>💎 <span id="rare-value">0</span></span>
     </div>
@@ -2594,6 +2600,7 @@ html, body { overflow-x: hidden; }
 <h3 class="modal-title"><i class="fas fa-solar-panel"></i> Солнечные панели</h3>
 </div>
 <div class="modal-body">
+<p>Солнечная система генерирует ⚡ при свете и накапливает её в батарее. Вы можете забирать энергию в любой момент — частично («Снять») или полностью («Снять всё», опустошает батарею до 0). </p>
 <div class="tutorial-item">
 <i class="fas fa-globe-americas"></i>
 <div>
@@ -3318,12 +3325,20 @@ html, body { overflow-x: hidden; }
         <div class="progress-bar"><div class="progress-fill" id="solar-modal-progress" style="width:87%"></div></div>
       </div>
       <div id="solar-debug-info"></div>
-      <div class="withdraw-block" style="margin-top:10px; display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center">
-        <input id="solar-withdraw-amount" type="number" min="0" placeholder="Сколько забрать, ⚡" style="background:rgba(255,255,255,.06);border:1px solid #3a3a5a;border-radius:8px;padding:8px 10px;color:#fff;outline:none">
-        <button class="btn" id="solar-btn-withdraw" title="Снять указанное количество энергии"><i class="fas fa-hand-holding"></i> Снять</button>
-        <button class="btn" id="solar-btn-withdraw-all" title="Снять всю энергию, до 0"><i class="fas fa-battery-empty"></i> Снять всё</button>
+            <div class="withdraw-block" style="margin-top:10px; display:grid; grid-template-columns:1fr; gap:8px;">
+        <div class="withdraw-input">
+          <input id="solar-withdraw-amount" type="number" min="0" placeholder="Сколько забрать, ⚡"
+                 style="background:rgba(255,255,255,.06);border:1px solid #3a3a5a;border-radius:8px;padding:8px 10px;color:#fff;outline:none;width:100%">
+        </div>
+        <div class="withdraw-buttons" style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;">
+          <button class="btn" id="solar-btn-withdraw" title="Снять указанное количество энергии">
+            <i class="fas fa-hand-holding"></i> Снять
+          </button>
+          <button class="btn" id="solar-btn-withdraw-all" title="Снять всю энергию, до 0">
+            <i class="fas fa-battery-empty"></i> Снять всё
+          </button>
+        </div>
       </div>
-    
     </div>
         <!-- Environment / mechanics info -->
 <div class="solar-env">
