@@ -3942,7 +3942,10 @@ html, body { overflow-x: hidden; }
                 // Отображение ресурсов
                 if (gameState.missions.scannedResources) {
                     const res = gameState.missions.scannedResources;
-                    document.getElementById('scanned-resources').textContent = `Resources: ${res.amount} ${getResourceName(res.type)}`;
+                    const text = Array.isArray(res)
+                        ? res.map(it => `${it.amount} ${getResourceName(it.type)}`).join(', ')
+                        : `${res.amount} ${getResourceName(res.type)}`;
+                    document.getElementById('scanned-resources').textContent = `Resources: ${text}`;
                 } else {
                     document.getElementById('scanned-resources').textContent = 'Resources: -';
                 }
@@ -4119,8 +4122,14 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
             // Возможные ресурсы для скана. Добавили "ice" как сырьё для
             // генератора кислорода.
             const resourceTypes = ['bio', 'parts', 'mvc', 'ice'];
-            const randomResource = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
-            const amount = Math.floor(Math.random() * 30) + 10;
+            // === Генерация результатов: 1–3 находок ===
+            const pickCount = 1 + Math.floor(Math.random() * 3); // 1..3
+            const found = [];
+            for (let i = 0; i < pickCount; i++) {
+                const t = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
+                const amt = Math.floor(Math.random() * 30) + 10;
+                found.push({ type: t, amount: amt });
+            }
             
             // Запуск процесса сканирования
             gameState.missions.scanning = true;
@@ -4128,10 +4137,7 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
             gameState.missions.belt = sectorData.belt;
             gameState.missions.risk = sectorData.risk;
             gameState.missions.progress = 0;
-            gameState.missions.scannedResources = {
-                type: randomResource,
-                amount: amount
-            };
+            gameState.missions.scannedResources = found;
             gameState.missions.harvested = false;
             
             // Остановка предыдущего интервала
@@ -4172,11 +4178,12 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
                 gameState.missions.scanning = false; // готов к следующему скану
 
                     // модальное окно с результатами сканирования
-            showScanResultModal(sectorData, randomResource, amount);
+            showScanResultModal(sectorData, gameState.missions.scannedResources);
                 }
                 updateUI();
             }, 200);
         }
+
 
 // Обработчик кнопки "Запустить сбор"
 document.getElementById('start-harvest')?.addEventListener('click', function() {
@@ -4197,7 +4204,7 @@ document.querySelector('#scan-result-modal .close-modal').addEventListener('clic
 
 
 // функция для показа результатов сканирования
-function showScanResultModal(sectorData, resourceType, resourceAmount) {
+function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
     const modal = document.getElementById('scan-result-modal');
     
     // Заполняем данные
@@ -4205,7 +4212,11 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
     document.getElementById('result-belt').textContent = sectorData.belt;
     document.getElementById('result-risk').textContent = `${sectorData.risk}%`;
     
-    // Форматируем ресурсы с иконками
+    // Нормализация входа к списку
+    const items = Array.isArray(resourceOrArray)
+        ? resourceOrArray
+        : [{ type: resourceOrArray, amount: resourceAmount }];
+    
     const resourceNames = {
         bio: "Biomaterials 🧪",
         parts: "Parts 🛠️",
@@ -4214,23 +4225,27 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
         ice: "Ice ❄️"
     };
     
-    // Форматируем стоимость с иконками
+    // Список бейджей
+    const html = items.map(it => 
+        `<span class="sr-badge info">${it.amount} ${resourceNames[it.type] || it.type}</span>`
+    ).join(' ');
+    
+    document.getElementById('result-resources').innerHTML = html;
+    
+    // Стоимость запуска харвестера как и раньше
     const costInfo = `15 <span style="color: #00ccff;">O₂</span>, 70 <span style="color: #ffcc00;">⚡</span>`;
-    
-    document.getElementById('result-resources').innerHTML = `${resourceAmount} ${resourceNames[resourceType] || resourceType}`;
-    
     document.getElementById('result-cost').innerHTML = costInfo;
     
     // Показываем модальное окно
     modal.classList.add('active');
 }
+
         // Отправка харвестера
         function sendHarvester() {
     if (!gameState.missions.scannedResources || gameState.missions.harvested) {
         showNotification("No resources to harvest!", false);
         return;
     }
-    
     if (gameState.missions.harvestCount >= gameState.missions.maxHarvests) {
         showNotification("Harvester dispatch limit reached!", false);
         return;
@@ -4239,15 +4254,23 @@ function showScanResultModal(sectorData, resourceType, resourceAmount) {
     // Расход ресурсов на отправку
     if (updateResource('oxygen', -15) && updateResource('energy', -70)) {
         const res = gameState.missions.scannedResources;
-        updateResource(res.type, res.amount);
+        
+        if (Array.isArray(res)) {
+            res.forEach(it => updateResource(it.type, it.amount));
+            const msg = res.map(it => `${it.amount} ${getResourceName(it.type)}`).join(', ');
+            showNotification(`Harvester collected ${msg}!`, true);
+        } else {
+            updateResource(res.type, res.amount);
+            showNotification(`Harvester collected ${res.amount} ${getResourceName(res.type)}!`, true);
+        }
         
         gameState.missions.harvestCount++;
         gameState.missions.harvested = true;
         
-        showNotification(`Harvester collected ${res.amount} ${getResourceName(res.type)}!`, true);
         updateUI();
     }
 }
+
             
         document.getElementById('harvest-btn')?.addEventListener('click', sendHarvester);
 
@@ -8521,9 +8544,10 @@ document.addEventListener('DOMContentLoaded', function() {
   tg.onEvent('fullscreenFailed',  (err)  => console.warn('FS fail:', err));
 </script>
 <script>
-  const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-  if (tg && tg.ready) tg.ready();          // сообщаем, что UI готов
-  if (tg && tg.expand) tg.expand();         // максимум по высоте (BottomSheet)
+  // reuse existing tg from previous script
+
+  if (typeof tg !== 'undefined' && tg && tg.ready) tg.ready();          // сообщаем, что UI готов
+  if (typeof tg !== 'undefined' && tg && tg.expand) tg.expand();         // максимум по высоте (BottomSheet)
 </script>
 <script>
 (function () {
