@@ -2519,10 +2519,36 @@ html, body { overflow-x: hidden; }
 </style>
 
   <style>
+    /* Collapsible resources: hide items beyond first row by default */
+    .resource-bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .resource-item{ display:flex; align-items:center; gap:6px; padding:4px 8px; background:rgba(255,255,255,.06); border:1px solid #3a3a5a; border-radius:8px; font-weight:700; }
+    .resource-bar .is-extra{ display:none; }
+    .resource-bar.expanded .is-extra{ display:flex; }
+    .resource-toggle{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:8px; background:transparent; border:1px dashed #3a3a5a; color:#93a3b8; cursor:pointer; }
+    .resource-toggle:focus{ outline:2px solid #3a3a5a; outline-offset:2px; }
     @media (max-width: 420px){
-      #solar-modal .withdraw-buttons{ grid-template-columns: 1fr !important; }
+      .resource-item{ font-size: 13px; }
     }
   </style>
+
+
+  <style>
+    /* Map actions: hide 'Send harvester' button, stretch and highlight 'Scanning' */
+    .map-container + .action-buttons { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    #harvest-btn { display: none !important; }
+    #scan-btn { width: 100%; justify-content: center; background: #00d19a; border-color: #00d19a; }
+    #scan-btn:hover { filter: brightness(1.05); box-shadow: 0 0 14px rgba(0,209,154,.45); }
+  </style>
+
+
+  <style>
+    /* Hide mission counters without removing from DOM (logic intact) */
+    #mission-harvest,
+    #scanned-resources { display: none !important; }
+  </style>
+
+
+  <style>#start-harvest{display:inline-flex !important}</style>
 </head>
 <body>
 <div class="container" id="app">
@@ -2551,6 +2577,7 @@ html, body { overflow-x: hidden; }
     <div class="resource-item" id="polymers-resource">
         <span>🧬 <span id="polymers-value">0</span></span>
     </div>
+      
     <div class="resource-item" id="rare-resource">
         <span>💎 <span id="rare-value">0</span></span>
     </div>
@@ -2567,7 +2594,7 @@ html, body { overflow-x: hidden; }
 <h3 class="modal-title"><i class="fas fa-solar-panel"></i> Солнечные панели</h3>
 </div>
 <div class="modal-body">
-
+<p>Солнечная система генерирует ⚡ при свете и накапливает её в батарее. Вы можете забирать энергию в любой момент — частично («Снять») или полностью («Снять всё», опустошает батарею до 0). </p>
 <div class="tutorial-item">
 <i class="fas fa-globe-americas"></i>
 <div>
@@ -3292,17 +3319,13 @@ html, body { overflow-x: hidden; }
         <div class="progress-bar"><div class="progress-fill" id="solar-modal-progress" style="width:87%"></div></div>
       </div>
       <div id="solar-debug-info"></div>
-
-      <p>Солнечная система генерирует ⚡ при свете и накапливает её в батарее. Вы можете забирать энергию в любой момент — частично («Снять») или полностью («Снять всё», опустошает батарею до 0). </p>
-            <div class="withdraw-block" style="margin-top:10px; display:grid; grid-template-columns:1fr; gap:8px;">
-        <div class="withdraw-input">
-          <input id="solar-withdraw-amount" type="number" min="0" placeholder="Сколько забрать, ⚡" style="background:rgba(255,255,255,.06);border:1px solid #3a3a5a;border-radius:8px;padding:8px 10px;color:#fff;outline:none;width:100%">
-        </div>
-        <div class="withdraw-buttons" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <button class="btn" id="solar-btn-withdraw" title="Снять указанное количество энергии"><i class="fas fa-hand-holding"></i> Снять</button>
-          <button class="btn" id="solar-btn-withdraw-all" title="Снять всю энергию, до 0"><i class="fas fa-battery-empty"></i> Снять всё</button>
-        </div>
-      </div></div>
+      <div class="withdraw-block" style="margin-top:10px; display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center">
+        <input id="solar-withdraw-amount" type="number" min="0" placeholder="Сколько забрать, ⚡" style="background:rgba(255,255,255,.06);border:1px solid #3a3a5a;border-radius:8px;padding:8px 10px;color:#fff;outline:none">
+        <button class="btn" id="solar-btn-withdraw" title="Снять указанное количество энергии"><i class="fas fa-hand-holding"></i> Снять</button>
+        <button class="btn" id="solar-btn-withdraw-all" title="Снять всю энергию, до 0"><i class="fas fa-battery-empty"></i> Снять всё</button>
+      </div>
+    
+    </div>
         <!-- Environment / mechanics info -->
 <div class="solar-env">
   <div class="env-title">Окружение</div>
@@ -4197,7 +4220,7 @@ document.getElementById('cancel-harvest')?.addEventListener('click', function() 
 });
 
 // Обработчик закрытия модального окна
-document.querySelector('#scan-result-modal .close-modal')?.addEventListener('click', function() {
+document.querySelector('#scan-result-modal .close-modal').addEventListener('click', function() {
     document.getElementById('scan-result-modal').classList.remove('active');
 });
 
@@ -4389,7 +4412,7 @@ document.getElementById('rest-capsule-card')?.addEventListener('click', () => {
 });
 
 // Закрытие модального окна
-document.querySelector('#rest-modal .close-modal')?.addEventListener('click', () => {
+document.querySelector('#rest-modal .close-modal').addEventListener('click', () => {
     document.getElementById('rest-modal').classList.remove('active');
 });
 
@@ -5348,18 +5371,12 @@ const last  = gameState.o2Generation._lastTick
 const spin = window._o2Spin || (window._o2Spin = { idx:0, frames:['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'] });
 const frame = spin.frames[(spin.idx++) % spin.frames.length];
 if (debugEl) {
-  debugEl.innerHTML = `
-  <div style="font:12px/1.4 system-ui,Segoe UI,Roboto,sans-serif;color:#93a3b8;margin-top:10px;word-break:break-word">
-    <b>${frame}</b>
-    cap=${S.cap} | out=${outDbg}⚡/h | eff=${effDbg}% |
-    batt=${Math.round(S.battery)}/${S.batteryCap} |
-    acc=${(S._accum||0).toFixed(2)} |
-    ticks=${S._ticks||0} |
-    last:${new Date(last).toLocaleTimeString()} |
-    tickAgo:${(since/1000).toFixed(1)}s |
-    ttf:${(outDbg>0 ? ((S.batteryCap - S.battery)/(outDbg/3600)) : NaN).toFixed(0)}s |
-    energy:${(GS.resources.energy||0)}
-  </div>`;
+  debugEl.innerHTML =
+    `<span class="o2m-dot"></span>`+
+    `<b>${frame}</b> rate=${rate.toFixed(1)}/h `+
+    `| +${producedPerSec.toFixed(3)}/s `+
+    `| acc(o2:${o2a.toFixed(3)} ice:${ia.toFixed(3)} en:${ea.toFixed(3)}) `+
+    `| buf:${buf} | ticks:${ticks} | last:${last}`;
 }
 
 // Если в сейве не было поля — инициализируем
@@ -5814,7 +5831,7 @@ function bindSleepButtons(){
 
   document.addEventListener('DOMContentLoaded', () => {
     renderNodes();     // оставить
-    bindPowerNodes();  // новое
+    if (typeof bindPowerNodes==='function') bindPowerNodes();  // новое
     bindCollect();     // новое
   });
 })();
@@ -5845,7 +5862,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // оффлайн-реген, UI и т.д.
   setInterval(()=>{ tickRegen(); renderNodes(); }, 30000);
   renderNodes();                // оставить
-  bindPowerNodes();             // новое
+  if (typeof bindPowerNodes==='function') bindPowerNodes();             // новое
   bindCollect();                // новое
 });
 document.querySelectorAll('.power-node').forEach(el => {
@@ -5950,7 +5967,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(() => { tickRegen(); renderNodes(); }, 30000);
 
   // Ноды
-  bindPowerNodes();
+  if (typeof bindPowerNodes==='function') bindPowerNodes();
   renderNodes();
 
   // Сон (если используешь модалку каюты)
@@ -5969,10 +5986,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== Solar Panels mini-system (mechanics v2) =====
 (function(){
-  if (window.__marketInitDone) return; window.__marketInitDone = true;
-
-  if (window.__solarInitDone) return; window.__solarInitDone = true;
-
   const STORE = 'mv_solar_state_v2';
   const modal = document.getElementById('solar-modal');
 
@@ -6107,8 +6120,8 @@ function tick(){
         S._accum -= whole;
         
         // Сначала пополняем батарею
-        const CAP_CEIL = 1.0;
-        const roomToCeil = Math.max(0, S.batteryCap - S.battery);
+        const CAP_CEIL = 0.20;
+        const roomToCeil = Math.max(0, S.batteryCap * CAP_CEIL - S.battery);
         const toBattery = Math.min(whole, roomToCeil);
         S.battery += toBattery;
         
@@ -6116,7 +6129,7 @@ function tick(){
         const rest = whole - toBattery;
         if (rest > 0){
             if (typeof updateResource === 'function') {
-                // no auto-leakage
+                updateResource('energy', rest);
             } else {
                 GS.resources.energy = (GS.resources.energy||0) + rest;
             }
@@ -6279,7 +6292,7 @@ function tick(){
       S.dirt = clamp(S.dirt - 25, 0, 100); // прилично чистим
       const deltaEff = Math.round((efficiency() - ((1 - clamp(before*DIRT_PENALTY,0,0.6)) * (S.condition/100) * (S.upgrades.tracker?1.1:1))) * 100);
       if (typeof showNotification === 'function'){
-        showNotification(`Панели очищены (${Math.max(0, deltaEff)}→ эффективность выросла)`, true);
+        showNotification(`Панели очищены (${Math.max(0, -deltaEff)}→ эффективность выросла)`, true);
       }
       updateCard(); updateModal(); updateSolarEnv(); persist();
     });
@@ -6364,7 +6377,7 @@ function tick(){
             let resource = '';
             if (name.includes('полим')) resource = 'polymers';
             else if (name.includes('редк')) resource = 'rare';
-            else if (name.includes('o₂') || name.includes('o2')) resource = 'oxygen';
+            else if (name.includes('o₂') || name.includes('o2') || name.includes('o₂')) resource = 'oxygen';
             else if (name.includes('стелс')) resource = 'stealth';
             else if (name.includes('модуль')) resource = 'equipment';
             else if (name.includes('энерг')) resource = 'energy';
@@ -7133,8 +7146,8 @@ function tick(){
     const S = (window.gameState && window.gameState.solar) || window.S || {};
     const weatherMap = { clear:'Ясно', cloudy:'Облачно', dust:'Пыль' };
 
-    const irr   = (window.solarAPI && typeof window.solarAPI.irradiance==='function') ? window.solarAPI.irradiance(Date.now()) : 0;
-    const eff   = (window.solarAPI && typeof window.solarAPI.efficiency==='function') ? window.solarAPI.efficiency() : 1;
+    const irr   = (typeof irradiance==='function') ? irradiance(Date.now()) : 0;
+    const eff   = (typeof efficiency==='function') ? efficiency() : 1;
     const wMul  = (typeof WEATHER_MUL!=='undefined' && WEATHER_MUL[S.weather]) ? WEATHER_MUL[S.weather] : 1;
 
     setText('#solar-env-weather', weatherMap[S.weather || 'clear'] || (S.weather || '—'));
@@ -7145,7 +7158,7 @@ function tick(){
     setText('#solar-env-mul-weather',  '×' + wMul.toFixed(2));
     setText('#solar-env-mul-irr',      '×' + irr.toFixed(2));
   }
-  window.__solarEnvOnlyTimer || (window.__solarEnvOnlyTimer = setInterval(updateSolarEnvOnly, 1000));
+  setInterval(updateSolarEnvOnly, 1000);
 })();
 </script>
     <script>
@@ -8030,7 +8043,7 @@ const npcOrdersSystem = {
     `;
     document.body.appendChild(modal);
     // Обработчик закрытия модального окна
-    modal.querySelector('.close-modal')?.addEventListener('click', () => {
+    modal.querySelector('.close-modal').addEventListener('click', () => {
       document.body.removeChild(modal);
     });
   },
@@ -8566,10 +8579,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // События статуса
-if (tg && typeof tg.onEvent === 'function') {
-    if (tg && typeof tg.onEvent==='function') tg.onEvent('fullscreenChanged', (isFs) => console.log('FS:', isFs));
-    if (tg && typeof tg.onEvent==='function') tg.onEvent('fullscreenFailed',  (err)  => console.warn('FS fail:', err));
-}
+  tg.onEvent('fullscreenChanged', (isFs) => console.log('FS:', isFs));
+  tg.onEvent('fullscreenFailed',  (err)  => console.warn('FS fail:', err));
 </script>
 <script>
   // reuse existing tg from previous script
