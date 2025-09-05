@@ -780,7 +780,7 @@ html { height: -webkit-fill-available; }
         .notification.show {
             opacity: 1;
             visibility: visible;
-            top: 30px;
+            top: 100px;
         }
         
         .notification i {
@@ -1660,7 +1660,7 @@ body.modal-open {
   max-width: 420px;
   background:#0f1524;
   border:1px solid #2a2a4a;
-  border-radius: 14px;
+  border-radius: 26px;
 }
 .energy-node-modal .modal-body{ padding: 8px 16px 14px; }
 .enm-title{ font-weight: 800; margin-bottom: 4px; }
@@ -3340,7 +3340,7 @@ html, body { overflow-x: hidden; }
             <i class="fas fa-battery-empty"></i> Снять всё
           </button>
         </div>
-      </div>
+      </div>        
     </div>
         <!-- Environment / mechanics info -->
 <div class="solar-env">
@@ -6576,7 +6576,7 @@ function tick(){
      * Система контрактов
      * Генерирует контракты, следит за их выполнением и начисляет награды.
      */
-    const contractSystem = {
+   /** const contractSystem = { 
         activeContracts: [],
         completedContracts: [],
         init() {
@@ -6710,8 +6710,8 @@ function tick(){
                 try { this.completedContracts = JSON.parse(sc); } catch {}
             }
         }
-    };
-
+    }; 
+*/
     // Market event definitions
     const marketEvents = [
         {
@@ -7139,14 +7139,14 @@ function tick(){
             // Запускаем системы спроса, репутации и контрактов
             supplyDemandSystem.init();
             reputationSystem.init();
-            contractSystem.init();
+           //  contractSystem.init();
         }, { once: true });
     } else {
         initEnhancedMarket();
         // Запускаем системы спроса, репутации и контрактов, если DOM уже готов
         supplyDemandSystem.init();
         reputationSystem.init();
-        contractSystem.init();
+       //  contractSystem.init();
     }
 })();
 </script>
