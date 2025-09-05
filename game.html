@@ -5846,10 +5846,12 @@ function bindSleepButtons(){
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    renderNodes();     // оставить
-    if (typeof bindPowerNodes==='function') bindPowerNodes();  // новое
-    bindCollect();     // новое
-  });
+  renderNodes();
+  if (typeof bindPowerNodes==='function') bindPowerNodes();
+  bindCollect(); // локальный, валидный вызов
+  // таймер регена — сюда:
+  setInterval(() => { tickRegen(); renderNodes(); }, 30000);
+});
 })();
 
 /** Утилиты уведомлений/модалок (опираюсь на твои же классы) */
@@ -5874,13 +5876,13 @@ function closeModalById(id){
   m.classList.remove('active');
  
 }
-document.addEventListener('DOMContentLoaded', ()=>{
-  // оффлайн-реген, UI и т.д.
-  setInterval(()=>{ tickRegen(); renderNodes(); }, 30000);
-  renderNodes();                // оставить
-  if (typeof bindPowerNodes==='function') bindPowerNodes();             // новое
-  bindCollect();                // новое
-});
+//document.addEventListener('DOMContentLoaded', ()=>{
+ // оффлайн-реген, UI и т.д.
+ // setInterval(()=>{ tickRegen(); renderNodes(); }, 30000);
+ // renderNodes();                                                        // оставил
+ // if (typeof bindPowerNodes==='function') bindPowerNodes();             // новое
+ // bindCollect();                                                        // новое
+//  });
 document.querySelectorAll('.power-node').forEach(el => {
   el.style.pointerEvents = 'auto';
   el.addEventListener('click', () => openEnergyNodeModal(el));
@@ -5972,30 +5974,19 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     localStorage.removeItem('tutorialSeen');
   } catch (e) {}
-  // Энерго-система
-  const gained = regenSince(E.lastTs, nowTs());
-  if (gained > 0) {
-    E.energy = clamp(E.energy + gained, 0, E_CFG.max);
-    E.lastTs = nowTs();
-    saveState();
-  }
-  updateEnergyUI();
-  setInterval(() => { tickRegen(); renderNodes(); }, 30000);
 
   // Ноды
-  if (typeof bindPowerNodes==='function') bindPowerNodes();
-  renderNodes();
+  //if (typeof bindPowerNodes==='function') bindPowerNodes();
+ // renderNodes();
 
   // Сон (если используешь модалку каюты)
   bindSleepButtons();
 
   // Сканирование
-  bindSectorPick();
-  bindScanConfirm();
+  //bindSectorPick();
+  //bindScanConfirm();
 });
 
-/*__FORCE_TUTORIAL_OPEN__*/
-// Убрали форс-показ туториала. Теперь он контролируется через localStorage и показывается только один раз.
 </script>
 
 <script>
@@ -6174,6 +6165,8 @@ function tick(){
     updateCard();
     updateModal();
     updateSolarEnv();
+    window.updateSolarEnv  = updateSolarEnv;
+    window.updateSolarCard = updateCard;
     persist();
 }
 
