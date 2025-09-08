@@ -4199,10 +4199,16 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
                         const event = events[Math.floor(Math.random() * events.length)];
                         
                         if (event.includes("+")) {
-                            const resource = event.includes("🧪") ? 'bio' : 'parts';
-                            const amount = parseInt(event.match(/\d+/)[0]);
-                            updateResource(resource, amount);
-                        }
+    const resource = event.includes("🧪") ? 'bio' : 'parts';
+    const amount = parseInt((event.match(/\d+/) || [0])[0]);
+    if (amount > 0) {
+        const list = Array.isArray(gameState.missions.scannedResources) ? gameState.missions.scannedResources.slice() : [];
+        const i = list.findIndex(it => it.type === resource);
+        if (i >= 0) list[i].amount += amount; else list.push({ type: resource, amount });
+        gameState.missions.scannedResources = list;
+        updateUI();
+    }
+}
                         
                         showNotification(event, !event.includes("interrupted"));
                     }
