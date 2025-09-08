@@ -2555,6 +2555,23 @@ html, body { overflow-x: hidden; }
       #solar-modal .withdraw-buttons{ grid-template-columns: 1fr !important; }
     }
   </style>
+
+<style id="o2-claimable-style">
+@keyframes o2Pulse {
+  0%   { transform: translateZ(0) scale(1);   box-shadow: 0 0 0 rgba(0,243,255,0.0); }
+  50%  { transform: translateZ(0) scale(1.02); box-shadow: 0 0 24px rgba(0,243,255,0.25); }
+  100% { transform: translateZ(0) scale(1);   box-shadow: 0 0 0 rgba(0,243,255,0.0); }
+}
+#o2-generation-card { position: relative; }
+#o2-generation-card.claimable { animation: o2Pulse 1.6s ease-in-out infinite; }
+#o2-generation-card.claimable .status-value { text-shadow: 0 0 8px rgba(0,243,255,0.9); }
+#o2-generation-card .claim-dot{
+  position: absolute; top: 10px; right: 10px; width: 10px; height: 10px;
+  border-radius: 999px; background: #00f3ff; box-shadow: 0 0 12px #00f3ff;
+  opacity: 0; transition: opacity .25s ease;
+}
+#o2-generation-card.claimable .claim-dot{ opacity: 1; }
+</style>
 </head>
 <body>
 <div class="container" id="app">
@@ -3966,12 +3983,26 @@ html, body { overflow-x: hidden; }
                 elements.rare.textContent = gameState.resources.rare.toLocaleString();
             }
             
-            // Генератор O2
-            const prog = Math.round(gameState.o2Generation.progress);
-            elements.o2GenerationValue.textContent = `${prog}% • ${Math.floor(gameState.resources.oxygen).toLocaleString()} O₂`;
-            elements.o2Progress.style.width = `${gameState.o2Generation.progress}%`;
+            // Генератор O2 вывод на экран
+           const buf = Math.floor(gameState.o2Generation.buffer || 0);
+elements.o2GenerationValue.textContent = `${buf.toLocaleString()} O₂`;
             
-            // Миссии
+            
+// ensure claim-dot exists and toggle claimable by buffer
+(function(){
+  try{
+    const card = document.getElementById('o2-generation-card');
+    if (!card) return;
+    if (!card.querySelector('.claim-dot')){
+      const dot = document.createElement('span');
+      dot.className = 'claim-dot';
+      card.appendChild(dot);
+    }
+    const buf = Math.floor((gameState && gameState.o2Generation && gameState.o2Generation.buffer) || 0);
+    card.classList.toggle('claimable', buf > 0);
+  }catch(e){}
+})();
+// Миссии
             if (gameState.missions.scanning) {
                 elements.missionSector.textContent = gameState.missions.sector;
                 elements.missionBelt.textContent = gameState.missions.belt;
@@ -5195,6 +5226,11 @@ if (closeBtn) {
         function updateO2Generation() {
             const rate = gameState.o2Generation.rate;
             if (!rate || rate <= 0) return;
+            
+const val = document.getElementById('o2-generation-value');
+if (val) val.textContent = `${Math.floor(gameState.o2Generation.buffer||0).toLocaleString()} O₂`;
+const card = document.getElementById('o2-generation-card');
+if (card) card.classList.toggle('claimable', (gameState.o2Generation.buffer|0) > 0);
 
              
             // DEBUG тики генерации
@@ -5429,7 +5465,21 @@ if (typeof gameState.o2Generation.buffer === 'undefined') {
   function updateMinerUI() {
     const rate = gameState.o2Generation.rate || 0;
     // Производство (ед./час)
-    rateEl.textContent = `+${rate.toFixed(1)}`;
+    rateEl.textContent = `+${rate.toFixed(1)}/h`;
+    // ensure claim-dot exists and toggle claimable by buffer
+    (function(){
+  try{
+    const card = document.getElementById('o2-generation-card');
+    if (!card) return;
+    if (!card.querySelector('.claim-dot')){
+      const dot = document.createElement('span');
+      dot.className = 'claim-dot';
+      card.appendChild(dot);
+    }
+    const buf = Math.floor((gameState && gameState.o2Generation && gameState.o2Generation.buffer) || 0);
+    card.classList.toggle('claimable', buf > 0);
+  }catch(e){}
+    })();
     // Энергопотребление за час
     const energyCons = rate * ENERGY_PER_O2;
     energyEl.textContent = `−${energyCons.toFixed(1)} ⚡`;
@@ -6380,7 +6430,7 @@ if (rest > 0) { updateResource('energy', rest); }
 (function() {
     // Initialize base price and initial amount for market items and resource mapping
     if (window.gameState && Array.isArray(gameState.marketItems)) {
-        gameState.marketItems.forEach(item => {
+        (Array.isArray(gameState.marketItems)?gameState.marketItems:[]).forEach(item => {
             // Preserve original price and amount for calculations
             if (typeof item.basePrice === 'undefined') item.basePrice = item.price;
             if (typeof item.initialAmount === 'undefined') item.initialAmount = item.amount;
@@ -6460,7 +6510,7 @@ if (rest > 0) { updateResource('energy', rest); }
         },
         applyDemandToPrices() {
             if (!window.gameState || !Array.isArray(gameState.marketItems)) return;
-            gameState.marketItems.forEach(item => {
+            (Array.isArray(gameState.marketItems)?gameState.marketItems:[]).forEach(item => {
                 const res = item.resource;
                 // Если ресурс участвует в системе спроса
                 if (res && this.currentDemand[res]) {
@@ -6784,7 +6834,7 @@ if (rest > 0) { updateResource('energy', rest); }
         const container = document.getElementById('market-items');
         if (!container || !window.gameState) return;
         container.innerHTML = '';
-        gameState.marketItems.forEach(item => {
+        (Array.isArray(gameState.marketItems)?gameState.marketItems:[]).forEach(item => {
             // Create card container
             const card = document.createElement('div');
             card.className = 'offer-card';
@@ -6922,30 +6972,26 @@ if (rest > 0) { updateResource('energy', rest); }
                 const sp = parseInt(this.dataset.sellPrice);
                 const amt = parseInt(this.dataset.amount); // всегда 1
                 if (typeof updateResource === 'function') {
-                    // Зачисляем MVC за продажу
+                    // Сначала списываем ресурс; если удалось — зачисляем MVC и возвращаем товар на рынок
                     const totalRevenue = sp * amt;
-                    updateResource('mvc', totalRevenue);
-                    // Возвращаем товар на рынок
-                    item.amount += amt;
-                    // Снимаем ресурс у игрока
+                    let deducted = false;
                     switch (item.resource) {
-                        case 'oxygen': updateResource('oxygen', -amt); break;
-                        case 'energy': updateResource('energy', -amt); break;
-                        case 'ice': updateResource('ice', -amt); break;
-                        case 'bio': updateResource('bio', -amt); break;
-                        case 'parts': updateResource('parts', -amt); break;
-                        case 'polymers': updateResource('polymers', -amt); break;
-                        case 'rare': updateResource('rare', -amt); break;
-                        default: break;
+                        case 'oxygen': deducted = updateResource('oxygen', -amt); break;
+                        case 'energy': deducted = updateResource('energy', -amt); break;
+                        case 'ice': deducted = updateResource('ice', -amt); break;
+                        case 'bio': deducted = updateResource('bio', -amt); break;
+                        case 'parts': deducted = updateResource('parts', -amt); break;
+                        case 'polymers': deducted = updateResource('polymers', -amt); break;
+                        case 'rare': deducted = updateResource('rare', -amt); break;
+                        default: deducted = false; break;
                     }
-                    // Обновляем репутацию (продажа)
-                    reputationSystem.updateReputation(item.vendor, totalRevenue, false);
-                    // Корректируем спрос
-                    supplyDemandSystem.onPlayerAction('sell', item.resource, amt);
-                    if (typeof showNotification === 'function') {
-                        showNotification(`Продажа: ${item.name} за ${totalRevenue} MVC`, true);
+                    if (deducted) {
+                        updateResource('mvc', totalRevenue);
+                        item.amount += amt;
+                        if (typeof showNotification === 'function') showNotification(`Продажа: ${item.name} за ${totalRevenue} MVC`, true);
+                    } else {
+                        if (typeof showNotification === 'function') showNotification('Недостаточно ресурса для продажи', false);
                     }
-                    // Обновляем интерфейс и цены
                     updateUI && updateUI();
                     updateMarketPrices();
                     renderMarket();
@@ -6995,7 +7041,7 @@ if (rest > 0) { updateResource('energy', rest); }
     // Recalculate prices based on supply/demand and active events
     function updateMarketPrices() {
         if (!window.gameState) return;
-        gameState.marketItems.forEach(item => {
+        (Array.isArray(gameState.marketItems)?gameState.marketItems:[]).forEach(item => {
             const oldPrice = item.price;
             // Demand factor based on how much stock has been sold (initialAmount vs current)
             let demandFactor = 0;
@@ -7431,7 +7477,14 @@ if (rest > 0) { updateResource('energy', rest); }
     if (typeof showNotification === 'function') showNotification('Модуль установлен', true);
     updateInvUI();
     render();
+  
+    const shop = document.getElementById('drone-shop-modal');
+    if (shop) shop.classList.remove('active');
+    document.body.classList.remove('modal-open');
+    if (typeof updateUI==='function') updateUI();
+    try { localStorage.setItem('DRONE_STATE_DEBUG', JSON.stringify(state)); } catch(e){}
   }
+
   function buyModel(row){
     const model = row.dataset.model;
     const costMvc = +row.dataset.costMvc;
@@ -7452,15 +7505,32 @@ if (rest > 0) { updateResource('energy', rest); }
       if (!state.inventory[id]) state.inventory[id] = 0;
       state.inventory[id]++;
     });
-    const hadMods = state.modules.length;
+    const oldMods = Array.isArray(state.modules) ? state.modules.slice() : [];
+if (oldMods.length) {
+  oldMods.forEach(m=>{
+    if (m==='shield') state.inventory.shield = (state.inventory.shield||0) + 1;
+    if (m==='sensor') state.inventory.sensor = (state.inventory.sensor||0) + 1;
+  });
+}
+const hadMods = state.modules.length;
     state.model = model;
     state.maxHp = hp;
     state.hp = hp;
     state.baseArmor = br;
     state.baseSignal = sig;
     state.slots = slots;
-    state.modules = [];
-    pushLog(`Куплен дрон: ${model} (HP ${hp}, Броня ${br}, Сигнал ${sig}, Слотов ${slots})`);
+    state.zones = { hull: 0, sensor: 0, antenna: 0 }; // сбросить все повреждения
+state.hp = state.maxHp; // на всякий случай восстановить HP до максимума
+state.modules = [];
+        // Немедленно сбрасываем бейджи модулей в UI для новой модели
+    if (refs && refs.badges) {
+      refs.badges.innerHTML = '';
+      const b = document.createElement('span');
+      b.className = 'badge';
+      b.textContent = '—';
+      refs.badges.appendChild(b);
+    }
+pushLog(`Куплен дрон: ${model} (HP ${hp}, Броня ${br}, Сигнал ${sig}, Слотов ${slots})`);
     if (hadMods) pushLog('Модули сняты и перенесены в инвентарь');
     if (typeof showNotification === 'function') showNotification(`Установлен ${model}`, true);
     updateInvUI();
@@ -8994,4 +9064,58 @@ document.addEventListener('click', (e)=>{
     window.bindScanConfirm  = window.bindScanConfirm  || function(){};
     window.bindSectorPick   = window.bindSectorPick   || function(){};
   });
+</script>
+
+<!--
+  Навигация: раньше слушатели навигации вешались в общем
+  инициализаторе, который из‑за синтаксических ошибок мог не
+  выполниться. В результате нижние кнопки навигации (MAP, DRONES,
+  BASE, MARKET, VOTE, QUESTS) не работали. Чтобы исправить это,
+  делегируем обработку кликов на `.nav-menu` и переключаем
+  активную вкладку и экран вручную. Этот код надёжно запускается
+  при DOMContentLoaded и не зависит от других модулей.
+-->
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    const navMenu = document.querySelector('.nav-menu');
+    if (!navMenu) return;
+    navMenu.addEventListener('click', function(e){
+      const item = e.target.closest('.nav-item');
+      if (!item) return;
+      // снять активность со всех пунктов
+      document.querySelectorAll('.nav-item').forEach(function(nav){
+        nav.classList.remove('active');
+      });
+      // активировать текущий пункт
+      item.classList.add('active');
+      const screenId = item.getAttribute('data-screen');
+      if (!screenId) return;
+      // скрыть все экраны и показать нужный
+      document.querySelectorAll('.screen').forEach(function(sc){
+        sc.classList.remove('active');
+      });
+      const targetScreen = document.getElementById(screenId);
+      if (targetScreen) targetScreen.classList.add('active');
+    }, false);
+  });
+</script>
+
+<script>
+// MARKET_GUARD: prevent selling more than stock from UI side
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-action="sell"], .sell-btn');
+  if (!btn) return;
+  const row = btn.closest('[data-resource]') || btn.closest('.market-row');
+  if (!row) return;
+  const res = row.dataset.resource;
+  const qtyEl = row.querySelector('input[type="number"], [data-qty]');
+  let qty = 1;
+  if (qtyEl) qty = parseInt(qtyEl.value || qtyEl.textContent || '1', 10) || 0;
+  if (qty <= 0) { e.preventDefault(); e.stopPropagation(); return; }
+  const stock = (gameState && gameState.resources && typeof gameState.resources[res]==='number') ? gameState.resources[res] : 0;
+  if (qty > stock) {
+    if (typeof showNotification==='function') showNotification('Недостаточно ресурса для продажи', false);
+    e.preventDefault(); e.stopPropagation(); return;
+  }
+}, { passive: false });
 </script>
