@@ -3967,7 +3967,8 @@ html, body { overflow-x: hidden; }
             }
             
             // Генератор O2
-            elements.o2GenerationValue.textContent = `${gameState.o2Generation.rate}/h`;
+            const prog = Math.round(gameState.o2Generation.progress);
+            elements.o2GenerationValue.textContent = `${prog}% • ${Math.floor(gameState.resources.oxygen).toLocaleString()} O₂`;
             elements.o2Progress.style.width = `${gameState.o2Generation.progress}%`;
             
             // Миссии
@@ -5846,12 +5847,10 @@ function bindSleepButtons(){
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-  renderNodes();
-  if (typeof bindPowerNodes==='function') bindPowerNodes();
-  bindCollect(); // локальный, валидный вызов
-  // таймер регена — сюда:
-  setInterval(() => { tickRegen(); renderNodes(); }, 30000);
-});
+    renderNodes();     // оставить
+    if (typeof bindPowerNodes==='function') bindPowerNodes();  // новое
+    if (typeof bindCollect==='function') bindCollect();     // новое
+  });
 })();
 
 /** Утилиты уведомлений/модалок (опираюсь на твои же классы) */
@@ -5876,13 +5875,13 @@ function closeModalById(id){
   m.classList.remove('active');
  
 }
-//document.addEventListener('DOMContentLoaded', ()=>{
- // оффлайн-реген, UI и т.д.
- // setInterval(()=>{ tickRegen(); renderNodes(); }, 30000);
- // renderNodes();                                                        // оставил
- // if (typeof bindPowerNodes==='function') bindPowerNodes();             // новое
- // bindCollect();                                                        // новое
-//  });
+document.addEventListener('DOMContentLoaded', ()=>{
+  // оффлайн-реген, UI и т.д.
+  setInterval(()=>{ tickRegen(); renderNodes(); }, 30000);
+  renderNodes();                // оставить
+  if (typeof bindPowerNodes==='function') bindPowerNodes();             // новое
+  if (typeof bindCollect==='function') bindCollect();                // новое
+});
 document.querySelectorAll('.power-node').forEach(el => {
   el.style.pointerEvents = 'auto';
   el.addEventListener('click', () => openEnergyNodeModal(el));
@@ -5974,19 +5973,30 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     localStorage.removeItem('tutorialSeen');
   } catch (e) {}
+  // Энерго-система
+  const gained = regenSince(E.lastTs, nowTs());
+  if (gained > 0) {
+    E.energy = clamp(E.energy + gained, 0, E_CFG.max);
+    E.lastTs = nowTs();
+    saveState();
+  }
+  updateEnergyUI();
+  setInterval(() => { tickRegen(); renderNodes(); }, 30000);
 
   // Ноды
-  //if (typeof bindPowerNodes==='function') bindPowerNodes();
- // renderNodes();
+  if (typeof bindPowerNodes==='function') bindPowerNodes();
+  renderNodes();
 
   // Сон (если используешь модалку каюты)
   bindSleepButtons();
 
   // Сканирование
-  //bindSectorPick();
-  //bindScanConfirm();
+  if (typeof bindSectorPick==='function') if (typeof bindSectorPick==='function') bindSectorPick();
+  if (typeof bindScanConfirm==='function') bindScanConfirm();
 });
 
+/*__FORCE_TUTORIAL_OPEN__*/
+// Убрали форс-показ туториала. Теперь он контролируется через localStorage и показывается только один раз.
 </script>
 
 <script>
@@ -6127,16 +6137,20 @@ function tick(){
         S._accum -= whole;
         
         // Сначала пополняем батарею
-        const CAP_CEIL = 0.20;
-        const roomToCeil = Math.max(0, S.batteryCap * CAP_CEIL - S.battery);
-        const toBattery = Math.min(whole, roomToCeil);
+        const CAP_CEIL = 1.0;
+        const roomToCeil = Math.max(0, S.batteryCap - S.battery);
+        const roomInt = Math.max(0, Math.floor(S.batteryCap - S.battery));
+const toBattery = Math.min(whole, roomInt);
         S.battery += toBattery;
         
         // Остаток сразу в общий energy
-        const rest = whole - toBattery;
+        let rest = whole - toBattery;
         if (rest > 0){
             if (typeof updateResource === 'function') {
-                updateResource('energy', rest);
+                const short = Math.max(0, GRID_TARGET - (GS.resources.energy||0));
+const toGrid = Math.min(rest, short);
+if (toGrid > 0) { updateResource('energy', toGrid); rest -= toGrid; }
+if (rest > 0) { updateResource('energy', rest); }
             } else {
                 GS.resources.energy = (GS.resources.energy||0) + rest;
             }
@@ -6145,28 +6159,13 @@ function tick(){
 
     // автоподача в сеть из батареи, если общий energy ниже буфера
     // ТОЛЬКО если батарея заполнена более чем на 50%
-    if (S.battery > S.batteryCap * 0.5) {
-        const need = Math.max(0, GRID_TARGET - (GS.resources.energy||0));
-        if (need > 0){
-            const give = Math.min(need, S.battery * 0.5); // Отдаём не более 50% батареи
-            S.battery -= give;
-            if (typeof updateResource === 'function') {
-                updateResource('energy', give);
-            } else {
-                GS.resources.energy = (GS.resources.energy||0) + give;
-            }
-        }
-    }
-
-    // смена погоды изредка
+  // смена погоды изредка
     maybeChangeWeather();
 
     // UI + persist
     updateCard();
     updateModal();
     updateSolarEnv();
-    window.updateSolarEnv  = updateSolarEnv;
-    window.updateSolarCard = updateCard;
     persist();
 }
 
@@ -6175,7 +6174,7 @@ function tick(){
     const eff = Math.round(efficiency()*100); // %
     const effEl = document.getElementById('solar-efficiency');
     const barEl = document.getElementById('solar-progress');
-    if (effEl) effEl.textContent = eff + '%';
+    if (effEl) effEl.textContent = eff + '% • ' + Math.floor(S.battery) + '⚡';
     if (barEl) barEl.style.width = eff + '%';
   }
   
@@ -8982,4 +8981,11 @@ document.addEventListener('click', (e)=>{
   patch();
   try{ new MutationObserver(patch).observe(document.body, {subtree:true, childList:true}); }catch(e){}
 })();
+</script>
+<script>
+  window.addEventListener('load', function(){
+    window.bindCollect      = window.bindCollect      || function(){};
+    window.bindScanConfirm  = window.bindScanConfirm  || function(){};
+    window.bindSectorPick   = window.bindSectorPick   || function(){};
+  });
 </script>
