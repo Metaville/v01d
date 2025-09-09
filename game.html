@@ -2614,7 +2614,7 @@ html, body { overflow-x: hidden; }
 <div class="modal" id="tutorial-modal">
 <div class="modal-content">
 <div class="modal-header">
-<h3 class="modal-title"><i class="fas fa-solar-panel"></i> Солнечные панели</h3>
+<h3 class="modal-title"><i class="fas fa-solar-panel"></i> TUTORIAL </h3>
 </div>
 <div class="modal-body">
 
@@ -4242,13 +4242,15 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
 }
                         
                         showNotification(event, !event.includes("interrupted"));
+                        const OXYGEN_SCAN_PENALTY = 0; // 0 = не списывать, 25 = как было
+                        if (OXYGEN_SCAN_PENALTY > 0) updateResource('oxygen', -OXYGEN_SCAN_PENALTY);
                     }
                 } else {
                     clearInterval(scanInterval);
                     scanInterval = null; // обнуляем ссылку
 
                     showNotification("Sector scanning complete!", true);
-                    updateResource('oxygen', -25);
+                   // updateResource('oxygen', -25);
                     
                     clearInterval(scanInterval);
                     document.getElementById('harvest-btn').disabled = 
@@ -5843,14 +5845,14 @@ function bindSleepButtons(){
   });
 
   function getNodeData(el){
-    return {
-      id:     el.dataset.nodeId || el.id || 'node',
-      title:  el.dataset.title  || 'Energy node',
-      text:   el.dataset.desc   || 'Concentrated energy near the platform.',
-      amount: parseInt(el.dataset.amount || el.querySelector('.cd')?.textContent.replace(/[^\d]/g,'') || '50', 10)
-    };
-  }
-
+  const amt = parseInt(el.dataset.amount || '50', 10);
+  return {
+    id:     el.dataset.nodeId || el.id || 'node',
+    title:  el.dataset.title  || 'Energy node',
+    text:   el.dataset.desc   || 'Concentrated energy near the platform.',
+    amount: Math.max(0, isFinite(amt) ? amt : 50)
+  };
+}
   function openEnergyNodeModal(el){
     const data = getNodeData(el);
     $('#en-node-title').textContent  = data.title;
@@ -5881,26 +5883,29 @@ function bindSleepButtons(){
     });
   }
 
-  function bindCollect(){
-    const btn = document.getElementById('en-collect-btn');
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      const id     = btn.dataset.nodeId || 'node';
-      const amount = parseInt(btn.dataset.amount || '0', 10);
+ function bindCollect(){
+  const btn = document.getElementById('en-collect-btn');
+  btn.addEventListener('click', (ev) => {
+    ev.preventDefault();       // не передавать клик дальше
+    ev.stopPropagation();
+    if (btn.disabled) return;
+    btn.disabled = true;       // исключаем двойной клик
 
-      // начисляем твоей энергосистемой
-      if (typeof updateResource === 'function') {
-      updateResource('energy', amount); // это обновит gameState и сразу перерисует панель
-    }
-      E.nodes[id] = E.nodes[id] || { readyAt: 0 };
-      E.nodes[id].readyAt = Date.now() + E_CFG.nodeRestoreMs;
-      saveState();
-      renderNodes();
+    const id  = String(btn.dataset.nodeId || 'node');
+    const amt = parseInt(btn.dataset.amount || '0', 10);
+    const amount = Math.max(0, isFinite(amt) ? amt : 0); // защита от NaN/отрицательных
 
-      if (typeof showNotification === 'function') showNotification(`+${amount} ⚡ collected`, true);
-      closeModal('energy-node-modal');
-    });
-  }
+    if (amount > 0) updateResource('energy', amount);    // строго плюс
+
+    E.nodes[id] = { readyAt: Date.now() + E_CFG.nodeRestoreMs };
+    saveState();
+    renderNodes();
+    showNotification(`+${amount} ⚡ collected`, true);
+    closeModal('energy-node-modal');
+  });
+}
+
+
 
   document.addEventListener('DOMContentLoaded', () => {
     renderNodes();     // оставить
