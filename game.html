@@ -9124,3 +9124,377 @@ document.addEventListener('click', function(e){
   }
 }, { passive: false });
 </script>
+
+<!-- === Harvest Scanner Mechanics: Timers, Risk, Capacity (hvst) === -->
+<style id="hvst-styles">
+  /* clickable scan points layer */
+  .hvst-points { position:absolute; inset:0; z-index:6; pointer-events:none; }
+  .hvst-point {
+    position:absolute; width:44px; height:44px; border-radius:999px;
+    display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(45% 45% at 50% 50%, #1fffe2 0%, #00e6b8 55%, rgba(0,230,184,0.12) 100%);
+    border: 1px solid #1e6a5f;
+    box-shadow: 0 0 16px rgba(0,230,184,.45), inset 0 0 8px rgba(255,255,255,.18);
+    cursor:pointer; pointer-events:auto;
+    transition: transform .15s ease, box-shadow .15s ease, opacity .2s ease;
+  }
+  .hvst-point:hover{ transform: scale(1.06); }
+  .hvst-point .badge {
+    min-width: 26px; padding: 2px 6px;
+    font-size: 12px; font-weight: 800;
+    color:#e6f7ff; background: rgba(3,17,27,.55);
+    border:1px solid rgba(34,75,98,.8); border-radius: 8px;
+    backdrop-filter: blur(2px);
+  }
+  .hvst-point.observed{
+    background: radial-gradient(45% 45% at 50% 50%, #ffd166 0%, #f59e0b 55%, rgba(245,158,11,0.12) 100%);
+    border-color:#5a4b12; box-shadow: 0 0 16px rgba(245,158,11,.52), inset 0 0 8px rgba(255,255,255,.22);
+  }
+  .hvst-point.danger{
+    background: radial-gradient(45% 45% at 50% 50%, #ff7aa2 0%, #ef4444 55%, rgba(239,68,68,0.18) 100%);
+    border-color:#6b1a24; box-shadow: 0 0 18px rgba(239,68,68,.55), inset 0 0 8px rgba(255,255,255,.22);
+  }
+
+  /* small HUD for the harvester */
+  .hvst-hud {
+    position: sticky; top: 6px; z-index: 50;
+    background: rgba(16, 20, 40, .78);
+    border: 1px solid #2a3358; border-radius: 12px;
+    padding: 8px 10px; margin: 6px 0 12px 0;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .hvst-tag {
+    font-size: 12px; font-weight: 800; padding:6px 10px; border-radius:999px;
+    border:1px solid #2b2f45; background:#181c2f; color:#d7e2f0;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .hvst-tag.warn  { color:#ffd36e; border-color:#8a6a12; background:rgba(138,106,18,.18); }
+  .hvst-tag.good  { color:#00e6a8; border-color:#0b8a6f; background:rgba(11,138,111,.16); }
+  .hvst-actions{ margin-left:auto; display:flex; gap:8px; }
+  .hvst-btn{ padding:8px 10px; border-radius:10px; border:1px solid #394066; background:#141833; color:#d6dbff; cursor:pointer; }
+  .hvst-btn.primary{ border-color:#00e6b8; box-shadow:0 0 10px rgba(0,230,184,.25) inset; }
+
+  /* Modal for scan results */
+  .hvst-modal{ position: fixed; inset: 0; display:none; align-items:center; justify-content:center; z-index:1200; }
+  .hvst-modal.open{ display:flex; background: rgba(7,9,20,0.72); backdrop-filter: blur(2px); }
+  .hvst-card{
+    width: min(560px, 92vw);
+    padding: 16px 16px 14px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #0e1324 0%, #121832 100%);
+    border: 1px solid #273056; color:#e6ecff;
+    box-shadow: 0 18px 44px rgba(0,0,0,.55);
+  }
+  .hvst-card h3{ margin: 0 0 8px 0; color:#00e6c2; letter-spacing:.3px; }
+  .hvst-row{ display:flex; justify-content:space-between; gap:10px; padding:8px 10px; background: rgba(22, 28, 55, 0.55); border: 1px solid #2a3358; border-radius:10px; margin-bottom:8px; }
+  .hvst-col{ display:flex; flex-direction:column; gap:4px; font-size:13px; }
+  .hvst-badge{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid transparent; }
+  .hvst-badge.info   { color:#8fe5ff; border-color:#156ea4; background:rgba(21,110,164,.18); }
+  .hvst-badge.warn   { color:#ffd36e; border-color:#8a6a12; background:rgba(138,106,18,.16); }
+  .hvst-badge.good   { color:#00e6a8; border-color:#0b8a6f; background:rgba(11,138,111,.16); }
+  .hvst-footer{ margin-top: 10px; display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .hvst-footer .hvst-btn{ width:100%; padding:12px 14px; }
+  @media (max-width:420px){ .hvst-footer{ grid-template-columns:1fr; } }
+</style>
+
+<script id="hvst-logic">
+(function(){
+  // ====== CONFIG ======
+  const OBSERVATION_MS = 3 * 60 * 1000;     // 3 minutes under observation after first scan
+  const BASE_RISK = 0.10;                   // 10% normal
+  const OBS_RISK  = 0.35;                   // 35% while observed
+  const O2_PER_SCAN = 5;                    // base O2 per scan
+  const O2_OBS_MULT = 1.5;                  // +50% O2 when observed
+  const CAPACITY = 80;                      // harvester capacity per trip
+  const RNG = () => Math.random();
+
+  // ====== STATE ======
+  const state = {
+    harvester: {
+      capacity: CAPACITY,
+      cargo: 0,
+      o2used: 0,
+      droneHP: 100,
+      trips: 0,
+    },
+    points: [
+      { id:'SP-1', x: '28%', y:'38%', type:'РУДА',    total: 220, left: 220, observedTill: 0, firstScannedAt: 0 },
+      { id:'SP-2', x: '62%', y:'52%', type:'O₂',      total: 150, left: 150, observedTill: 0, firstScannedAt: 0 },
+      { id:'SP-3', x: '46%', y:'72%', type:'ТЕХНО',   total: 120, left: 120, observedTill: 0, firstScannedAt: 0 },
+    ]
+  };
+
+  // ====== HELPERS ======
+  const el = (sel, root=document) => root.querySelector(sel);
+  const els = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const fmt = (n) => new Intl.NumberFormat('ru-RU').format(n);
+  const clamp = (n,min,max) => Math.max(min, Math.min(max,n));
+  const now = () => Date.now();
+  const msLeft = (till) => Math.max(0, till - now());
+  const mmss = (ms) => {
+    const s = Math.ceil(ms/1000);
+    const m = Math.floor(s/60).toString().padStart(2,'0');
+    const ss = (s%60).toString().padStart(2,'0');
+    return `${m}:${ss}`;
+  };
+
+  // ====== UI BOOTSTRAP ======
+  function ensurePointsLayer(){
+    const map = el('.map-container');
+    if(!map){
+      // If there is no map on current screen, bail silently.
+      return null;
+    }
+    let layer = el('.hvst-points', map);
+    if(!layer){
+      layer = document.createElement('div');
+      layer.className = 'hvst-points';
+      map.appendChild(layer);
+    }
+    return layer;
+  }
+
+  function ensureHud(){
+    // render HUD only inside MAP screen
+    const screen = el('#map-screen');
+    if(!screen) return;
+    // if HUD exists elsewhere from older builds — remove it
+    const existing = document.getElementById('hvst-hud');
+    if(existing && !screen.contains(existing)) { try{ existing.remove(); }catch(e){} }
+    if(el('#hvst-hud', screen)) return;
+    const hud = document.createElement('div');
+    hud.className = 'hvst-hud';
+    hud.id = 'hvst-hud';
+    hud.innerHTML = `
+      <span class="hvst-tag"><i class="fa fa-truck"></i> Груз: <strong id="hvstCargo">0</strong>/<span id="hvstCap">${state.harvester.capacity}</span></span>
+      <span class="hvst-tag"><i class="fa fa-heart"></i> Дрон HP: <strong id="hvstHP">100</strong>%</span>
+      <span class="hvst-tag"><i class="fa fa-wind"></i> O₂: <strong id="hvstO2">0</strong></span>
+      <span class="hvst-tag good" title="Количество успешно завершённых рейсов"><i class="fa fa-rotate"></i> Рейсы: <strong id="hvstTrips">0</strong></span>
+      <span class="hvst-tag warn" title="Лор: чтобы не привлечь рейдеров, нельзя часто сканировать одну точку."><i class="fa fa-user-ninja"></i> Маскировка активна</span>
+      <div class="hvst-actions">
+        <button class="hvst-btn" id="hvstResetTrip"><i class="fa fa-house"></i> Вернуться на базу (разгрузить)</button>
+        <button class="hvst-btn primary" id="hvstHeal"><i class="fa fa-screwdriver-wrench"></i> Ремонт дрона (+10%)</button>
+      </div>
+    `;
+    const anchor = el('.map-container', screen) || screen.firstElementChild;if(anchor && anchor.parentNode===screen){ screen.insertBefore(hud, anchor); }else { screen.prepend(hud); }
+    el('#hvstResetTrip').addEventListener('click', ()=>{
+      state.harvester.cargo = 0;
+      state.harvester.o2used = 0;
+      state.harvester.trips += 1;
+      refreshHud();
+      notify('success', 'Груз выгружен. Показатели рейса сброшены.');
+    });
+    el('#hvstHeal').addEventListener('click', ()=>{
+      state.harvester.droneHP = clamp(state.harvester.droneHP + 10, 0, 100);
+      refreshHud();
+    });
+    refreshHud();
+  }
+
+  function refreshHud(){
+    const h = state.harvester;
+    const cEl = el('#hvstCargo'); if(cEl) cEl.textContent = fmt(h.cargo);
+    const capEl = el('#hvstCap'); if(capEl) capEl.textContent = fmt(h.capacity);
+    const hpEl = el('#hvstHP'); if(hpEl) hpEl.textContent = fmt(h.droneHP);
+    const o2El = el('#hvstO2'); if(o2El) o2El.textContent = fmt(h.o2used);
+    const tEl = el('#hvstTrips'); if(tEl) tEl.textContent = fmt(h.trips);
+  }
+
+  function ensureModal(){
+    if(el('#hvst-modal')) return;
+    const m = document.createElement('div');
+    m.className = 'hvst-modal'; m.id = 'hvst-modal';
+    m.innerHTML = `
+      <div class="hvst-card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+          <h3 id="hvstTitle"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:#00e6c2;box-shadow:0 0 10px #00e6c2;display:inline-block;margin-right:8px;"></span>Сканирование</h3>
+          <button class="close-modal" id="hvstClose" style="background:none;border:0;color:#c9d4ff;font-size:22px;cursor:pointer;">×</button>
+        </div>
+        <div id="hvstBody"></div>
+        <div class="hvst-footer">
+          <button class="hvst-btn" id="hvstCancel">Отмена</button>
+          <button class="hvst-btn primary" id="hvstScanBtn">Сканировать</button>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    const close = ()=> m.classList.remove('open');
+    el('#hvstClose', m).onclick = close;
+    el('#hvstCancel', m).onclick = close;
+  }
+
+  function openModalForPoint(p){
+    ensureModal();
+    const m = el('#hvst-modal');
+    const body = el('#hvstBody', m);
+    const underObs = p.observedTill && now() < p.observedTill;
+    const risk = underObs ? OBS_RISK : BASE_RISK;
+    const leftMs = underObs ? msLeft(p.observedTill) : 0;
+    const free = state.harvester.capacity - state.harvester.cargo;
+    el('#hvstTitle', m).innerHTML = `<span class="dot" style="width:8px;height:8px;border-radius:50%;background:${underObs?'#f59e0b':'#00e6c2'};box-shadow:0 0 10px ${underObs?'#f59e0b':'#00e6c2'};display:inline-block;margin-right:8px;"></span>Точка ${p.id} — ${p.type}`;
+
+    body.innerHTML = `
+      <div class="hvst-row">
+        <div class="hvst-col">
+          <div class="hvst-badge ${underObs?'warn':'good'}">${underObs?'Под наблюдением':'Безопасно'}</div>
+          ${underObs? `<div class="hvst-col" style="color:#aab0ff;font-size:13px;">До снижения риска: <strong>${mmss(leftMs)}</strong></div>` : '<div style="color:#aab0ff;font-size:13px;">Риск нормальный.</div>'}
+        </div>
+        <div class="hvst-col" style="text-align:right;">
+          <div style="color:#aab0ff;font-size:13px;">Риск неблагоприятных событий</div>
+          <div style="font-weight:800;">${Math.round(risk*100)}%</div>
+        </div>
+      </div>
+      <div class="hvst-row">
+        <div class="hvst-col"><div class="hvst-badge info"><i class="fa fa-boxes-stacked"></i> Ресурсы в точке</div><div><strong>${fmt(p.left)}</strong> из ${fmt(p.total)}</div></div>
+        <div class="hvst-col" style="text-align:right;"><div class="hvst-badge info"><i class="fa fa-truck"></i> Свободно в трюме</div><div><strong>${fmt(free)}</strong> / ${fmt(state.harvester.capacity)}</div></div>
+      </div>
+      <div class="hvst-row">
+        <div class="hvst-col"><div class="hvst-badge info"><i class="fa fa-wind"></i> O₂ за скан</div><div><strong>${underObs?Math.round(O2_PER_SCAN*O2_OBS_MULT):O2_PER_SCAN}</strong> ед.</div></div>
+        <div class="hvst-col" style="text-align:right;"><div class="hvst-badge info"><i class="fa fa-shield"></i> Потенциальный урон</div><div>при событии: 5–15%</div></div>
+      </div>
+      <div class="hvst-row" style="font-size:12px;color:#9aa0c6;">
+        <div><strong>Лор:</strong> протоколы маскировки дрона — частые сканы одной точки привлекают рейдеров. Под наблюдением ↑риск, ↑расход O₂, возможны потери груза и урон дрону.</div>
+      </div>
+    `;
+
+    const scanBtn = el('#hvstScanBtn', m);
+    scanBtn.onclick = ()=>{
+      performScan(p);
+      m.classList.remove('open');
+    };
+    m.classList.add('open');
+  }
+
+  function notify(type, text){
+    // Use existing .notification if present, else basic alert fallback
+    const notif = document.createElement('div');
+    notif.className = `notification ${type} show`;
+    notif.innerHTML = `<i class="fa ${type==='success'?'fa-circle-check':'fa-triangle-exclamation'}"></i><div>${text}</div>`;
+    document.body.appendChild(notif);
+    setTimeout(()=>{ notif.classList.remove('show'); notif.remove(); }, 2600);
+  }
+
+  // ====== SCAN MECHANIC ======
+  function performScan(p){
+    const underObs = p.observedTill && now() < p.observedTill;
+    const risk = underObs ? OBS_RISK : BASE_RISK;
+
+    // First scan starts observation timer
+    if(!p.firstScannedAt){
+      p.firstScannedAt = now();
+      p.observedTill = now() + OBSERVATION_MS;
+    }
+
+    const free = state.harvester.capacity - state.harvester.cargo;
+    if(free <= 0){
+      notify('error', 'Трюм полон. Вернитесь на базу для разгрузки.');
+      return;
+    }
+    if(p.left <= 0){
+      notify('error', 'Эта точка уже исчерпана.');
+      return;
+    }
+
+    let chunk = Math.min(free, p.left);
+    // Base O2
+    let o2cost = O2_PER_SCAN * (underObs ? O2_OBS_MULT : 1);
+    // Risk roll
+    let adverse = RNG() < risk;
+    let dmg = 0, lost = 0;
+
+    if(adverse){
+      dmg = Math.floor(5 + RNG()*10); // 5..15%
+      state.harvester.droneHP = clamp(state.harvester.droneHP - dmg, 0, 100);
+      lost = Math.floor(chunk * (0.10 + RNG()*0.20)); // lose 10..30% of this scan
+      chunk = Math.max(0, chunk - lost);
+    }
+
+    // Apply
+    p.left -= (chunk + 0); // resources taken from the point equals delivered cargo + losses already subtracted
+    state.harvester.cargo += chunk;
+    state.harvester.o2used += Math.round(o2cost);
+
+    refreshHud();
+    updatePointBadge(p);
+
+    // Feedback text
+    const parts = [];
+    parts.push(`Забрано: <strong>${fmt(chunk)}</strong> (${p.type}).`);
+    if(lost>0) parts.push(`Потери: <strong>${fmt(lost)}</strong> из-за рейдеров.`);
+    if(dmg>0) parts.push(`Урон дрону: <strong>${dmg}%</strong>.`);
+    if(p.left>0 && state.harvester.cargo>=state.harvester.capacity){
+      parts.push('В точке ещё есть ресурсы, но трюм полон — потребуется доп. рейс.');
+    }else if(p.left>0 && underObs){
+      parts.push('Точка всё ещё под наблюдением — повторный скан рискован.');
+    }else if(p.left>0){
+      parts.push('Можно повторить сканирование.');
+    }else{
+      parts.push('Точка исчерпана.');
+    }
+    notify(adverse?'error':'success', parts.join(' '));
+  }
+
+  // ====== POINTS RENDERING ======
+  function renderPoints(){
+    const layer = ensurePointsLayer();
+    if(!layer) return;
+    layer.innerHTML = '';
+    for(const p of state.points){
+      const d = document.createElement('div');
+      d.className = 'hvst-point';
+      d.style.left = p.x; d.style.top = p.y;
+      d.dataset.id = p.id;
+      d.innerHTML = `<div class="badge">скан</div>`;
+      d.addEventListener('click', ()=> openModalForPoint(p));
+      layer.appendChild(d);
+      p._el = d;
+      updatePointBadge(p);
+    }
+  }
+
+  function updatePointBadge(p){
+    if(!p._el) return;
+    const underObs = p.observedTill && now() < p.observedTill;
+    p._el.classList.toggle('observed', !!underObs);
+    p._el.classList.toggle('danger', underObs && (p.left>0 && (state.harvester.capacity - state.harvester.cargo)>0));
+    const badge = el('.badge', p._el);
+    if(p.left<=0){
+      badge.textContent = 'пусто';
+      p._el.style.opacity = .6;
+      return;
+    }
+    if(underObs){
+      badge.textContent = mmss(msLeft(p.observedTill));
+    }else{
+      badge.textContent = 'скан';
+    }
+  }
+
+  function tick(){
+    for(const p of state.points){
+      updatePointBadge(p);
+    }
+  }
+
+  // ====== INIT ======
+  function init(){
+    // Observe screen switching to attach HUD only on MAP
+    const mapScreen = el('#map-screen');
+    if(mapScreen){
+      const mo = new MutationObserver(()=>{ if(mapScreen.classList.contains('active')) { ensureHud(); renderPoints(); } });
+      mo.observe(mapScreen, { attributes:true, attributeFilter:['class'] });
+    }
+    // Also hook nav items (if present)
+    try{ document.querySelectorAll('.nav-item').forEach(i=> i.addEventListener('click', ()=> setTimeout(()=>{ if(el('#map-screen')?.classList.contains('active')){ ensureHud(); renderPoints(); } }, 0))); }catch(e){}
+    ensureHud();
+    renderPoints();
+    setInterval(tick, 1000);
+  }
+
+  if(document.readyState === 'complete' || document.readyState === 'interactive'){
+    setTimeout(init, 0);
+  }else{
+    document.addEventListener('DOMContentLoaded', init);
+  }
+})();
+</script>
+<!-- === / hvst mechanics === -->
