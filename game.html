@@ -2572,6 +2572,9 @@ html, body { overflow-x: hidden; }
 }
 #o2-generation-card.claimable .claim-dot{ opacity: 1; }
 </style>
+
+<style id="hvst-override-hide-legacy">  #map-screen #probe-mission,  #map-screen .mission-card,  #map-screen #scan-modal,  #map-screen .scan-modal,  #map-screen #scanned-resources { display: none !important; }</style>
+
 </head>
 <body>
 <div class="container" id="app">
@@ -9195,6 +9198,10 @@ document.addEventListener('click', function(e){
   .hvst-footer{ margin-top: 10px; display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
   .hvst-footer .hvst-btn{ width:100%; padding:12px 14px; }
   @media (max-width:420px){ .hvst-footer{ grid-template-columns:1fr; } }
+
+  /* hazard tinting even when not observed */
+  .hvst-point.hazard-med{ box-shadow: 0 0 14px rgba(245,158,11,.32), inset 0 0 6px rgba(255,255,255,.16); }
+  .hvst-point.hazard-high{ box-shadow: 0 0 16px rgba(239,68,68,.35), inset 0 0 7px rgba(255,255,255,.18); }
 </style>
 
 <script id="hvst-logic">
@@ -9218,11 +9225,19 @@ document.addEventListener('click', function(e){
       trips: 0,
     },
     points: [
-      { id:'SP-1', x: '28%', y:'38%', type:'РУДА',    total: 220, left: 220, observedTill: 0, firstScannedAt: 0 },
-      { id:'SP-2', x: '62%', y:'52%', type:'O₂',      total: 150, left: 150, observedTill: 0, firstScannedAt: 0 },
-      { id:'SP-3', x: '46%', y:'72%', type:'ТЕХНО',   total: 120, left: 120, observedTill: 0, firstScannedAt: 0 },
-    ]
-  };
+  { id:'SP-1', x:'28%', y:'38%', type:'РУДА',  total:220, left:220, observedTill:0, firstScannedAt:0, baseRisk:0.10, o2Mult:1.00, hazard:'low' },
+  { id:'SP-2', x:'62%', y:'52%', type:'O₂',    total:150, left:150, observedTill:0, firstScannedAt:0, baseRisk:0.12, o2Mult:1.00, hazard:'low' },
+  { id:'SP-3', x:'46%', y:'72%', type:'ТЕХНО', total:120, left:120, observedTill:0, firstScannedAt:0, baseRisk:0.10, o2Mult:1.00, hazard:'low' },
+  { id:'SP-4', x:'18%', y:'26%', type:'РУДА',  total:260, left:260, observedTill:0, firstScannedAt:0, baseRisk:0.18, o2Mult:1.10, hazard:'med' },
+  { id:'SP-5', x:'74%', y:'28%', type:'ТЕХНО', total:180, left:180, observedTill:0, firstScannedAt:0, baseRisk:0.20, o2Mult:1.10, hazard:'med' },
+  { id:'SP-6', x:'12%', y:'58%', type:'РУДА',  total:300, left:300, observedTill:0, firstScannedAt:0, baseRisk:0.25, o2Mult:1.20, hazard:'high' },
+  { id:'SP-7', x:'83%', y:'64%', type:'O₂',    total:220, left:220, observedTill:0, firstScannedAt:0, baseRisk:0.22, o2Mult:1.25, hazard:'high' },
+  { id:'SP-8', x:'33%', y:'84%', type:'РУДА',  total:240, left:240, observedTill:0, firstScannedAt:0, baseRisk:0.14, o2Mult:1.00, hazard:'low' },
+  { id:'SP-9', x:'57%', y:'18%', type:'ТЕХНО', total:210, left:210, observedTill:0, firstScannedAt:0, baseRisk:0.16, o2Mult:1.05, hazard:'med' },
+  { id:'SP-10',x:'41%', y:'12%', type:'РУДА',  total:280, left:280, observedTill:0, firstScannedAt:0, baseRisk:0.20, o2Mult:1.10, hazard:'med' },
+  { id:'SP-11',x:'69%', y:'79%', type:'ТЕХНО', total:200, left:200, observedTill:0, firstScannedAt:0, baseRisk:0.28, o2Mult:1.30, hazard:'high' },
+  { id:'SP-12',x:'25%', y:'66%', type:'O₂',    total:260, left:260, observedTill:0, firstScannedAt:0, baseRisk:0.24, o2Mult:1.20, hazard:'high' },
+]};
 
   // ====== HELPERS ======
   const el = (sel, root=document) => root.querySelector(sel);
@@ -9327,7 +9342,9 @@ document.addEventListener('click', function(e){
     const m = el('#hvst-modal');
     const body = el('#hvstBody', m);
     const underObs = p.observedTill && now() < p.observedTill;
-    const risk = underObs ? OBS_RISK : BASE_RISK;
+const haz = hvstHazardToMods(p.hazard);
+const baseRisk = (typeof p.baseRisk==='number' ? p.baseRisk : BASE_RISK) + haz.riskAdd;
+const risk = underObs ? OBS_RISK + haz.riskAdd : baseRisk;
     const leftMs = underObs ? msLeft(p.observedTill) : 0;
     const free = state.harvester.capacity - state.harvester.cargo;
     el('#hvstTitle', m).innerHTML = `<span class="dot" style="width:8px;height:8px;border-radius:50%;background:${underObs?'#f59e0b':'#00e6c2'};box-shadow:0 0 10px ${underObs?'#f59e0b':'#00e6c2'};display:inline-block;margin-right:8px;"></span>Точка ${p.id} — ${p.type}`;
@@ -9348,7 +9365,18 @@ document.addEventListener('click', function(e){
         <div class="hvst-col" style="text-align:right;"><div class="hvst-badge info"><i class="fa fa-truck"></i> Свободно в трюме</div><div><strong>${fmt(free)}</strong> / ${fmt(state.harvester.capacity)}</div></div>
       </div>
       <div class="hvst-row">
-        <div class="hvst-col"><div class="hvst-badge info"><i class="fa fa-wind"></i> O₂ за скан</div><div><strong>${underObs?Math.round(O2_PER_SCAN*O2_OBS_MULT):O2_PER_SCAN}</strong> ед.</div></div>
+        <div class="hvst-col"><div class="hvst-badge info"><i class="fa fa-wind"></i> O₂ за скан</div><div><strong>${underObs?Math.round(O2_PER_SCAN*O2_OBS_MULT*(p.o2Mult||1)):Math.round(O2_PER_SCAN*(p.o2Mult||1))}</strong> ед.</div></div>
+      <div class="hvst-row">
+        <div class="hvst-col"><div class="hvst-badge warn"><i class="fa fa-radiation"></i> Опасность зоны</div>
+          <div>Базовый риск: <strong>${Math.round(((typeof p.baseRisk==='number'?p.baseRisk:BASE_RISK)+haz.riskAdd)*100)}%</strong>
+            • Тип: <strong>${(p.hazard||'low').toUpperCase()}</strong></div>
+        </div>
+        <div class="hvst-col" style="text-align:right;">
+          <div class="hvst-badge warn"><i class="fa fa-flask"></i> Модификаторы</div>
+          <div>O₂ ×<strong>${(p.o2Mult||1) + haz.o2MultAdd}</strong></div>
+        </div>
+      </div>
+    
         <div class="hvst-col" style="text-align:right;"><div class="hvst-badge info"><i class="fa fa-shield"></i> Потенциальный урон</div><div>при событии: 5–15%</div></div>
       </div>
       <div class="hvst-row" style="font-size:12px;color:#9aa0c6;">
@@ -9374,9 +9402,120 @@ document.addEventListener('click', function(e){
   }
 
   // ====== SCAN MECHANIC ======
+// === hvst: resource bar integration ===
+const HVST_RESOURCE_ALIASES = {
+  'РУДА': 'ore', 'РУДА/ORE': 'ore', 'ORE': 'ore', 'МЕТАЛЛ': 'ore', 'METAL': 'ore',
+  'ТЕХНО': 'tech', 'TECH': 'tech', 'ТЕХНОЛОГИИ': 'tech', 'TECHNOLOGY': 'tech',
+  'O2': 'oxygen', 'О2': 'oxygen', 'O₂': 'oxygen', 'OXYGEN': 'oxygen', 'КИСЛОРОД': 'oxygen'
+};
+
+function hvstStdKey(typeLabel){
+  if(!typeLabel) return null;
+  const t = String(typeLabel).toUpperCase().trim();
+  return HVST_RESOURCE_ALIASES[t] || t.toLowerCase();
+}
+
+// Try to find a counter element in the existing UI for a resource key.
+// Supports multiple conventions: ids, data-attributes, and common class patterns.
+function hvstFindCounterEl(key){
+  if(!key) return null;
+  const selectors = [
+    `[data-resource="${key}"]`, `[data-res="${key}"]`, `[data-key="${key}"]`,
+    `#res-${key}`, `#${key}-count`, `#${key}Count`, `.${key}-count`, `.res-${key} .value`,
+    `.resource-${key} .value`, `.resource .${key}`, `.counter-${key}`, `.bar-${key} .num`
+  ];
+  for(const sel of selectors){
+    const el = document.querySelector(sel);
+    if(el) return el;
+  }
+  return null;
+}
+
+function hvstParseInt(el){
+  if(!el) return 0;
+  const txt = (el.getAttribute('data-value') ?? el.textContent ?? '').replace(/[^\d\-]/g,'');
+  const n = parseInt(txt, 10);
+  return isNaN(n) ? 0 : n;
+}
+
+function hvstSetCounter(el, val){
+  if(!el) return;
+  const safe = Math.max(0, Math.floor(val));
+  if(el.hasAttribute('data-value')) el.setAttribute('data-value', String(safe));
+  el.textContent = new Intl.NumberFormat('ru-RU').format(safe);
+  // mirror to sibling [data-counter] if exists
+  const sib = el.closest('[data-counter-root]')?.querySelector('[data-counter]');
+  if(sib) sib.textContent = el.textContent;
+}
+
+function hvstDeltaResource(key, delta){
+  if(!key || !delta) return;
+  // 1) Public hook for game code
+  try { window.dispatchEvent(new CustomEvent('hvst:resource', { detail: { key, delta } })); } catch(e){}
+  // 2) If there is a global API, try it
+  try {
+    if(window.GameResources && typeof window.GameResources.add === 'function'){
+      window.GameResources.add(key, delta);
+      return;
+    }
+    if(window.Game && window.Game.resources && typeof window.Game.resources.add === 'function'){
+      window.Game.resources.add(key, delta);
+      return;
+    }
+  } catch(e){}
+  // 3) DOM counters fallbacks
+  const el = hvstFindCounterEl(key);
+  if(el){
+    const cur = hvstParseInt(el);
+    hvstSetCounter(el, cur + delta);
+  }
+}
+// === hvst: hazard + legacy damage integration ===
+function hvstHazardToMods(h){
+  switch((h||'').toLowerCase()){
+    case 'high': case 'высокая': return { riskAdd: 0.15, dmgAdd: 6, o2MultAdd: 0.25 };
+    case 'med': case 'medium': case 'средняя': return { riskAdd: 0.08, dmgAdd: 3, o2MultAdd: 0.10 };
+    default: return { riskAdd: 0, dmgAdd: 0, o2MultAdd: 0 };
+  }
+}
+function hvstApplyDroneDamage(totalDmg, context){
+  totalDmg = Math.floor(totalDmg);
+  if(totalDmg<=0) return 0;
+  state.harvester.droneHP = clamp(state.harvester.droneHP - totalDmg, 0, 100);
+  refreshHud();
+  try{ window.dispatchEvent(new CustomEvent('hvst:damage', { detail: { damage: totalDmg, ctx: context } })); }catch(e){}
+  try{
+    if(window.Legacy && typeof window.Legacy.applyDroneDamage === 'function') window.Legacy.applyDroneDamage(totalDmg, context);
+    else if(typeof window.applyDroneDamage === 'function') window.applyDroneDamage(totalDmg);
+    else if(window.Game && window.Game.drone && typeof window.Game.drone.applyDamage === 'function') window.Game.drone.applyDamage(totalDmg);
+  }catch(e){}
+  try{
+    const candidates = ['#drone-hp', '#hp-drone', '.drone-hp .value', '.hp-drone .value'];
+    for(const sel of candidates){ const e = document.querySelector(sel); if(e){ e.textContent = state.harvester.droneHP + '%'; break; } }
+  }catch(e){}
+  return totalDmg;
+}
+function hvstLegacyComputeExtraDamage(context){
+  try{
+    if(window.Legacy && typeof window.Legacy.computeDroneDamage === 'function'){
+      const v = Math.floor(window.Legacy.computeDroneDamage(context) || 0);
+      return isNaN(v) ? 0 : v;
+    }
+    if(typeof window.computeDroneDamage === 'function'){
+      const v = Math.floor(window.computeDroneDamage(context) || 0);
+      return isNaN(v) ? 0 : v;
+    }
+  }catch(e){}
+  return 0;
+}
+
+
+
   function performScan(p){
     const underObs = p.observedTill && now() < p.observedTill;
-    const risk = underObs ? OBS_RISK : BASE_RISK;
+const haz = hvstHazardToMods(p.hazard);
+const baseRisk = (typeof p.baseRisk==='number' ? p.baseRisk : BASE_RISK) + haz.riskAdd;
+const risk = underObs ? OBS_RISK + haz.riskAdd : baseRisk;
 
     // First scan starts observation timer
     if(!p.firstScannedAt){
@@ -9396,14 +9535,17 @@ document.addEventListener('click', function(e){
 
     let chunk = Math.min(free, p.left);
     // Base O2
-    let o2cost = O2_PER_SCAN * (underObs ? O2_OBS_MULT : 1);
+    let o2cost = O2_PER_SCAN * (underObs ? O2_OBS_MULT : 1) * (p.o2Mult || 1) * (1 + (hvstHazardToMods(p.hazard).o2MultAdd || 0));
     // Risk roll
     let adverse = RNG() < risk;
     let dmg = 0, lost = 0;
 
     if(adverse){
-      dmg = Math.floor(5 + RNG()*10); // 5..15%
-      state.harvester.droneHP = clamp(state.harvester.droneHP - dmg, 0, 100);
+      let baseDmg = Math.floor(5 + RNG()*10); // 5..15% base
+let legacyExtra = hvstLegacyComputeExtraDamage({ point:p, underObs, risk, hazard:p.hazard });
+let hazardAdd = hvstHazardToMods(p.hazard).dmgAdd;
+dmg = clamp(baseDmg + legacyExtra + hazardAdd, 5, 35);
+hvstApplyDroneDamage(dmg, { point:p, underObs, risk, hazard:p.hazard });
       lost = Math.floor(chunk * (0.10 + RNG()*0.20)); // lose 10..30% of this scan
       chunk = Math.max(0, chunk - lost);
     }
@@ -9413,7 +9555,8 @@ document.addEventListener('click', function(e){
     state.harvester.cargo += chunk;
     state.harvester.o2used += Math.round(o2cost);
 
-    refreshHud();
+        try{ hvstDeltaResource('oxygen', -Math.round(o2cost)); }catch(e){}
+refreshHud();
     updatePointBadge(p);
 
     // Feedback text
@@ -9434,7 +9577,55 @@ document.addEventListener('click', function(e){
   }
 
   // ====== POINTS RENDERING ======
-  function renderPoints(){
+  
+// === hvst: legacy button bridge ===
+function bestPointToScan(){
+  // choose point: with resources, not observed; else minimal time-to-safe; else most resources
+  const candidates = state.points.filter(p=>p.left>0);
+  if(candidates.length===0) return null;
+  const safe = candidates.filter(p=> !(p.observedTill && now() < p.observedTill));
+  if(safe.length>0){
+    // pick most resources
+    return safe.sort((a,b)=> b.left - a.left)[0];
+  }
+  // all observed: pick one with least time remaining
+  return candidates
+    .map(p=>({p, left: msLeft(p.observedTill||0)}))
+    .sort((a,b)=> a.left - b.left)[0].p;
+}
+
+function hookLegacyButtons(){
+  const map = el('#map-screen');
+  if(!map) return;
+  const scanBtn = map.querySelector('#scan-btn');
+  const harvestBtn = map.querySelector('#harvest-btn');
+  // Protect against duplicate listeners
+  if(scanBtn && !scanBtn.dataset.hvstBound){
+    scanBtn.dataset.hvstBound = '1';
+    scanBtn.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      ensureHud(); // visible in map only
+      const p = bestPointToScan();
+      if(!p){ notify('error','Нет доступных точек для сканирования.'); return; }
+      openModalForPoint(p);
+    });
+  }
+  if(harvestBtn && !harvestBtn.dataset.hvstBound){
+    harvestBtn.dataset.hvstBound = '1';
+    harvestBtn.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      ensureHud();
+      const free = state.harvester.capacity - state.harvester.cargo;
+      if(free<=0){ notify('error','Трюм полон. Вернитесь на базу для разгрузки.'); return; }
+      const p = bestPointToScan();
+      if(!p){ notify('error','Нет доступных точек для харвеста.'); return; }
+      // Immediate harvest: perform scan action consuming O₂ (мы берём кислород за харвест)
+      performScan(p);
+    });
+  }
+}
+
+function renderPoints(){
     const layer = ensurePointsLayer();
     if(!layer) return;
     layer.innerHTML = '';
@@ -9456,6 +9647,8 @@ document.addEventListener('click', function(e){
     const underObs = p.observedTill && now() < p.observedTill;
     p._el.classList.toggle('observed', !!underObs);
     p._el.classList.toggle('danger', underObs && (p.left>0 && (state.harvester.capacity - state.harvester.cargo)>0));
+p._el.classList.toggle('hazard-med', (p.hazard||'').toLowerCase().startsWith('med'));
+p._el.classList.toggle('hazard-high', (p.hazard||'').toLowerCase().startsWith('high') || (p.hazard||'').toLowerCase()==='высокая');
     const badge = el('.badge', p._el);
     if(p.left<=0){
       badge.textContent = 'пусто';
@@ -9477,14 +9670,15 @@ document.addEventListener('click', function(e){
 
   // ====== INIT ======
   function init(){
+      hookLegacyButtons();
     // Observe screen switching to attach HUD only on MAP
     const mapScreen = el('#map-screen');
     if(mapScreen){
-      const mo = new MutationObserver(()=>{ if(mapScreen.classList.contains('active')) { ensureHud(); renderPoints(); } });
+      const mo = new MutationObserver(()=>{ if(mapScreen.classList.contains('active')) { ensureHud(); renderPoints(); hookLegacyButtons(); } });
       mo.observe(mapScreen, { attributes:true, attributeFilter:['class'] });
     }
     // Also hook nav items (if present)
-    try{ document.querySelectorAll('.nav-item').forEach(i=> i.addEventListener('click', ()=> setTimeout(()=>{ if(el('#map-screen')?.classList.contains('active')){ ensureHud(); renderPoints(); } }, 0))); }catch(e){}
+    try{ document.querySelectorAll('.nav-item').forEach(i=> i.addEventListener('click', ()=> setTimeout(()=>{ if(el('#map-screen')?.classList.contains('active')){ ensureHud(); renderPoints(); hookLegacyButtons(); } }, 0))); }catch(e){}
     ensureHud();
     renderPoints();
     setInterval(tick, 1000);
