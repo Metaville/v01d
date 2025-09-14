@@ -748,6 +748,20 @@ html { height: -webkit-fill-available; }
         .sector-risk.medium {
             color: #ffcc00;
         }
+
+        /* Mark sectors that have already been scanned */
+        .sector-item.scanned {
+            background: #14243c;
+            border-color: #00ffcc;
+            opacity: 0.8;
+            position: relative;
+        }
+        .sector-item.scanned .sector-risk:after {
+            content: " ✓";
+            color: #00ffcc;
+            font-weight: bold;
+            margin-left: 4px;
+        }
         
         .modal-actions {
             display: flex;
@@ -9224,6 +9238,18 @@ document.addEventListener('click', function(e){
     ]
   };
 
+  // ========== GLOBAL BRIDGE VARIABLES ==========
+  // These variables are used to bridge the legacy sector scanning mechanic
+  // with the harvester (hvst) UI. When a scan completes, the sector data
+  // and discovered resources are stored here. They are then consumed by
+  // openModalForPoint(p, true) to show a results card and offer a
+  // "Запустить сбор" option which calls sendHarvester().
+  try {
+    window.currentHvstPoint = null;
+    window.hvstScanResources = null;
+    window.hvstSectorData = null;
+  } catch(e) {}
+
   // ====== HELPERS ======
   const el = (sel, root=document) => root.querySelector(sel);
   const els = (sel, root=document) => Array.from(root.querySelectorAll(sel));
@@ -9256,7 +9282,6 @@ document.addEventListener('click', function(e){
 
   function ensureHud(){
     // put HUD at top of the first .main-content if exists
-    // (actual visibility will be toggled by updateHudVisibility())
     const host = el('.main-content') || document.body;
     if(el('#hvst-hud', host)) return;
     const hud = document.createElement('div');
@@ -9264,7 +9289,7 @@ document.addEventListener('click', function(e){
     hud.id = 'hvst-hud';
     hud.innerHTML = `
       <span class="hvst-tag"><i class="fa fa-truck"></i> Груз: <strong id="hvstCargo">0</strong>/<span id="hvstCap">${state.harvester.capacity}</span></span>
-      <span class="hvst-tag"><i class="fa fa-heart"></i> Дрон HP: <strong id="hvstHP">100</strong> </span>
+      <span class="hvst-tag"><i class="fa fa-heart"></i> Дрон HP: <strong id="hvstHP">100</strong>%</span>
       <span class="hvst-tag"><i class="fa fa-wind"></i> O₂: <strong id="hvstO2">0</strong></span>
       <span class="hvst-tag good" title="Количество успешно завершённых рейсов"><i class="fa fa-rotate"></i> Рейсы: <strong id="hvstTrips">0</strong></span>
       <span class="hvst-tag warn" title="Лор: чтобы не привлечь рейдеров, нельзя часто сканировать одну точку."><i class="fa fa-user-ninja"></i> Маскировка активна</span>
@@ -9281,49 +9306,43 @@ document.addEventListener('click', function(e){
       refreshHud();
       notify('success', 'Груз выгружен. Показатели рейса сброшены.');
     });
+    // When the heal button is clicked, use the drone repair mechanics from
+    // the scanning module rather than simply increasing the harvester HP.
     el('#hvstHeal').addEventListener('click', ()=>{
-      // Simulate clicking the repair button for the scanning drone's hull zone.
-      // This triggers the same logic as the small "repair-zone" buttons in the drone screen.
-      const btn = document.querySelector('#mehanics-screen .repair-zone[data-zone="hull"]') || document.querySelector('#mehanics-screen .repair-zone');
-      if(btn) btn.click();
-      // After repairing, update the HUD to reflect the scanning drone's new HP.
+      // Attempt to repair the scanning drone. Prefer zone repair (10% at
+      // cost of 5 parts) and fall back to general repair (+20 HP).
+      try {
+        if (typeof repairZone === 'function') {
+          repairZone('hull');
+        } else if (typeof repairGeneral === 'function') {
+          repairGeneral();
+        }
+      } catch(_) {}
       refreshHud();
     });
     refreshHud();
-    
-    // The HUD is always created, but its visibility is controlled by updateHudVisibility(),
-    // which is invoked during initialization and on each tick.
   }
 
   function refreshHud(){
     const h = state.harvester;
     const cEl = el('#hvstCargo'); if(cEl) cEl.textContent = fmt(h.cargo);
     const capEl = el('#hvstCap'); if(capEl) capEl.textContent = fmt(h.capacity);
+    // Display the scanning drone HP instead of the harvester's HP. If the
+    // scanning module defines a global state with hp/maxHp, compute the
+    // percentage; otherwise fall back to the harvester droneHP.
     const hpEl = el('#hvstHP');
-    if(hpEl){
-      // Get scanning drone HP from the mechanics screen if available (e.g. "85/100").
-      const droneHpEl = document.getElementById('drone-hp');
-      if(droneHpEl){
-        const txt = droneHpEl.textContent || '';
-        const parts = txt.split('/');
-        const curr = parseInt(parts[0], 10);
-        hpEl.textContent = isNaN(curr) ? fmt(h.droneHP) : fmt(curr);
-      }else{
-        hpEl.textContent = fmt(h.droneHP);
-      }
+    if (hpEl) {
+      let hpVal = h.droneHP;
+      try {
+        const sState = window.state;
+        if (sState && typeof sState.hp === 'number' && typeof sState.maxHp === 'number') {
+          hpVal = Math.round((sState.hp / sState.maxHp) * 100);
+        }
+      } catch(e) {}
+      hpEl.textContent = fmt(hpVal);
     }
     const o2El = el('#hvstO2'); if(o2El) o2El.textContent = fmt(h.o2used);
     const tEl = el('#hvstTrips'); if(tEl) tEl.textContent = fmt(h.trips);
-  }
-
-  // Toggle the visibility of the hvst HUD depending on the active screen.
-  function updateHudVisibility(){
-    const mapScreen = document.getElementById('map-screen');
-    const show = mapScreen && mapScreen.classList.contains('active');
-    // Iterate over all hvst HUD elements and toggle their display based on the map screen state
-    document.querySelectorAll('.hvst-hud').forEach(hud => {
-      hud.style.display = show ? '' : 'none';
-    });
   }
 
   function ensureModal(){
@@ -9352,6 +9371,64 @@ document.addEventListener('click', function(e){
     ensureModal();
     const m = el('#hvst-modal');
     const body = el('#hvstBody', m);
+    // If this call comes from a completed sector scan (via showScanResultModal
+    // wrapper) and resources were discovered, show the results and offer to
+    // dispatch the harvester. The presence of hvstScanResources signals that
+    // we should build a results card instead of the normal scan preview.
+    if (arguments.length > 1 && arguments[1] === true && window.hvstScanResources) {
+      const items = window.hvstScanResources;
+      const sd = window.hvstSectorData || {};
+      // Mark this harvest point as scanned (start observation) so risk rules apply
+      if (!p.firstScannedAt) {
+        p.firstScannedAt = now();
+        p.observedTill  = now() + OBSERVATION_MS;
+      }
+      // Update point badge immediately to reflect observation timer
+      try { updatePointBadge(p); } catch(_) {}
+      // Compose title using sector id if available
+      el('#hvstTitle', m).innerHTML = `<span class="dot" style="width:8px;height:8px;border-radius:50%;background:#00e6c2;box-shadow:0 0 10px #00e6c2;display:inline-block;margin-right:8px;"></span>Результаты сканирования`;
+      // Map resource codes to human readable names (match original mapping in scan-result-modal)
+      const resourceNames = { bio:'Biomaterials 🧪', parts:'Parts 🛠️', mvc:'MVC', oxygen:'Oxygen O₂', ice:'Ice ❄️' };
+      const resourcesHtml = items.map(it => {
+        const name = resourceNames[it.type] || it.type;
+        return `<span class="hvst-badge info">${it.amount} ${name}</span>`;
+      }).join(' ');
+      const riskStr = typeof sd.risk === 'number' || typeof sd.risk === 'string' ? `${sd.risk}%` : '—';
+      // Build body: show sector id/belt if available, risk and resources
+      body.innerHTML = `
+        <div class="hvst-row">
+          <div class="hvst-col"><div class="hvst-badge info"><i class="fa fa-globe"></i> Сектор</div><div><strong>${sd.sector || '-'}</strong></div></div>
+          <div class="hvst-col" style="text-align:right;"><div class="hvst-badge info"><i class="fa fa-bolt"></i> Риск</div><div><strong>${riskStr}</strong></div></div>
+        </div>
+        <div class="hvst-row">
+          <div class="hvst-col"><div class="hvst-badge info"><i class="fa fa-box"></i> Ресурсы</div><div>${resourcesHtml}</div></div>
+        </div>
+        <div class="hvst-row">
+          <div class="hvst-col"><div class="hvst-badge info"><i class="fa fa-wind"></i> O₂ и ⚡</div><div>15 O₂, 70 ⚡</div></div>
+        </div>
+        <div class="hvst-row" style="font-size:12px;color:#9aa0c6;">
+          <div>Стоимость запуска харвестера. При отправке будет списано 15 O₂ и 70 ⚡.</div>
+        </div>
+      `;
+      // Adjust the footer buttons: reuse cancel as closing and primary as harvest
+      const scanBtn = el('#hvstScanBtn', m);
+      if (scanBtn) {
+        scanBtn.textContent = 'Запустить сбор';
+        scanBtn.onclick = ()=>{
+          // call original sendHarvester from scanning module if available
+          try { typeof sendHarvester==='function' && sendHarvester(); } catch(_) {}
+          // clear stored scan data
+          try {
+            window.hvstScanResources = null;
+            window.hvstSectorData = null;
+          } catch(_) {}
+          m.classList.remove('open');
+        };
+      }
+      m.classList.add('open');
+      return;
+    }
+    // ===== Normal scan preview =====
     const underObs = p.observedTill && now() < p.observedTill;
     const risk = underObs ? OBS_RISK : BASE_RISK;
     const leftMs = underObs ? msLeft(p.observedTill) : 0;
@@ -9470,7 +9547,24 @@ document.addEventListener('click', function(e){
       d.style.left = p.x; d.style.top = p.y;
       d.dataset.id = p.id;
       d.innerHTML = `<div class="badge">скан</div>`;
-      d.addEventListener('click', ()=> openModalForPoint(p));
+      d.addEventListener('click', ()=>{
+        // Store the clicked point globally so that after the sector scan
+        // completes we can open the hvst modal with this point's context.
+        try { window.currentHvstPoint = p; } catch(_) {}
+        // Trigger the sector scanning UI. Prefer clicking the native scan
+        // button to ensure any attached listeners execute normally. If it
+        // does not exist, manually activate the scan modal.
+        const scanBtn = document.getElementById('scan-btn');
+        if (scanBtn) {
+          scanBtn.click();
+        } else {
+          const scanModal = document.getElementById('scan-modal');
+          if (scanModal) {
+            scanModal.classList.add('active');
+            document.body.classList.add('modal-open');
+          }
+        }
+      });
       layer.appendChild(d);
       p._el = d;
       updatePointBadge(p);
@@ -9499,42 +9593,17 @@ document.addEventListener('click', function(e){
     for(const p of state.points){
       updatePointBadge(p);
     }
-    // Also update HUD visibility every tick to ensure it reflects the current active screen
-    updateHudVisibility();
   }
 
   // ====== INIT ======
   function init(){
     ensureHud();
-    // Attach a listener to the navigation menu to update HUD visibility
-    const nav = document.querySelector('.nav-menu');
-    if(nav){
-      nav.addEventListener('click', (e)=>{
-        // Determine which screen is being activated from the clicked nav item
-        const item = e.target.closest('.nav-item');
-        const screenId = item ? item.getAttribute('data-screen') : null;
-        // Immediately toggle HUD visibility based on the target screen
-        document.querySelectorAll('.hvst-hud').forEach(hud => {
-          hud.style.display = (screenId === 'map-screen') ? '' : 'none';
-        });
-        // Use a timeout to allow the nav click handler to toggle classes first, then update again
-        setTimeout(updateHudVisibility, 0);
-      });
-    }
-    // Observe changes to the map-screen's class attribute so HUD visibility
-    // updates whenever the active screen changes, regardless of how it's toggled.
-    try {
-      const mapEl = document.getElementById('map-screen');
-      if(mapEl && typeof MutationObserver === 'function'){
-        const observer = new MutationObserver(function(){ updateHudVisibility(); });
-        observer.observe(mapEl, { attributes: true, attributeFilter: ['class'] });
-      }
-    } catch(_) {}
-    // Set initial visibility
-    updateHudVisibility();
     renderPoints();
     setInterval(tick, 1000);
   }
+
+  // Expose openModalForPoint globally so it can be called by the scan result bridge
+  try { window.openModalForPoint = openModalForPoint; } catch(_) {}
 
   if(document.readyState === 'complete' || document.readyState === 'interactive'){
     setTimeout(init, 0);
@@ -9544,3 +9613,62 @@ document.addEventListener('click', function(e){
 })();
 </script>
 <!-- === / hvst mechanics === -->
+
+<!--
+  Bridge between sector scanning and the harvester (hvst) UI.
+  When a sector scan completes, intercept the default showScanResultModal to
+  store the discovered resources, mark the scanned sector, suppress the
+  standard scan-result-modal, and open the hvst modal with the results.
+-->
+<script id="hvst-scan-bridge">
+(function(){
+  try {
+    const origSRM = window.showScanResultModal;
+    window.showScanResultModal = function(sectorData, resourceOrArray, resourceAmount){
+      // Normalize the resource list to an array of objects
+      let items;
+      if (Array.isArray(resourceOrArray)) {
+        items = resourceOrArray.filter(it => it && typeof it.amount !== 'undefined');
+      } else {
+        items = [];
+        if (resourceOrArray) items.push({ type: resourceOrArray, amount: resourceAmount });
+      }
+      // Store the sector data and resources globally for hvst modal consumption
+      try {
+        window.hvstScanResources = items;
+        window.hvstSectorData = sectorData;
+      } catch(_) {}
+      // Mark the sector in the scan-modal UI as scanned
+      try {
+        const sid = sectorData && (sectorData.sector || sectorData.id);
+        if (sid) {
+          const secEl = document.querySelector('#scan-modal .sector-item[data-sector="'+ sid +'"]');
+          if (secEl) secEl.classList.add('scanned');
+        }
+      } catch(_) {}
+      // Call the original function to maintain any side effects (e.g. updating gameState)
+      if (origSRM) {
+        try { origSRM.call(this, sectorData, resourceOrArray, resourceAmount); } catch(_) {}
+      }
+      // Close the scan-result-modal to avoid double UI. It may have been opened
+      // by the original implementation; ensure it is hidden now.
+      try {
+        const sr = document.getElementById('scan-result-modal');
+        if (sr) sr.classList.remove('active');
+      } catch(_) {}
+      // Defer opening the hvst modal until the call stack unwinds. The
+      // currently selected hvst point is stored in window.currentHvstPoint.
+      setTimeout(function(){
+        try {
+          if (window.currentHvstPoint) {
+            // openModalForPoint expects (point, fromScan=true)
+            if (typeof window.openModalForPoint === 'function') {
+              window.openModalForPoint(window.currentHvstPoint, true);
+            }
+          }
+        } catch(_) {}
+      }, 0);
+    };
+  } catch(_) {}
+})();
+</script>
