@@ -2718,6 +2718,8 @@ html, body { overflow-x: hidden; }
                     </button>
 </div>
 <h3 class="section-title" style="margin-top: 10px;">Active missions</h3>
+<!-- Mission modal wrapper: shows the mission card as an overlay when scanning -->
+<div class="mission-modal" id="mission-modal">
 <div class="mission-card" id="probe-mission">
 <div class="mission-progress" id="probe-progress" style="width: 0%"></div>
 <div class="status-title">
@@ -2732,7 +2734,7 @@ html, body { overflow-x: hidden; }
 <span id="mission-harvest">HARVESTER:</span>
 <span id="scanned-resources">Resourse: -</span>
 <span id="mission-risk" style="color: #ffcc00;">RISK: 0% ⚠️</span>
-</div>
+</div></div>
 </div>
 </div>
 <!-- Экран База -->
@@ -4043,6 +4045,11 @@ elements.o2GenerationValue.textContent = `${buf.toLocaleString()} O₂`;
                 document.getElementById('harvest-btn').disabled = true;
                 document.getElementById('scanned-resources').textContent = 'Resources: -';
             }
+            // Toggle the mission modal visibility based on the scanning state
+            try {
+              const mm = document.getElementById('mission-modal');
+              if (mm) mm.classList.toggle('open', !!gameState.missions.scanning);
+            } catch(e) {}
             
             // Исследования
             updateResearchDots('stealth', gameState.research.stealth);
@@ -4345,12 +4352,14 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
     // Расход ресурсов на отправку
     if (updateResource('oxygen', -15) && updateResource('energy', -70)) {
         const res = gameState.missions.scannedResources;
-        
+
         // Apply cargo capacity limit when collecting resources. The harvester can
-        // carry a maximum of 40 units per dispatch, regardless of the number of
-        // resource types scanned. Distribute the capacity across the scanned
-        // resources in order until it is exhausted.
-        const CAPACITY_LIMIT = 40;
+        // carry at most state.harvester.capacity units per dispatch. When multiple
+        // resource types were scanned, distribute the capacity across them in
+        // the order returned by the scan until exhausted.
+        const CAPACITY_LIMIT = (state && state.harvester && typeof state.harvester.capacity === 'number')
+          ? state.harvester.capacity
+          : 40;
         if (Array.isArray(res)) {
             let remaining = CAPACITY_LIMIT;
             const collected = [];
@@ -4371,10 +4380,10 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
             updateResource(res.type, take);
             showNotification(`Harvester collected ${take} ${getResourceName(res.type)}!`, true);
         }
-        
+
         gameState.missions.harvestCount++;
         gameState.missions.harvested = true;
-        
+
         updateUI();
     }
 }
@@ -9208,6 +9217,9 @@ document.addEventListener('click', function(e){
   /* Modal for scan results */
   .hvst-modal{ position: fixed; inset: 0; display:none; align-items:center; justify-content:center; z-index:1200; }
   .hvst-modal.open{ display:flex; background: rgba(7,9,20,0.72); backdrop-filter: blur(2px); }
+  /* Mission modal overlay used to display the mission card when scanning */
+  .mission-modal{ position: fixed; inset: 0; display:none; align-items:center; justify-content:center; z-index:1200; }
+  .mission-modal.open{ display:flex; background: rgba(7,9,20,0.72); backdrop-filter: blur(2px); }
   .hvst-card{
     width: min(560px, 92vw);
     padding: 16px 16px 14px;
@@ -9236,7 +9248,10 @@ document.addEventListener('click', function(e){
   const OBS_RISK  = 0.35;                   // 35% while observed
   const O2_PER_SCAN = 5;                    // base O2 per scan
   const O2_OBS_MULT = 1.5;                  // +50% O2 when observed
-  // Reduced cargo capacity of the harvester: now it can carry only 40 units per trip.
+  // Reduce the harvester cargo capacity per trip to 40 units.  This value
+  // propagates into the harvester state and is used throughout the UI when
+  // computing free cargo space and limiting the amount of resources that can
+  // be collected in a single dispatch.
   const CAPACITY = 40;                      // harvester capacity per trip
   const RNG = () => Math.random();
 
@@ -9307,7 +9322,7 @@ document.addEventListener('click', function(e){
     hud.id = 'hvst-hud';
     hud.innerHTML = `
       <span class="hvst-tag"><i class="fa fa-truck"></i> Груз: <strong id="hvstCargo">0</strong>/<span id="hvstCap">${state.harvester.capacity}</span></span>
-      <span class="hvst-tag"><i class="fa fa-heart"></i> Дрон HP: <strong id="hvstHP">100</strong>%</span>
+      <span class="hvst-tag"><i class="fa fa-heart"></i> Дрон HP: <strong id="hvstHP">100/100</strong></span>
       <span class="hvst-tag"><i class="fa fa-wind"></i> O₂: <strong id="hvstO2">0</strong></span>
       <span class="hvst-tag good" title="Количество успешно завершённых рейсов"><i class="fa fa-rotate"></i> Рейсы: <strong id="hvstTrips">0</strong></span>
       <span class="hvst-tag warn" title="Лор: чтобы не привлечь рейдеров, нельзя часто сканировать одну точку."><i class="fa fa-user-ninja"></i> Маскировка активна</span>
@@ -9343,19 +9358,29 @@ document.addEventListener('click', function(e){
     const h = state.harvester;
     const cEl = el('#hvstCargo'); if(cEl) cEl.textContent = fmt(h.cargo);
     const capEl = el('#hvstCap'); if(capEl) capEl.textContent = fmt(h.capacity);
-    // Display the scanning drone HP instead of the harvester's HP. If the
-    // scanning module defines a global state with hp/maxHp, compute the
-    // percentage; otherwise fall back to the harvester droneHP.
+    // Display the scanning drone HP as a ratio (e.g. "83/100") instead of a
+    // percentage.  When the scanning module exposes a <strong id="drone-hp">NN/NN</strong>
+    // element on the mechanics screen, mirror its text here.  Otherwise fall
+    // back to using the numeric hp and assume maxHp=100.
     const hpEl = el('#hvstHP');
     if (hpEl) {
-      let hpVal = h.droneHP;
-      try {
-        const sState = window.state;
-        if (sState && typeof sState.hp === 'number' && typeof sState.maxHp === 'number') {
-          hpVal = Math.round((sState.hp / sState.maxHp) * 100);
+      const src = document.getElementById('drone-hp');
+      if (src && src.textContent) {
+        // Copy the text directly from the drone HP element (e.g. "80/100").
+        hpEl.textContent = src.textContent.trim();
+      } else {
+        try {
+          const sState = window.state;
+          if (sState && typeof sState.hp === 'number' && typeof sState.maxHp === 'number') {
+            hpEl.textContent = `${fmt(sState.hp)}/${fmt(sState.maxHp)}`;
+          } else {
+            // Fall back to the local harvester HP value assuming a 0..100 range
+            hpEl.textContent = `${fmt(h.droneHP)}/100`;
+          }
+        } catch(e) {
+          hpEl.textContent = `${fmt(h.droneHP)}/100`;
         }
-      } catch(e) {}
-      hpEl.textContent = fmt(hpVal);
+      }
     }
     const o2El = el('#hvstO2'); if(o2El) o2El.textContent = fmt(h.o2used);
     const tEl = el('#hvstTrips'); if(tEl) tEl.textContent = fmt(h.trips);
@@ -9614,6 +9639,18 @@ document.addEventListener('click', function(e){
   // ====== INIT ======
   function init(){
     ensureHud();
+    // Synchronize the harvester HUD with the mechanics screen's drone HP. If
+    // the element #drone-hp exists on the page (it is rendered on the
+    // mechanics screen to show the scanning drone's current and maximum HP),
+    // observe its text content for changes and refresh the HUD whenever it
+    // updates. This ensures the HVST HUD always displays HP as a ratio.
+    try {
+      const srcHp = document.getElementById('drone-hp');
+      if (srcHp && typeof MutationObserver === 'function') {
+        const mo = new MutationObserver(() => refreshHud());
+        mo.observe(srcHp, { childList: true, characterData: true, subtree: true });
+      }
+    } catch (e) {}
     renderPoints();
     setInterval(tick, 1000);
   }
