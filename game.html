@@ -4346,13 +4346,30 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
     if (updateResource('oxygen', -15) && updateResource('energy', -70)) {
         const res = gameState.missions.scannedResources;
         
+        // Apply cargo capacity limit when collecting resources. The harvester can
+        // carry a maximum of 40 units per dispatch, regardless of the number of
+        // resource types scanned. Distribute the capacity across the scanned
+        // resources in order until it is exhausted.
+        const CAPACITY_LIMIT = 40;
         if (Array.isArray(res)) {
-            res.forEach(it => updateResource(it.type, it.amount));
-            const msg = res.map(it => `${it.amount} ${getResourceName(it.type)}`).join(', ');
+            let remaining = CAPACITY_LIMIT;
+            const collected = [];
+            res.forEach(it => {
+                if (remaining <= 0) return;
+                const take = Math.min(it.amount, remaining);
+                remaining -= take;
+                if (take > 0) {
+                    updateResource(it.type, take);
+                    collected.push({ type: it.type, amount: take });
+                }
+            });
+            // Build a message reflecting only the amounts actually collected.
+            const msg = collected.map(it => `${it.amount} ${getResourceName(it.type)}`).join(', ');
             showNotification(`Harvester collected ${msg}!`, true);
         } else {
-            updateResource(res.type, res.amount);
-            showNotification(`Harvester collected ${res.amount} ${getResourceName(res.type)}!`, true);
+            const take = Math.min(res.amount, CAPACITY_LIMIT);
+            updateResource(res.type, take);
+            showNotification(`Harvester collected ${take} ${getResourceName(res.type)}!`, true);
         }
         
         gameState.missions.harvestCount++;
@@ -9219,7 +9236,8 @@ document.addEventListener('click', function(e){
   const OBS_RISK  = 0.35;                   // 35% while observed
   const O2_PER_SCAN = 5;                    // base O2 per scan
   const O2_OBS_MULT = 1.5;                  // +50% O2 when observed
-  const CAPACITY = 80;                      // harvester capacity per trip
+  // Reduced cargo capacity of the harvester: now it can carry only 40 units per trip.
+  const CAPACITY = 40;                      // harvester capacity per trip
   const RNG = () => Math.random();
 
   // ====== STATE ======
