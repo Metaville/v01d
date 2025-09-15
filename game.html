@@ -2569,7 +2569,48 @@ html, body { overflow-x: hidden; }
       #solar-modal .withdraw-buttons{ grid-template-columns: 1fr !important; }
     }
   </style>
+<style id="scan-modal-scroll-and-padding">
+  /* Карточка скан-модалки: ограничиваем высоту и раскладываем по колонке */
+  #scan-modal .modal-content{
+    width: min(560px, 92vw);
+    max-height: 90vh;           /* вся модалка не выше 90% окна */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;           /* чтобы скролл был только в .modal-body */
+  }
 
+  /* Отступы по бокам для шапки, тела и футера */
+  #scan-modal .modal-header,
+  #scan-modal .modal-body,
+  #scan-modal .modal-actions{
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Прокручиваемая область контента */
+  #scan-modal .modal-body{
+    flex: 1 1 auto;             /* занимает всё доступное пространство */
+    overflow-y: auto;           /* вертикальный скролл */
+    -webkit-overflow-scrolling: touch;
+    max-height: none;           /* перебиваем общий лимит 60vh, чтобы работал flex */
+  }
+
+  /* Небольшая косметика футера */
+  #scan-modal .modal-actions{
+    padding-top: 12px;
+    border-top: 1px solid #27305622; /* тонкий разделитель */
+  }
+
+  /* На очень узких экранах чутка уже */
+  @media (max-width: 420px){
+    #scan-modal .modal-header,
+    #scan-modal .modal-body,
+    #scan-modal .modal-actions{
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+</style>
 <style id="o2-claimable-style">
 @keyframes o2Pulse {
   0%   { transform: translateZ(0) scale(1);   box-shadow: 0 0 0 rgba(0,243,255,0.0); }
