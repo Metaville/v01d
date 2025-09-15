@@ -3477,28 +3477,53 @@ html, body { overflow-x: hidden; }
     <!-- ВАЖНО: сетка секторов ПЕРЕНЕСЕНА сюда -->
     <div class="modal-body">
       <div class="sectors-grid">
-        <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="3" >
-          <div class="sector-name">SECOR 3</div>
+        <!-- Twelve unique sectors with creative names -->
+        <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="1">
+          <div class="sector-name">Сектор Рассвет</div>
           <div class="sector-risk low">RISK: LOW</div>
         </div>
-        <div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="7">
-          <div class="sector-name">SECTOR 7</div>
+        <div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="2">
+          <div class="sector-name">Сектор Туман</div>
+          <div class="sector-risk medium">RISK: MEDIUM</div>
+        </div>
+        <div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="3">
+          <div class="sector-name">Сектор Реликт</div>
+          <div class="sector-risk">RISK: HIGH</div>
+        </div>
+        <div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="4">
+          <div class="sector-name">Сектор Зенит</div>
+          <div class="sector-risk">RISK: HIGH</div>
+        </div>
+        <div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="5">
+          <div class="sector-name">Сектор Небула</div>
+          <div class="sector-risk medium">RISK: MEDIUM</div>
+        </div>
+        <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="6">
+          <div class="sector-name">Сектор Радар</div>
+          <div class="sector-risk low">RISK: LOW</div>
+        </div>
+        <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="7">
+          <div class="sector-name">Сектор Эхо</div>
+          <div class="sector-risk low">RISK: LOW</div>
+        </div>
+        <div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="8">
+          <div class="sector-name">Сектор Гармония</div>
           <div class="sector-risk medium">RISK: MEDIUM</div>
         </div>
         <div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="9">
-          <div class="sector-name">SECTOR 9</div>
+          <div class="sector-name">Сектор Пульс</div>
           <div class="sector-risk">RISK: HIGH</div>
         </div>
-        <div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="12">
-          <div class="sector-name">SECTOR 12</div>
+        <div class="sector-item" data-belt="100-150 km" data-risk="high" data-sector="10">
+          <div class="sector-name">Сектор Обсидиан</div>
           <div class="sector-risk">RISK: HIGH</div>
         </div>
-        <div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="15">
-          <div class="sector-name">SECTOR 15</div>
+        <div class="sector-item" data-belt="50-100 km" data-risk="medium" data-sector="11">
+          <div class="sector-name">Сектор Спектр</div>
           <div class="sector-risk medium">RISK: MEDIUM</div>
         </div>
-        <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="18">
-          <div class="sector-name">SECTOR 18</div>
+        <div class="sector-item" data-belt="0-50 km" data-risk="low" data-sector="12">
+          <div class="sector-name">Сектор Спираль</div>
           <div class="sector-risk low">RISK: LOW</div>
         </div>
       </div>
@@ -4354,37 +4379,61 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
         const res = gameState.missions.scannedResources;
 
         // Apply cargo capacity limit when collecting resources. The harvester can
-        // carry at most state.harvester.capacity units per dispatch. When multiple
+        // carry at most a fixed number of units per dispatch. When multiple
         // resource types were scanned, distribute the capacity across them in
         // the order returned by the scan until exhausted.
-        const CAPACITY_LIMIT = (state && state.harvester && typeof state.harvester.capacity === 'number')
-          ? state.harvester.capacity
-          : 40;
+        //
+        // NOTE: Do **not** reference the local `state` object from the hvst module
+        // here, as it is scoped inside that IIFE and is not visible in this
+        // context. Accessing an undefined `state` would throw a ReferenceError
+        // and abort the harvest logic. Instead, fall back to the known
+        // capacity value of 40 units per trip (this constant is defined in
+        // the hvst-logic module and propagated into the UI via
+        // state.harvester.capacity, but it is not accessible here).
+        const CAPACITY_LIMIT = 40;
+        // Gather the amounts actually collected for each resource type.  We'll
+        // update gameState.resources directly rather than relying on
+        // updateResource(), as that function triggers UI updates and
+        // notification logic on its own.  Updating resources manually avoids
+        // potential issues with resources not appearing in the top bar.
+        let remaining = CAPACITY_LIMIT;
+        const collected = [];
         if (Array.isArray(res)) {
-            let remaining = CAPACITY_LIMIT;
-            const collected = [];
             res.forEach(it => {
                 if (remaining <= 0) return;
                 const take = Math.min(it.amount, remaining);
                 remaining -= take;
                 if (take > 0) {
-                    updateResource(it.type, take);
-                    collected.push({ type: it.type, amount: take });
+                    collected.push({ type: String(it.type).toLowerCase(), amount: take });
                 }
             });
-            // Build a message reflecting only the amounts actually collected.
+        } else if (res && typeof res.amount !== 'undefined') {
+            const take = Math.min(res.amount, remaining);
+            if (take > 0) {
+                collected.push({ type: String(res.type).toLowerCase(), amount: take });
+                remaining -= take;
+            }
+        }
+        // Apply the collected amounts to the player's resources.
+        collected.forEach(it => {
+            const t = it.type;
+            if (!gameState.resources.hasOwnProperty(t)) {
+                gameState.resources[t] = 0;
+            }
+            gameState.resources[t] += it.amount;
+        });
+        // Update the UI once after mutating resources.
+        updateUI();
+        // Build a message reflecting only the amounts actually collected.
+        if (collected.length > 0) {
             const msg = collected.map(it => `${it.amount} ${getResourceName(it.type)}`).join(', ');
             showNotification(`Harvester collected ${msg}!`, true);
         } else {
-            const take = Math.min(res.amount, CAPACITY_LIMIT);
-            updateResource(res.type, take);
-            showNotification(`Harvester collected ${take} ${getResourceName(res.type)}!`, true);
+            showNotification(`Harvester collected nothing!`, false);
         }
-
+        
         gameState.missions.harvestCount++;
         gameState.missions.harvested = true;
-
-        updateUI();
     }
 }
 
@@ -9703,11 +9752,14 @@ document.addEventListener('click', function(e){
       if (origSRM) {
         try { origSRM.call(this, sectorData, resourceOrArray, resourceAmount); } catch(_) {}
       }
-      // Close the scan-result-modal to avoid double UI. It may have been opened
-      // by the original implementation; ensure it is hidden now.
+      // Close the scan-result-modal to avoid double UI *only* when a harvester
+      // point was explicitly selected. If no currentHvstPoint is set (e.g. the
+      // scan was initiated from the sector list rather than by clicking a hvst
+      // point), leave the default scan-result-modal visible so the player
+      // still sees the results.
       try {
         const sr = document.getElementById('scan-result-modal');
-        if (sr) sr.classList.remove('active');
+        if (sr && window.currentHvstPoint) sr.classList.remove('active');
       } catch(_) {}
       // Defer opening the hvst modal until the call stack unwinds. The
       // currently selected hvst point is stored in window.currentHvstPoint.
