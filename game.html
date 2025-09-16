@@ -2030,6 +2030,154 @@ body.modal-open {
   .upgrade-row{grid-template-columns:1fr auto;gap:6px}
 }
 </style>
+    <!-- Added mini-map, bookmarks, and modules UI styles -->
+    <style>
+      /* === Mini-map and Bookmarks UI === */
+      #miniMapWrap {
+        position: fixed;
+        right: 10px;
+        bottom: calc(var(--bottombar-h) + env(safe-area-inset-bottom) + 10px);
+        width: 120px;
+        height: 120px;
+        z-index: 150;
+        border: 1px solid #2a3358;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #0c1022cc;
+        backdrop-filter: blur(2px);
+        box-shadow: 0 8px 22px rgba(0,0,0,.4);
+        pointer-events: auto;
+      }
+      #miniMap {
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: pointer;
+      }
+      #bookmarksTray {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 8px 0 12px;
+      }
+      .bookmark-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        cursor: pointer;
+        background: #181c2f;
+        border: 1px solid #2b2f45;
+        color: #d7e2f0;
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .bookmark-chip .rm {
+        opacity: .75;
+        font-weight: 900;
+      }
+      .sector-item .star {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        cursor: pointer;
+        background: #182036;
+        border: 1px solid #2a3358;
+        color: #ffd36e;
+      }
+      .sector-item.bookmarked {
+        outline: 2px solid #ffd36e66;
+      }
+      /* HVST HUD margin when inserted below scan button */
+      #map-screen .hvst-hud {
+        margin-top: 10px;
+      }
+      /* Modules UI */
+      .modules-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: 8px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid #2b2f45;
+        background: #1c2541;
+        color: #9dc6fb;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .modules-panel {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 320px;
+        max-height: 80vh;
+        overflow-y: auto;
+        background: #0f142c;
+        border: 1px solid #2a3358;
+        border-radius: 8px;
+        z-index: 900;
+        display: none;
+        padding: 16px;
+        color: #d7e2f0;
+      }
+      .modules-close-btn {
+        margin-top: 12px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #3a456b;
+        background: #2c3659;
+        color: #d7e2f0;
+        cursor: pointer;
+        width: 100%;
+      }
+      .modules-panel.active {
+        display: block;
+      }
+      .module-card {
+        margin-bottom: 12px;
+        padding: 10px;
+        border: 1px solid #2b2f45;
+        border-radius: 6px;
+        background: #181f34;
+      }
+      .module-card h4 {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        color: #d7e2f0;
+      }
+      .module-card p {
+        margin: 0 0 8px 0;
+        font-size: 12px;
+        color: #8fa2c5;
+      }
+      .module-card .actions {
+        display: flex;
+        gap: 8px;
+      }
+      .module-card button {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #3a456b;
+        background: #2c3659;
+        color: #d7e2f0;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .module-card button[disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+    </style>
 
 <!-- NPC orders system styles -->
 <style>
@@ -2643,22 +2791,26 @@ html, body { overflow-x: hidden; }
 </div>
 <div class="resource-item" id="ice-resource">
 <span>❄️ <span id="ice-value">120</span></span>
+<!-- Кнопка для раскрытия/сворачивания второго ряда ресурсов располагается рядом с ice-value -->
+<button class="resource-toggle" id="resourceToggle" type="button">▼</button>
 </div>
-<div class="resource-item" id="bio-resource">
+<div class="resource-item is-extra" id="bio-resource">
 <span>🧪 <span id="bio-value">100</span></span>
 </div>
-<div class="resource-item" id="parts-resource">
+<div class="resource-item is-extra" id="parts-resource">
 <span>🛠️ <span id="parts-value">100</span></span>
 </div>
 
 <!-- Отображение полимеров и редкоземов -->
-    <div class="resource-item" id="polymers-resource">
+    <div class="resource-item is-extra" id="polymers-resource">
         <span>🧬 <span id="polymers-value">0</span></span>
     </div>
      
-    <div class="resource-item" id="rare-resource">
+    <div class="resource-item is-extra" id="rare-resource">
         <span>💎 <span id="rare-value">0</span></span>
     </div>
+
+    <!-- Кнопка перенесена внутрь блока ice-resource -->
 
 <!--<button id="phantom-connect-btn" class="btn btn-primary">
   <i class="fa-solid fa-wallet"></i>  Phantom
@@ -2731,6 +2883,9 @@ html, body { overflow-x: hidden; }
 <div class="screen active" id="map-screen">
 <h2 class="section-title">Scan radius of the platform</h2>
 <button class="help-fab" id="help-map" title="Как работает сканирование">i</button>
+<!-- Bookmarks tray and modules toggle -->
+<div id="bookmarksTray"></div>
+<button id="modulesToggle" class="modules-btn">⚙️ Модули</button>
 <div class="map-container">
 <div class="map-circle inner-ring">
 </div>
@@ -4280,7 +4435,8 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
             // Генерация случайных ресурсов
             // Возможные ресурсы для скана. Добавили "ice" как сырьё для
             // генератора кислорода.
-            const resourceTypes = ['bio', 'parts', 'mvc', 'ice'];
+            // Extended list of possible resources to include oxygen, polymers and rare earths
+            const resourceTypes = ['bio', 'parts', 'mvc', 'ice', 'oxygen', 'polymers', 'rare'];
             // === Генерация результатов: 1–3 находок ===
             const pickCount = 1 + Math.floor(Math.random() * 3); // 1..3
             const found = [];
@@ -4386,7 +4542,9 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
         parts: "Parts 🛠️",
         mvc: "MVC",
         oxygen: "Oxygen O₂",
-        ice: "Ice ❄️"
+        ice: "Ice ❄️",
+        polymers: "Polymers",
+        rare: "Rare earths"
     };
     
     // Список бейджей
@@ -4406,75 +4564,86 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
 
         // Отправка харвестера
         function sendHarvester() {
-    if (!gameState.missions.scannedResources || gameState.missions.harvested) {
-        showNotification("No resources to harvest!", false);
+    // Harvest resources from a completed scan.  This version supports multiple
+    // dispatches and will continue to remove resources from the scanned
+    // allocation until either the capacity for the current trip is reached or
+    // there are no resources left.  It does not rely on the `harvested` flag
+    // which previously blocked subsequent trips.
+
+    // If there are no scanned resources, nothing to harvest.
+    const res = gameState.missions.scannedResources;
+    if (!res) {
+        showNotification("Nothing left to harvest!", false);
         return;
     }
+    // Enforce the per-mission dispatch limit
     if (gameState.missions.harvestCount >= gameState.missions.maxHarvests) {
         showNotification("Harvester dispatch limit reached!", false);
         return;
     }
-    
-    // Расход ресурсов на отправку
-    if (updateResource('oxygen', -15) && updateResource('energy', -70)) {
-        const res = gameState.missions.scannedResources;
 
-        // Apply cargo capacity limit when collecting resources. The harvester can
-        // carry at most a fixed number of units per dispatch. When multiple
-        // resource types were scanned, distribute the capacity across them in
-        // the order returned by the scan until exhausted.
-        //
-        // NOTE: Do **not** reference the local `state` object from the hvst module
-        // here, as it is scoped inside that IIFE and is not visible in this
-        // context. Accessing an undefined `state` would throw a ReferenceError
-        // and abort the harvest logic. Instead, fall back to the known
-        // capacity value of 40 units per trip (this constant is defined in
-        // the hvst-logic module and propagated into the UI via
-        // state.harvester.capacity, but it is not accessible here).
+    // Consume required resources for dispatch.  Only proceed if both calls succeed.
+    if (updateResource('oxygen', -15) && updateResource('energy', -70)) {
+        // Each dispatch can carry at most this many units.
         const CAPACITY_LIMIT = 40;
-        // Gather the amounts actually collected for each resource type.  We'll
-        // update gameState.resources directly rather than relying on
-        // updateResource(), as that function triggers UI updates and
-        // notification logic on its own.  Updating resources manually avoids
-        // potential issues with resources not appearing in the top bar.
         let remaining = CAPACITY_LIMIT;
         const collected = [];
-        if (Array.isArray(res)) {
-            res.forEach(it => {
-                if (remaining <= 0) return;
-                const take = Math.min(it.amount, remaining);
-                remaining -= take;
-                if (take > 0) {
-                    collected.push({ type: String(it.type).toLowerCase(), amount: take });
-                }
-            });
-        } else if (res && typeof res.amount !== 'undefined') {
-            const take = Math.min(res.amount, remaining);
+
+        // Helper to take some amount from a resource entry and record it.
+        const takeFrom = (entry) => {
+            const available = Number(entry.amount) || 0;
+            const take = Math.min(available, remaining);
             if (take > 0) {
-                collected.push({ type: String(res.type).toLowerCase(), amount: take });
+                entry.amount -= take;
                 remaining -= take;
+                collected.push({ type: String(entry.type).toLowerCase(), amount: take });
             }
+        };
+
+        if (Array.isArray(res)) {
+            for (const entry of res) {
+                if (remaining <= 0) break;
+                takeFrom(entry);
+            }
+            // Remove entries that are depleted
+            gameState.missions.scannedResources = res.filter(it => (Number(it.amount) || 0) > 0);
+            if (gameState.missions.scannedResources.length === 0) {
+                gameState.missions.scannedResources = null;
+            }
+        } else if (typeof res.amount !== 'undefined') {
+            takeFrom(res);
+            gameState.missions.scannedResources = (Number(res.amount) || 0) > 0 ? res : null;
         }
-        // Apply the collected amounts to the player's resources.
+
+        // Apply collected amounts to the player's resources.  We update the
+        // gameState.resources object directly here to avoid extra UI updates
+        // triggered by updateResource() for each individual resource.
         collected.forEach(it => {
             const t = it.type;
-            if (!gameState.resources.hasOwnProperty(t)) {
+            if (!Object.prototype.hasOwnProperty.call(gameState.resources, t)) {
                 gameState.resources[t] = 0;
             }
             gameState.resources[t] += it.amount;
         });
-        // Update the UI once after mutating resources.
+
+        // Update visible resource counts
         updateUI();
-        // Build a message reflecting only the amounts actually collected.
+
+        // Build a message summarizing what was collected this trip
         if (collected.length > 0) {
             const msg = collected.map(it => `${it.amount} ${getResourceName(it.type)}`).join(', ');
             showNotification(`Harvester collected ${msg}!`, true);
         } else {
             showNotification(`Harvester collected nothing!`, false);
         }
-        
+
+        // Increment the dispatch counter but do not set `harvested` flag.
         gameState.missions.harvestCount++;
-        gameState.missions.harvested = true;
+
+        // If there are no resources left, inform the player.
+        if (!gameState.missions.scannedResources) {
+            showNotification(`All discovered resources have been collected.`, true);
+        }
     }
 }
 
@@ -6188,6 +6357,569 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /*__FORCE_TUTORIAL_OPEN__*/
 // Убрали форс-показ туториала. Теперь он контролируется через localStorage и показывается только один раз.
+</script>
+
+<!-- Mini-map container -->
+// <div id="miniMapWrap"><canvas id="miniMap" width="120" height="120"></canvas></div> //
+<script>
+(function(){
+  // LocalStorage keys
+  const LS_BOOKMARKS = 'sectorBookmarks:v1';
+  const LS_BLUEPRINTS = 'blueprints:v1';
+  const LS_INSTALLED = 'installedModules:v1';
+
+  // Load sets from storage
+  const bookmarks = new Set(JSON.parse(localStorage.getItem(LS_BOOKMARKS) || '[]'));
+  const blueprints = new Set(JSON.parse(localStorage.getItem(LS_BLUEPRINTS) || '[]'));
+  const installed = new Set(JSON.parse(localStorage.getItem(LS_INSTALLED) || '[]'));
+
+  function saveBookmarks(){
+    localStorage.setItem(LS_BOOKMARKS, JSON.stringify([...bookmarks]));
+    renderBookmarksTray();
+    mini.draw();
+  }
+  function saveBlueprints(){
+    localStorage.setItem(LS_BLUEPRINTS, JSON.stringify([...blueprints]));
+    renderModulesPanel();
+  }
+  function saveInstalled(){
+    localStorage.setItem(LS_INSTALLED, JSON.stringify([...installed]));
+    applyPlatformVisual();
+    renderModulesPanel();
+  }
+
+  // === Bookmarks UI ===
+  function renderBookmarksTray(){
+    const tray = document.getElementById('bookmarksTray');
+    if(!tray) return;
+    tray.innerHTML = '';
+    if(bookmarks.size === 0){
+      tray.style.display = 'none';
+      return;
+    }
+    tray.style.display = '';
+    Array.from(bookmarks).forEach(sid=>{
+      const chip = document.createElement('button');
+      chip.className = 'bookmark-chip';
+      chip.innerHTML = `<span>⭐ ${sid}</span><span class="rm" title="Убрать">×</span>`;
+      chip.addEventListener('click', (e)=>{
+        if(e.target.classList.contains('rm')){
+          bookmarks.delete(sid);
+          saveBookmarks();
+        }else{
+          const scanBtn = document.getElementById('scan-btn');
+          if(scanBtn) scanBtn.click();
+          setTimeout(()=>{
+            const card = document.querySelector(`#scan-modal .sector-item[data-sector="${sid}"]`);
+            if(card){
+              card.scrollIntoView({behavior:'smooth', block:'center'});
+              card.classList.add('pulse');
+              setTimeout(()=>card.classList.remove('pulse'), 1000);
+            }
+          }, 0);
+        }
+      });
+      tray.appendChild(chip);
+    });
+  }
+
+  // Decorate sector cards with star buttons
+  function decorateSectorCardsForBookmarks(root=document){
+    const cards = root.querySelectorAll('#scan-modal .sector-item');
+    cards.forEach(card=>{
+      if(card.dataset._starBound) return;
+      card.dataset._starBound = '1';
+      const starBtn = document.createElement('button');
+      starBtn.className = 'star';
+      starBtn.title = 'Добавить в закладки';
+      starBtn.innerHTML = '★';
+      card.style.position = 'relative';
+      card.appendChild(starBtn);
+      const sid = card.getAttribute('data-sector') || card.getAttribute('data-id') || card.textContent.trim();
+      if(bookmarks.has(sid)) card.classList.add('bookmarked');
+      starBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(bookmarks.has(sid)){
+          bookmarks.delete(sid);
+          card.classList.remove('bookmarked');
+        }else{
+          bookmarks.add(sid);
+          card.classList.add('bookmarked');
+        }
+        saveBookmarks();
+      });
+    });
+  }
+
+  // Observe additions to scan modal
+  const mo = new MutationObserver(muts=>{
+    muts.forEach(m=>{
+      m.addedNodes && m.addedNodes.forEach(n=>{
+        if(n.nodeType === 1){
+          if(n.id === 'scan-modal' || n.querySelector?.('.sectors-grid')){
+            decorateSectorCardsForBookmarks(n);
+          }
+        }
+      });
+    });
+  });
+  mo.observe(document.body, { childList:true, subtree:true });
+
+  // === Mini-map ===
+  const mini = {
+    el: null,
+    ctx: null,
+    W: 120,
+    H: 120,
+    pingX: null,
+    pingY: null,
+    pingTime: null,
+    draw(){
+      if(!this.ctx) return;
+      const ctx = this.ctx;
+      const W = this.W;
+      const H = this.H;
+      ctx.clearRect(0,0,W,H);
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = '#0f142c';
+      ctx.fillRect(0,0,W,H);
+      ctx.globalAlpha = 1.0;
+      ctx.strokeStyle = '#26315a';
+      [0.35, 0.60, 0.85].forEach(r=>{
+        ctx.beginPath();
+        ctx.arc(W/2, H/2, W*r/2, 0, Math.PI*2);
+        ctx.stroke();
+      });
+      ctx.fillStyle = '#00e6c2';
+      ctx.beginPath();
+      ctx.arc(W/2, H/2, 3, 0, Math.PI*2);
+      ctx.fill();
+      const toXY = (leftPct, topPct)=>{
+        const x = parseFloat(String(leftPct).replace('%',''))/100 * W;
+        const y = parseFloat(String(topPct).replace('%',''))/100 * H;
+        return [x,y];
+      };
+      document.querySelectorAll('#map-screen .power-node').forEach(btn=>{
+        const style = btn.getAttribute('style')||'';
+        const left = (style.match(/left:([^;]+)/)||[])[1]||'0%';
+        const top  = (style.match(/top:([^;]+)/)||[])[1]||'0%';
+        const [x,y] = toXY(left, top);
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(x,y,3,0,Math.PI*2);
+        ctx.fill();
+      });
+      try{
+        const pts = (window.state && window.state.points) || [];
+        pts.forEach(p=>{
+          const [x,y] = toXY(p.x, p.y);
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.arc(x,y,3,0,Math.PI*2);
+          ctx.fill();
+        });
+      }catch(e){}
+      if(bookmarks.size){
+        let i=0;
+        const total = bookmarks.size;
+        bookmarks.forEach(()=>{
+          const ang = (i++/total) * Math.PI * 2;
+          const r = W*0.46;
+          const x = W/2 + Math.cos(ang)*r;
+          const y = H/2 + Math.sin(ang)*r;
+          ctx.fillStyle = '#ffd36e';
+          ctx.fillRect(x-2,y-2,4,4);
+        });
+      }
+      if(this.pingTime && Date.now() - this.pingTime < 1000){
+        ctx.strokeStyle = '#ff5252';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.pingX, this.pingY, 6, 0, Math.PI*2);
+        ctx.stroke();
+      }
+    }
+  };
+
+  function initMiniMap(){
+    const c = document.getElementById('miniMap');
+    if(!c) return;
+    mini.el = c;
+    mini.ctx = c.getContext('2d');
+    mini.draw();
+    setInterval(()=>mini.draw(), 1000);
+    c.addEventListener('click', (e)=>{
+      const rect = c.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      mini.pingX = x;
+      mini.pingY = y;
+      mini.pingTime = Date.now();
+      const relX = x / mini.W;
+      const relY = y / mini.H;
+      let nearest = null;
+      let bestDist = Infinity;
+      document.querySelectorAll('#map-screen .power-node').forEach(btn=>{
+        const style = btn.getAttribute('style')||'';
+        const left = (style.match(/left:([^;]+)/)||[])[1]||'0%';
+        const top  = (style.match(/top:([^;]+)/)||[])[1]||'0%';
+        const nx = parseFloat(left)/100;
+        const ny = parseFloat(top)/100;
+        const dx = nx - relX;
+        const dy = ny - relY;
+        const dist = dx*dx + dy*dy;
+        if(dist < bestDist){
+          bestDist = dist;
+          nearest = btn;
+        }
+      });
+      if(nearest){
+        nearest.classList.add('pulse');
+        setTimeout(()=> nearest.classList.remove('pulse'), 1500);
+        nearest.scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
+      }
+    });
+  }
+
+  // === Blueprints and Modules ===
+  const ALL_BLUEPRINTS = [
+    { id:'mk2_platform', title:'Платформа MK.II', effect:'Увеличение объёма трюма +10 ед.', visual:'platform--mk2' },
+    { id:'mk3_platform', title:'Платформа MK.III', effect:'Увеличение объёма трюма +20 ед.', visual:'platform--mk3' },
+    { id:'scanner_boost', title:'Усилитель сканера', effect:'+10% мощности сканирования за уровень' },
+    { id:'hvst_autorepair', title:'Автосервис дронов', effect:'Урон сканом -25%' }
+  ];
+
+  // === Cargo and Scanner upgrade constants and state ===
+  const CARGO_MAX_CAPACITY = 80;
+  const CARGO_STEP = 10;
+  const CARGO_UPGRADE_COST = { energy: 200, parts: 50 };
+  const SCANNER_MAX_LEVEL = 5;
+  const SCANNER_UPGRADE_COST = { energy: 250, parts: 75 };
+  const LS_SCANNER_LEVEL = 'scannerPowerLevel';
+  let scannerPowerLevel = parseInt(localStorage.getItem(LS_SCANNER_LEVEL) || '0');
+  function saveScannerLevel(){ localStorage.setItem(LS_SCANNER_LEVEL, scannerPowerLevel); }
+
+  // helper functions for resource management
+  function getResource(name){
+    const el = document.getElementById(name + '-value');
+    return el ? parseInt(el.textContent) || 0 : 0;
+  }
+  function setResource(name, val){
+    const el = document.getElementById(name + '-value');
+    if(el) el.textContent = val;
+    if(window.gameState?.resources){
+      if(name === 'energy') window.gameState.resources.energy = val;
+      if(name === 'parts') window.gameState.resources.parts = val;
+    }
+  }
+  function hasResources(cost){
+    return getResource('energy') >= cost.energy && getResource('parts') >= cost.parts;
+  }
+  function spendResources(cost){
+    setResource('energy', getResource('energy') - cost.energy);
+    setResource('parts', getResource('parts') - cost.parts);
+  }
+
+  function maybeDropBlueprint(){
+    if(Math.random() < 0.12){
+      const unknown = ALL_BLUEPRINTS.find(b => !blueprints.has(b.id));
+      if(unknown){
+        blueprints.add(unknown.id);
+        saveBlueprints();
+        try{
+          window.showNotification?.(`Найден чертёж: ${unknown.title}`, true);
+        }catch(e){}
+      }
+    }
+  }
+
+  function installModule(id){
+    if(!blueprints.has(id)) return false;
+    if(installed.has(id)) return true;
+    installed.add(id);
+    saveInstalled();
+    try{
+      const bp = ALL_BLUEPRINTS.find(b=>b.id===id);
+      window.showNotification?.(`Модуль установлен: ${bp?.title || id}`, true);
+    }catch(e){}
+    try{
+      if(id === 'mk2_platform'){
+        if(window.state?.harvester){
+          const cur = window.state.harvester.capacity || 0;
+          window.state.harvester.capacity = Math.min(CARGO_MAX_CAPACITY, cur + 10);
+          const capEl = document.getElementById('hvstCap');
+          if(capEl) capEl.textContent = window.state.harvester.capacity;
+        }
+      }
+      if(id === 'mk3_platform'){
+        if(window.state?.harvester){
+          const cur = window.state.harvester.capacity || 0;
+          window.state.harvester.capacity = Math.min(CARGO_MAX_CAPACITY, cur + 20);
+          const capEl = document.getElementById('hvstCap');
+          if(capEl) capEl.textContent = window.state.harvester.capacity;
+        }
+      }
+      if(id === 'scanner_boost'){
+        // installing scanner booster grants level 1 if not already leveled
+        if(scannerPowerLevel === 0){
+          scannerPowerLevel = 1;
+          saveScannerLevel();
+        }
+      }
+      if(id === 'hvst_autorepair'){
+        // implement effect inside your scanning logic
+      }
+    }catch(e){}
+    return true;
+  }
+
+  function applyPlatformVisual(){
+    const map = document.querySelector('#map-screen .map-container');
+    if(!map) return;
+    map.classList.remove('platform--mk2','platform--mk3');
+    installed.forEach(id=>{
+      const bp = ALL_BLUEPRINTS.find(b=>b.id===id && b.visual);
+      if(bp?.visual) map.classList.add(bp.visual);
+    });
+  }
+
+  // Modules UI creation and rendering
+  function ensureModulesUI(){
+    const mapScreen = document.getElementById('map-screen');
+    if(!mapScreen || mapScreen.__modsUIBound) return;
+    mapScreen.__modsUIBound = true;
+    const toggle = document.getElementById('modulesToggle');
+    if(toggle){
+      toggle.addEventListener('click', ()=>{
+        const panel = document.getElementById('modulesPanel');
+        if(panel){
+          panel.classList.toggle('active');
+        }
+      });
+    }
+    let panel = document.getElementById('modulesPanel');
+    if(!panel){
+      panel = document.createElement('div');
+      panel.id = 'modulesPanel';
+      panel.className = 'modules-panel';
+      document.body.appendChild(panel);
+    }
+    renderModulesPanel();
+  }
+
+  function renderModulesPanel(){
+    const panel = document.getElementById('modulesPanel');
+    if(!panel) return;
+    panel.innerHTML = '<h3 style="margin-top:0; margin-bottom:12px; font-size:18px;">Модули</h3>';
+    ALL_BLUEPRINTS.forEach(bp=>{
+      const card = document.createElement('div');
+      card.className = 'module-card';
+      const title = document.createElement('h4');
+      title.textContent = bp.title;
+      const desc = document.createElement('p');
+      desc.textContent = bp.effect;
+      card.appendChild(title);
+      card.appendChild(desc);
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      const known = blueprints.has(bp.id);
+      const inst = installed.has(bp.id);
+      if(!known){
+        const btnStudy = document.createElement('button');
+        btnStudy.textContent = 'Изучить';
+        btnStudy.addEventListener('click', ()=>{
+          blueprints.add(bp.id);
+          saveBlueprints();
+        });
+        actions.appendChild(btnStudy);
+      }
+      if(known && !inst){
+        const btnInst = document.createElement('button');
+        btnInst.textContent = 'Установить';
+        btnInst.addEventListener('click', ()=>{
+          installModule(bp.id);
+          renderModulesPanel();
+        });
+        actions.appendChild(btnInst);
+      }
+      if(inst){
+        const lbl = document.createElement('span');
+        lbl.textContent = 'Установлен';
+        lbl.style.fontSize = '12px';
+        lbl.style.color = '#6ddf6d';
+        actions.appendChild(lbl);
+      }
+      card.appendChild(actions);
+      panel.appendChild(card);
+    });
+
+    // Append card for cargo bay upgrades
+    (function(){
+      const card = document.createElement('div');
+      card.className = 'module-card';
+      const title = document.createElement('h4');
+      title.textContent = 'Трюм';
+      card.appendChild(title);
+      const currentCap = window.state?.harvester?.capacity || 0;
+      const desc1 = document.createElement('p');
+      desc1.textContent = `Текущая вместимость: ${currentCap} / ${CARGO_MAX_CAPACITY} ед.`;
+      card.appendChild(desc1);
+      if(currentCap < CARGO_MAX_CAPACITY){
+        const desc2 = document.createElement('p');
+        desc2.textContent = `Увеличить на +${CARGO_STEP} ед. Стоимость: ${CARGO_UPGRADE_COST.energy} ⚡, ${CARGO_UPGRADE_COST.parts} 🛠️`;
+        card.appendChild(desc2);
+        const btn = document.createElement('button');
+        btn.textContent = 'Увеличить';
+        btn.addEventListener('click', () => {
+          if(!hasResources(CARGO_UPGRADE_COST)){
+            try{ window.showNotification?.('Недостаточно ресурсов', false); }catch(e){}
+            return;
+          }
+          spendResources(CARGO_UPGRADE_COST);
+          if(window.state?.harvester){
+            const newCap = Math.min(CARGO_MAX_CAPACITY, currentCap + CARGO_STEP);
+            window.state.harvester.capacity = newCap;
+          }
+          const capEl = document.getElementById('hvstCap');
+          if(capEl) capEl.textContent = window.state.harvester.capacity;
+          renderModulesPanel();
+        });
+        card.appendChild(btn);
+      } else {
+        const note = document.createElement('p');
+        note.textContent = 'Максимальный объём достигнут';
+        card.appendChild(note);
+      }
+      panel.appendChild(card);
+    })();
+
+    // Append card for scanner upgrades
+    (function(){
+      const card = document.createElement('div');
+      card.className = 'module-card';
+      const title = document.createElement('h4');
+      title.textContent = 'Сканер';
+      card.appendChild(title);
+      const desc1 = document.createElement('p');
+      desc1.textContent = `Уровень усиления: ${scannerPowerLevel} / ${SCANNER_MAX_LEVEL}`;
+      card.appendChild(desc1);
+      if(scannerPowerLevel < SCANNER_MAX_LEVEL){
+        const desc2 = document.createElement('p');
+        desc2.textContent = `+10% мощности на уровень. Стоимость: ${SCANNER_UPGRADE_COST.energy} ⚡, ${SCANNER_UPGRADE_COST.parts} 🛠️`;
+        card.appendChild(desc2);
+        const btn = document.createElement('button');
+        btn.textContent = 'Улучшить';
+        btn.addEventListener('click', () => {
+          if(!hasResources(SCANNER_UPGRADE_COST)){
+            try{ window.showNotification?.('Недостаточно ресурсов', false); }catch(e){}
+            return;
+          }
+          spendResources(SCANNER_UPGRADE_COST);
+          scannerPowerLevel = Math.min(SCANNER_MAX_LEVEL, scannerPowerLevel + 1);
+          saveScannerLevel();
+          renderModulesPanel();
+        });
+        card.appendChild(btn);
+      } else {
+        const note = document.createElement('p');
+        note.textContent = 'Максимальный уровень достигнут';
+        card.appendChild(note);
+      }
+      panel.appendChild(card);
+    })();
+
+    // Добавляем кнопку закрытия в конце панели
+    (function(){
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'modules-close-btn';
+      // Текст на кнопке: "Закрыть окно"
+      closeBtn.textContent = 'Закрыть';
+      closeBtn.addEventListener('click', () => {
+        // Скрываем панель, удаляя класс active
+        panel.classList.remove('active');
+      });
+      panel.appendChild(closeBtn);
+    })();
+  }
+
+  // Hook showScanResultModal for blueprint drops once it's defined
+  (function hookScan(){
+    const timer = setInterval(()=>{
+      if(typeof window.showScanResultModal === 'function' && !window.__bpHooked){
+        window.__bpHooked = true;
+        const orig = window.showScanResultModal;
+        window.showScanResultModal = function(sectorData, resourceOrArray, resourceAmount){
+          // apply scanner power multiplier to resource amounts before calling the original modal
+          if(scannerPowerLevel > 0){
+            const multiplier = 1 + 0.1 * scannerPowerLevel;
+            try{
+              if(Array.isArray(resourceOrArray)){
+                resourceOrArray.forEach(it => {
+                  if(it && typeof it.amount === 'number'){
+                    it.amount = Math.round(it.amount * multiplier);
+                  }
+                });
+              } else if(resourceOrArray && typeof resourceAmount === 'number'){
+                resourceAmount = Math.round(resourceAmount * multiplier);
+              }
+            }catch(e){}
+          }
+          try{
+            orig.call(this, sectorData, resourceOrArray, resourceAmount);
+          }finally{
+            maybeDropBlueprint();
+          }
+        };
+        clearInterval(timer);
+      }
+    }, 200);
+  })();
+
+  // Fix HVST HUD mount: after ensureHud executes, reposition HUD below scan button
+  (function patchHud(){
+    const timer = setInterval(()=>{
+      if(typeof window.ensureHud === 'function' && !window.__hvstPatched){
+        window.__hvstPatched = true;
+        const orig = window.ensureHud;
+        window.ensureHud = function(){
+          const result = orig.apply(this, arguments);
+          try{
+            const host = document.getElementById('map-screen') || document.body;
+            const hud = host.querySelector('#hvst-hud');
+            if(hud){
+              const scanBtn = host.querySelector('#scan-btn');
+              if(scanBtn && hud.previousElementSibling !== scanBtn){
+                scanBtn.insertAdjacentElement('afterend', hud);
+              }
+            }
+          }catch(e){}
+          return result;
+        };
+        clearInterval(timer);
+      }
+    }, 200);
+  })();
+
+  // On ready
+  function onReady(){
+    initMiniMap();
+    renderBookmarksTray();
+    applyPlatformVisual();
+    ensureModulesUI();
+  }
+  if(document.readyState === 'complete' || document.readyState === 'interactive'){
+    setTimeout(onReady, 0);
+  }else{
+    document.addEventListener('DOMContentLoaded', onReady);
+  }
+
+  // Export Blueprints API for console access
+  window.Blueprints = {
+    list: () => ({ known:[...blueprints], installed:[...installed], all: ALL_BLUEPRINTS }),
+    install: installModule,
+    study: (id) => { blueprints.add(id); saveBlueprints(); }
+  };
+})();
 </script>
 
 <script>
@@ -9417,17 +10149,49 @@ document.addEventListener('click', function(e){
       <span class="hvst-tag good" title="Количество успешно завершённых рейсов"><i class="fa fa-rotate"></i> Рейсы: <strong id="hvstTrips">0</strong></span>
       <span class="hvst-tag warn" title="Лор: чтобы не привлечь рейдеров, нельзя часто сканировать одну точку."><i class="fa fa-user-ninja"></i> Маскировка активна</span>
       <div class="hvst-actions">
-        <button class="hvst-btn" id="hvstResetTrip"><i class="fa fa-house"></i> Вернуться на базу (разгрузить)</button>
-        <button class="hvst-btn primary" id="hvstHeal"><i class="fa fa-screwdriver-wrench"></i> Ремонт дрона (+10%)</button>
+        <button class="hvst-btn" id="hvstResetTrip"><i class="fa fa-house"></i> Забрать остатки с точки</button>
+        <button class="hvst-btn primary" id="hvstHeal"><i class="fa fa-screwdriver-wrench"></i> Ремонт(10🛠️→ +20 HP)</button>
       </div>
     `;
-    host.prepend(hud);
-    el('#hvstResetTrip').addEventListener('click', ()=>{
+    const scanBtn = host.querySelector('#scan-btn');
+    if (scanBtn) {
+      scanBtn.insertAdjacentElement('afterend', hud);
+    } else {
+      host.prepend(hud);
+    }
+    el('#hvstResetTrip').addEventListener('click', () => {
+      // When the player returns to base, attempt to perform a harvest on any
+      // scanned mission resources before resetting the harvester HUD.  The
+      // global sendHarvester() function handles resource consumption and
+      // updates the mission state.  We detect if a harvest occurred by
+      // comparing the mission's dispatch count.
+      let harvested = false;
+      try {
+        const prevCount = (gameState && gameState.missions && typeof gameState.missions.harvestCount === 'number')
+          ? gameState.missions.harvestCount
+          : 0;
+        if (typeof sendHarvester === 'function') {
+          sendHarvester();
+          const newCount = (gameState && gameState.missions && typeof gameState.missions.harvestCount === 'number')
+            ? gameState.missions.harvestCount
+            : prevCount;
+          harvested = newCount > prevCount;
+        }
+      } catch(e) {
+        // Silently ignore harvest errors; the reset logic still runs
+      }
+      // Reset the local harvester UI values regardless of whether a harvest occurred.
       state.harvester.cargo = 0;
       state.harvester.o2used = 0;
       state.harvester.trips += 1;
       refreshHud();
-      notify('success', 'Груз выгружен. Показатели рейса сброшены.');
+      // Inform the player about what happened.  Use a generic message for
+      // harvests; fallback to the original unload message otherwise.
+      if (harvested) {
+        notify('success', 'Harvester dispatched. Resources have been collected.');
+      } else {
+        notify('success', 'Груз выгружен. Показатели рейса сброшены.');
+      }
     });
     // When the heal button is clicked, use the drone repair mechanics from
     // the scanning module rather than simply increasing the harvester HP.
@@ -9519,7 +10283,7 @@ document.addEventListener('click', function(e){
       // Compose title using sector id if available
       el('#hvstTitle', m).innerHTML = `<span class="dot" style="width:8px;height:8px;border-radius:50%;background:#00e6c2;box-shadow:0 0 10px #00e6c2;display:inline-block;margin-right:8px;"></span>Результаты сканирования`;
       // Map resource codes to human readable names (match original mapping in scan-result-modal)
-      const resourceNames = { bio:'Biomaterials 🧪', parts:'Parts 🛠️', mvc:'MVC', oxygen:'Oxygen O₂', ice:'Ice ❄️' };
+      const resourceNames = { bio:'Biomaterials 🧪', parts:'Parts 🛠️', mvc:'MVC', oxygen:'Oxygen O₂', ice:'Ice ❄️', polymers:'Polymers', rare:'Rare earths' };
       const resourcesHtml = items.map(it => {
         const name = resourceNames[it.type] || it.type;
         return `<span class="hvst-badge info">${it.amount} ${name}</span>`;
@@ -9756,6 +10520,39 @@ document.addEventListener('click', function(e){
 })();
 </script>
 <!-- === / hvst mechanics === -->
+
+<!-- Resource bar toggle script -->
+<script>
+// Скрываем элементы второго ряда в панели ресурсов и добавляем кнопку для разворачивания
+(function(){
+  document.addEventListener('DOMContentLoaded', function(){
+    const bar = document.querySelector('.resource-bar');
+    const toggle = document.getElementById('resourceToggle');
+    if(!bar || !toggle) return;
+    // Обработчик клика по кнопке: переключаем класс expanded
+    toggle.addEventListener('click', function(){
+      bar.classList.toggle('expanded');
+      // Меняем символ на кнопке в зависимости от состояния
+      if(bar.classList.contains('expanded')){
+        this.textContent = '▲';
+      } else {
+        this.textContent = '▼';
+      }
+      // Обновляем высоту верхней панели, чтобы контент не перекрывался
+      const h = Math.ceil(bar.scrollHeight);
+      document.documentElement.style.setProperty('--topbar-h', h + 'px');
+    });
+    // Инициализация: символ и высота панели после загрузки страницы
+    // Устанавливаем стрелку вниз по умолчанию
+    toggle.textContent = '▼';
+    // Обновляем высоту через короткий таймаут, чтобы DOM успел отрисоваться
+    setTimeout(() => {
+      const h = Math.ceil(bar.scrollHeight);
+      document.documentElement.style.setProperty('--topbar-h', h + 'px');
+    }, 0);
+  });
+})();
+</script>
 
 <!--
   Bridge between sector scanning and the harvester (hvst) UI.
