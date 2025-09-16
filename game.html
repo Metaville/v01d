@@ -2775,6 +2775,21 @@ html, body { overflow-x: hidden; }
 }
 #o2-generation-card.claimable .claim-dot{ opacity: 1; }
 </style>
+<style>
+/* === HVST priority selection styles === */
+.hvst-badge[data-type], .sr-badge[data-type] { cursor: pointer; position: relative; padding-right: 22px; }
+.hvst-badge .star, .sr-badge .star { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); opacity: .35; pointer-events: none; }
+.hvst-badge.priority .star, .sr-badge.priority .star { opacity: 1; }
+.hvst-badge.priority, .sr-badge.priority { border-color: #f7d23e !important; box-shadow: 0 0 0 1px rgba(247,210,62,.25), inset 0 0 8px rgba(247,210,62,.18); }
+</style>
+<style>
+/* === TEMP: hide miniMap === */
+#miniMap, .miniMap, #minimap, .minimap,
+[id*="miniMap"], [class*="miniMap"], [id*="minimap"], [class*="minimap"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+</style>
 </head>
 <body>
 <div class="container" id="app">
@@ -2913,7 +2928,6 @@ html, body { overflow-x: hidden; }
 <i class="fas fa-tractor"></i> Send harvester
                     </button>
 </div>
-<h3 class="section-title" style="margin-top: 10px;">Active missions</h3>
 <!-- Mission modal wrapper: shows the mission card as an overlay when scanning -->
 <div class="mission-modal" id="mission-modal">
 <div class="mission-card" id="probe-mission">
@@ -4549,7 +4563,7 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
     
     // Список бейджей
     const html = items.map(it => 
-        `<span class="sr-badge info">${it.amount} ${resourceNames[it.type] || it.type}</span>`
+        `<span class="sr-badge info" data-type="${it.type}" data-priority="0" title="Кликните, чтобы отметить как приоритет для загрузки">${it.amount} ${resourceNames[it.type] || it.type}<i class="fa fa-star star"></i></span>`
     ).join(' ');
     
     document.getElementById('result-resources').innerHTML = html;
@@ -4601,7 +4615,19 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
         };
 
         if (Array.isArray(res)) {
-            for (const entry of res) {
+            const pri = (gameState.missions && Array.isArray(gameState.missions.priorityTypes)) ? gameState.missions.priorityTypes : [];
+            const ordered = pri.length ? res.slice().sort((a,b)=>{
+                const at = String(a.type).toLowerCase();
+                const bt = String(b.type).toLowerCase();
+                const ai = pri.indexOf(at);
+                const bi = pri.indexOf(bt);
+                const av = (ai === -1) ? 1 : 0;
+                const bv = (bi === -1) ? 1 : 0;
+                if (av !== bv) return av - bv; // prioritized first
+                if (ai !== bi) return ai - bi; // preserve order within priorities
+                return 0;
+            }) : res;
+            for (const entry of ordered) {
                 if (remaining <= 0) break;
                 takeFrom(entry);
             }
@@ -6360,7 +6386,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- Mini-map container -->
-// <div id="miniMapWrap"><canvas id="miniMap" width="120" height="120"></canvas></div> //
+<div id="miniMapWrap"><canvas id="miniMap" width="120" height="120"></canvas></div>
 <script>
 (function(){
   // LocalStorage keys
@@ -10149,16 +10175,16 @@ document.addEventListener('click', function(e){
       <span class="hvst-tag good" title="Количество успешно завершённых рейсов"><i class="fa fa-rotate"></i> Рейсы: <strong id="hvstTrips">0</strong></span>
       <span class="hvst-tag warn" title="Лор: чтобы не привлечь рейдеров, нельзя часто сканировать одну точку."><i class="fa fa-user-ninja"></i> Маскировка активна</span>
       <div class="hvst-actions">
-        <button class="hvst-btn" id="hvstResetTrip"><i class="fa fa-house"></i> Забрать остатки с точки</button>
-        <button class="hvst-btn primary" id="hvstHeal"><i class="fa fa-screwdriver-wrench"></i> Ремонт(10🛠️→ +20 HP)</button>
+        <button class="hvst-btn" id="hvstResetTrip"><i class="fa fa-house"></i>Забрать остатки с точки</button>
+        <button class="hvst-btn primary" id="hvstHeal"><i class="fa fa-screwdriver-wrench"></i> Ремонт дрона (+10%)</button>
       </div>
     `;
     const scanBtn = host.querySelector('#scan-btn');
-    if (scanBtn) {
-      scanBtn.insertAdjacentElement('afterend', hud);
-    } else {
-      host.prepend(hud);
-    }
+        if (scanBtn) {
+          scanBtn.insertAdjacentElement('afterend', hud);
+        } else {
+          host.prepend(hud);
+        }
     el('#hvstResetTrip').addEventListener('click', () => {
       // When the player returns to base, attempt to perform a harvest on any
       // scanned mission resources before resetting the harvester HUD.  The
@@ -10286,7 +10312,7 @@ document.addEventListener('click', function(e){
       const resourceNames = { bio:'Biomaterials 🧪', parts:'Parts 🛠️', mvc:'MVC', oxygen:'Oxygen O₂', ice:'Ice ❄️', polymers:'Polymers', rare:'Rare earths' };
       const resourcesHtml = items.map(it => {
         const name = resourceNames[it.type] || it.type;
-        return `<span class="hvst-badge info">${it.amount} ${name}</span>`;
+        return `<span class="hvst-badge info" data-type="${it.type}" data-priority="0" title="Кликните, чтобы отметить как приоритет для загрузки">${it.amount} ${name}<i class="fa fa-star star"></i></span>`;
       }).join(' ');
       const riskStr = typeof sd.risk === 'number' || typeof sd.risk === 'string' ? `${sd.risk}%` : '—';
       // Build body: show sector id/belt if available, risk and resources
@@ -10613,5 +10639,65 @@ document.addEventListener('click', function(e){
       }, 0);
     };
   } catch(_) {}
+})();
+</script>
+
+
+<script id="hvst-priority-script">
+(function(){
+  if (window.__hvstPriorityInit) return; window.__hvstPriorityInit = true;
+  document.addEventListener('click', function(e){
+    const badge = e.target.closest('.hvst-badge[data-type], .sr-badge[data-type]');
+    if (!badge) return;
+    const on = (badge.dataset.priority === '1') ? '0' : '1';
+    badge.dataset.priority = on;
+    badge.classList.toggle('priority', on === '1');
+
+    const selected = Array.from(document.querySelectorAll('.hvst-badge[data-type][data-priority="1"], .sr-badge[data-type][data-priority="1"]'))
+      .map(el => String(el.dataset.type).toLowerCase());
+
+    const uniq = [];
+    for (const t of selected) if (!uniq.includes(t)) uniq.push(t);
+    try {
+      if (!window.gameState) window.gameState = {};
+      if (!window.gameState.missions) window.gameState.missions = {};
+      window.gameState.missions.priorityTypes = uniq;
+    } catch(_) {}
+  }, false);
+})();
+</script>
+
+
+<script id="hide-minimap-guard">
+(function(){
+  if (window.__hideMiniMapGuard) return; window.__hideMiniMapGuard = true;
+  function hideMiniMap(){
+    const nodes = document.querySelectorAll(
+      '#miniMap, .miniMap, #minimap, .minimap, [id*="miniMap"], [class*="miniMap"], [id*="minimap"], [class*="minimap"]'
+    );
+    nodes.forEach(n => { n.style.display='none'; n.style.visibility='hidden'; n.setAttribute('aria-hidden','true'); });
+  }
+  hideMiniMap();
+  new MutationObserver(hideMiniMap).observe(document.documentElement, {childList:true, subtree:true});
+})();
+</script>
+
+
+<script id="hvst-hud-relocator">
+(function(){
+  if (window.__hvstHudRelocator) return; window.__hvstHudRelocator = true;
+  function relocate(){
+    var host = document.querySelector('#map-screen, #scanner-host, .scanner-host, body');
+    var hud = document.querySelector('#hvst-hud, .hvst-hud');
+    var btn = host ? host.querySelector('#scan-btn') : document.querySelector('#scan-btn');
+    if (host && hud && btn && btn.nextElementSibling !== hud) {
+      btn.insertAdjacentElement('afterend', hud);
+    }
+  }
+  relocate();
+  var mo = new MutationObserver(function(){ relocate(); });
+  mo.observe(document.documentElement, {childList:true, subtree:true});
+  window.addEventListener('load', relocate);
+  document.addEventListener('DOMContentLoaded', relocate);
 })();
 </script>
