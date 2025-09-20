@@ -1990,6 +1990,8 @@ body.modal-open {
 .main-content{
   padding-bottom: calc(var(--bottombar-h) + var(--menu-gap)) !important;
 }
+
+#solar-modal .status-sub{ margin-top:4px; font-size:12px; color:#a0a0d0; }
 </style>
 <!-- Drone UI styles -->
 <style>
@@ -3554,6 +3556,7 @@ html, body { overflow-x: hidden; }
         <div class="status-card">
           <div class="status-title">Батарея</div>
           <div class="status-value" id="solar-modal-batt">60%</div>
+  <div class="status-sub" id="solar-modal-batt-abs">—/— ⚡</div>
         </div>
         <div class="status-card">
           <div class="status-title">Состояние массива</div>
@@ -7130,7 +7133,8 @@ if (rest > 0) { updateResource('energy', rest); }
   function updateModal(){
     const effEl  = document.getElementById('solar-modal-eff');
     const battEl = document.getElementById('solar-modal-batt');
-    const condEl = document.getElementById('solar-modal-cond');
+    
+  const battAbsEl = document.getElementById('solar-modal-batt-abs');const condEl = document.getElementById('solar-modal-cond');
     const outEl  = document.getElementById('solar-modal-out');
     const prgEl  = document.getElementById('solar-modal-progress');
 
@@ -7173,7 +7177,15 @@ if (rest > 0) { updateResource('energy', rest); }
     condEl && (condEl.textContent = Math.round(S.condition) + '%');
     outEl  && (outEl.textContent  = outNow);
     prgEl  && (prgEl.style.width  = effPct + '%');
-  }
+  
+
+// Update absolute battery readout
+if (typeof battAbsEl !== 'undefined' && battAbsEl) {
+  const cur = Math.floor((S && S.battery) ? S.battery : 0).toLocaleString('ru-RU');
+  const cap = Math.floor((S && S.batteryCap) ? S.batteryCap : 0).toLocaleString('ru-RU');
+  battAbsEl.textContent = `${cur}/${cap} ⚡`;
+}
+}
   
   // --- Environment update ---
   function updateSolarEnv(){
