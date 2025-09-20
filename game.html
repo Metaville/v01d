@@ -9546,9 +9546,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 
   // Попросить полноэкранный режим (убирает верх/низ Telegram)
+  try {
   if (typeof tg.requestFullscreen === 'function') {
-    tg.requestFullscreen().catch(console.warn);
+    var __p = tg.requestFullscreen();
+    if (__p && typeof __p.catch === 'function') { __p.catch(function(err){ console.warn(err); }); }
   }
+} catch(err) { console.warn(err); }
 
   // По желанию — фиксируем ориентацию
   if (typeof tg.lockOrientation === 'function') {
@@ -9930,25 +9933,21 @@ document.addEventListener('click', (e)=>{
 </script>
 
 <script id="su-upgrade-hijack">
+// Safe hook for the solar upgrade button: don't block the native handler.
 (function(){
-  function handler(ev){
-    var trg = ev.target && (ev.target.closest ? ev.target.closest('#solar-btn-upgrade') : null);
-    if (trg){
-      ev.preventDefault(); ev.stopImmediatePropagation(); ev.stopPropagation();
-      try { window.__suOpenUpgradeModal && window.__suOpenUpgradeModal(); } catch(e){}
-      return false;
-    }
+  const BTN_ID = 'solar-btn-upgrade';
+  function attach(){
+    const btn = document.getElementById(BTN_ID);
+    if (!btn) return;
+    // Remove any inline onclick from previous patches
+    if (btn.onclick) btn.onclick = null;
+    // Add a non-blocking listener that opens extra modal (if present)
+    btn.addEventListener('click', function(){
+      try { if (window.__suOpenUpgradeModal) window.__suOpenUpgradeModal(); } catch(e) {}
+    }, {capture:false});
   }
-  document.addEventListener('click', handler, true);
-  document.addEventListener('touchstart', handler, true);
-  function patch(){
-    var b = document.getElementById('solar-btn-upgrade');
-    if (b){
-      b.onclick = function(e){ if (e && e.preventDefault) e.preventDefault(); try{ window.__suOpenUpgradeModal(); }catch(err){} return false; };
-    }
-  }
-  patch();
-  try{ new MutationObserver(patch).observe(document.body, {subtree:true, childList:true}); }catch(e){}
+  attach();
+  try { new MutationObserver(attach).observe(document.body, {subtree:true, childList:true}); } catch(e) {}
 })();
 </script>
 <script>
@@ -10175,7 +10174,7 @@ document.addEventListener('click', function(e){
       <span class="hvst-tag good" title="Количество успешно завершённых рейсов"><i class="fa fa-rotate"></i> Рейсы: <strong id="hvstTrips">0</strong></span>
       <span class="hvst-tag warn" title="Лор: чтобы не привлечь рейдеров, нельзя часто сканировать одну точку."><i class="fa fa-user-ninja"></i> Маскировка активна</span>
       <div class="hvst-actions">
-        <button class="hvst-btn" id="hvstResetTrip"><i class="fa fa-house"></i>  Забрать остатки с точки сканирования  </button>
+        <button class="hvst-btn" id="hvstResetTrip"><i class="fa fa-house"></i>Забрать остатки с точки</button>
         <button class="hvst-btn primary" id="hvstHeal"><i class="fa fa-screwdriver-wrench"></i> Ремонт дрона (+10%)</button>
       </div>
     `;
