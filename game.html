@@ -11443,3 +11443,295 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
 
 })(); 
 </script>
+
+<!-- === Metaville: ED/XP/Harvester enhancements === -->
+<script id="mv-stats-integration-adv">
+(function(){
+  if (window.__mvStatsAdvInit) return; window.__mvStatsAdvInit = true;
+  const safe = (fn)=>{ try{ return fn(); }catch(e){} };
+  const getStats = ()=> (window.gameState && gameState.player && gameState.player.stats) ? gameState.player.stats : { firepower:0, status:0, energy:0, defense:0, health:0 };
+  const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
+
+  // --- Helper: apply ED mitigation to any *event* loss and show a toast
+  window.applyEventLoss = function(resource, baseLoss, reason){
+    const stats = getStats();
+    const ed = +stats.defense||0;
+    const fp = +stats.firepower||0;
+    const edMit = (window.StatModifiers && StatModifiers.lossMitigation)? StatModifiers.lossMitigation(ed) : Math.min(0.50, ed*0.01);
+    const fpMit = (window.StatModifiers && StatModifiers.riskReduction)? StatModifiers.riskReduction(fp) : Math.min(0.40, fp*0.008);
+    const totalMit = 1 - (1 - edMit) * (1 - fpMit);   // combine multiplicatively
+    const finalLoss = Math.max(1, Math.ceil(baseLoss * (1 - totalMit)));
+    const saved = baseLoss - finalLoss;
+    const ok = (typeof window.updateResource === 'function') ? updateResource(resource, -finalLoss) : false;
+    const RUS = { oxygen:'O₂', energy:'⚡', mvc:'MVC', bio:'Bio', parts:'Parts', ice:'Ice', polymers:'Polymers', rare:'Rare' };
+    if (ok && saved>0 && typeof window.showNotification==='function'){
+      showNotification(`${reason||'Потери'}: -${finalLoss} ${RUS[resource]||resource} (смягчено на ${Math.round(totalMit*100)}% от ED/FP)`, false);
+    }
+    return ok;
+  };
+
+  // --- Harvester: post-process after performScan to apply ED/FP on *lost* and EN on O2 cost
+  (function hookHvstScan(){
+    // Use capturing to snapshot BEFORE onclick handler inside the harvester script runs
+    document.addEventListener('click', function onCap(e){
+      const btn = e.target.closest('#hvstScanBtn');
+      if (!btn) return;
+      const st = (window.state && state.harvester) ? state.harvester : null;
+      const p  = window.currentHvstPoint || null;
+      if (!st || !p) return;
+      // Snapshot pre-scan state
+      const pre = {
+        cargo: +st.cargo || 0,
+        o2: +st.o2used || 0,
+        hp: +st.droneHP || 0,
+        left: +p.left || 0,
+        cap: +st.capacity || 0
+      };
+      // Defer post-processing after original click handler finishes
+      setTimeout(function(){
+        try{
+          const stats = getStats();
+          const enRed = (window.StatModifiers && StatModifiers.energyCostReduction) ? StatModifiers.energyCostReduction(stats.energy||0) : Math.min(0.30, (stats.energy||0)*0.01);
+          const edMit = (window.StatModifiers && StatModifiers.lossMitigation) ? StatModifiers.lossMitigation(stats.defense||0) : Math.min(0.50, (stats.defense||0)*0.01);
+          const fpMit = (window.StatModifiers && StatModifiers.riskReduction) ? StatModifiers.riskReduction(stats.firepower||0) : Math.min(0.40, (stats.firepower||0)*0.008);
+          const st2 = (window.state && state.harvester) ? state.harvester : null;
+          if (!st2) return;
+          const p2 = window.currentHvstPoint || null;
+
+          const cargoDelta = (+st2.cargo||0) - pre.cargo;
+          const o2Delta    = (+st2.o2used||0) - pre.o2;
+          const hpDrop     = pre.hp - (+st2.droneHP||0);
+          const idealChunk = Math.max(0, Math.min(pre.cap - pre.cargo, pre.left));
+          const lost = Math.max(0, idealChunk - Math.max(0,cargoDelta));
+
+          // --- Apply EN: reduce O2 used this scan
+          if (o2Delta > 0 && enRed > 0){
+            const save = Math.round(o2Delta * enRed);
+            st2.o2used = Math.max(pre.o2, (+st2.o2used||0) - save);
+            safe(()=> showNotification(`Экономия O₂: -${save} (${Math.round(enRed*100)}% от EN)`, true));
+          }
+
+          // --- Apply ED+FP: recover part of 'lost' as cargo, respecting capacity and remaining resources
+          if (lost > 0 && (edMit > 0 || fpMit > 0) && p2){
+            const totalMit = 1 - (1 - edMit) * (1 - fpMit);
+            let rec = Math.floor(lost * totalMit);
+            // Respect capacity and available resources on point
+            const freeNow = Math.max(0, (+st2.capacity||0) - (+st2.cargo||0));
+            rec = Math.max(0, Math.min(rec, freeNow, (+p2.left||0)));
+            if (rec > 0){
+              st2.cargo += rec;
+              p2.left = Math.max(0, (+p2.left||0) - rec);
+              safe(()=> showNotification(`Потери смягчены: +${rec} (ED/FP ${Math.round(totalMit*100)}%)`, true));
+            }
+          }
+
+          // --- Apply FP: reduce drone damage by part of drop
+          if (hpDrop > 0 && fpMit > 0){
+            const restore = Math.max(0, Math.floor(hpDrop * fpMit));
+            if (restore > 0){
+              st2.droneHP = clamp((+st2.droneHP||0) + restore, 0, 100);
+              safe(()=> showNotification(`Повреждения снижены: +${restore}% HP (FP)`, true));
+            }
+          }
+
+          // Update HUD if available
+          safe(()=> typeof refreshHud==='function' && refreshHud());
+        }catch(_){}
+      }, 0);
+    }, true);
+  })();
+
+  // --- XP hooks: market buy/sell
+  (function xpMarket(){
+    function getQtyFromRow(row){
+      if (!row) return 1;
+      const qtyEl = row.querySelector('input[type="number"], [data-qty]');
+      let q = 1;
+      if (qtyEl) q = parseInt(qtyEl.value || qtyEl.textContent || '1', 10) || 1;
+      return Math.max(1, q);
+    }
+    document.addEventListener('click', function(e){
+      const buyBtn = e.target.closest('[data-action="buy"], .buy-btn');
+      if (!buyBtn) return;
+      const row = buyBtn.closest('[data-resource]') || buyBtn.closest('.market-row');
+      const res = row && row.dataset.resource;
+      const qty = getQtyFromRow(row);
+      const preRes = (res && gameState?.resources && typeof gameState.resources[res]==='number') ? gameState.resources[res] : null;
+      const preMvc = gameState?.resources?.mvc;
+      setTimeout(function(){
+        try{
+          const postRes = (res && gameState?.resources && typeof gameState.resources[res]==='number') ? gameState.resources[res] : null;
+          const postMvc = gameState?.resources?.mvc;
+          const ok = (postMvc < preMvc) && (postRes !== null && postRes > preRes);
+          if (ok && window.LevelSystem){ LevelSystem.addXP(Math.max(1, qty*2)); }
+        }catch(_){}
+      }, 0);
+    }, false);
+
+    document.addEventListener('click', function(e){
+      const sellBtn = e.target.closest('[data-action="sell"], .sell-btn');
+      if (!sellBtn) return;
+      const row = sellBtn.closest('[data-resource]') || sellBtn.closest('.market-row');
+      const res = row && row.dataset.resource;
+      const qty = getQtyFromRow(row);
+      const preRes = (res && gameState?.resources && typeof gameState.resources[res]==='number') ? gameState.resources[res] : null;
+      const preMvc = gameState?.resources?.mvc;
+      setTimeout(function(){
+        try{
+          const postRes = (res && gameState?.resources && typeof gameState.resources[res]==='number') ? gameState.resources[res] : null;
+          const postMvc = gameState?.resources?.mvc;
+          const ok = (postMvc > preMvc) && (postRes !== null && postRes < preRes);
+          if (ok && window.LevelSystem){ LevelSystem.addXP(Math.max(1, qty)); }
+        }catch(_){}
+      }, 0);
+    }, false);
+  })();
+
+  // --- XP hooks: research buttons (radiation/engine/solar upgrade)
+  (function xpResearch(){
+    function addXPDeferred(xp){ setTimeout(()=>{ try{ window.LevelSystem && LevelSystem.addXP(xp); }catch(_){}} ,0); }
+    document.addEventListener('click', function(e){
+      if (e.target?.id === 'radiation-btn'){
+        const pre = gameState?.research?.radiation||0;
+        setTimeout(()=>{
+          try{
+            const post = gameState?.research?.radiation||0;
+            if (post > pre) addXPDeferred(20);
+          }catch(_){}
+        },0);
+      }
+      if (e.target?.id === 'engine-btn'){
+        const pre = !!(gameState?.research?.engines);
+        setTimeout(()=>{
+          try{
+            const post = !!(gameState?.research?.engines);
+            if (post && !pre) addXPDeferred(50);
+          }catch(_){}
+        },0);
+      }
+      if (e.target?.id === 'solar-upgrade-confirm'){
+        const preMvc = gameState?.resources?.mvc||0;
+        setTimeout(()=>{
+          try{
+            const postMvc = gameState?.resources?.mvc||0;
+            if (postMvc < preMvc) addXPDeferred(15);
+          }catch(_){}
+        },0);
+      }
+    }, false);
+  })();
+
+})(); 
+</script>
+
+<!-- === Metaville: Notifications on top of everything === -->
+
+
+
+<!-- === Metaville: Notifications on top of everything (dedup + single-source) === -->
+<style id="mv-toast-overlay-css">
+  /* Always on top */
+  .notification,
+  #mv-toast,
+  .mv-toast-fixed {
+    position: fixed !important;
+    z-index: 2147483647 !important;
+  }
+  /* Do not block clicks underneath */
+  .notification,
+  #mv-toast,
+  .mv-toast-fixed {
+    pointer-events: none !important;
+  }
+  /* Hide legacy single-banner if any script still creates it directly */
+  #mv-toast:not(.mv-allow) { display: none !important; }
+
+  /* Top-right stack */
+  #mv-toast-stack {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2147483647;
+    pointer-events: none;
+  }
+  #mv-toast-stack .notification {
+    width: auto;
+    max-width: min(560px, 92vw);
+    left: auto !important;
+    right: 0 !important;
+    top: 0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    padding: 12px 14px;
+  }
+</style>
+<script id="mv-toast-overlay-js">
+(function(){
+  if (window.__mvToastTopInit) return; window.__mvToastTopInit = true;
+
+  // ensure stack container
+  function ensureStack(){
+    var stack = document.getElementById('mv-toast-stack');
+    if (!stack){
+      stack = document.createElement('div');
+      stack.id = 'mv-toast-stack';
+      document.body.appendChild(stack);
+    }
+    return stack;
+  }
+
+  // simple dedupe within a short window
+  var _recent = [];
+  function seenRecently(key){
+    var now = Date.now();
+    _recent = _recent.filter(function(x){ return (now - x.t) < 1200; });
+    var hit = _recent.some(function(x){ return x.k === key; });
+    if (!hit) _recent.push({ k: key, t: now });
+    return hit;
+  }
+
+  function pushToast(kind, htmlOrText, ms){
+    var key = (kind||'') + '|' + (htmlOrText||'').toString().trim();
+    if (seenRecently(key)) return; // DROP DUPLICATE
+    var stack = ensureStack();
+    var el = document.createElement('div');
+    el.className = 'notification ' + (kind||'info') + ' mv-toast-fixed';
+    if (/<[a-z][\s\S]*>/i.test(htmlOrText||'')) el.innerHTML = htmlOrText;
+    else el.textContent = htmlOrText;
+    stack.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('show'); });
+    setTimeout(function(){
+      el.classList.remove('show');
+      setTimeout(function(){ el.remove(); }, 400);
+    }, Math.max(1500, ms||2500));
+  }
+
+  // Replace showNotification/notify with *single* source of truth.
+  // Do NOT call originals to avoid double rendering.
+  try {
+    window.showNotification = function(text, ok){
+      pushToast(ok ? 'success':'error', text, 2600);
+    };
+  } catch(_) {}
+
+  try {
+    window.notify = function(type, text){
+      pushToast(type||'info', text, 2600);
+    };
+  } catch(_){}
+
+  // Hoist legacy #mv-toast into our stack if created elsewhere, but keep it hidden
+  document.addEventListener('DOMNodeInserted', function(ev){
+    var n = ev.target;
+    if (n && n.id === 'mv-toast' && !n.__mvHoisted){
+      n.__mvHoisted = true;
+      ensureStack().appendChild(n);
+      n.classList.add('mv-toast-fixed');
+      n.classList.remove('show');
+    }
+  }, false);
+})();
+</script>
