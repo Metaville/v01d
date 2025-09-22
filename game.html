@@ -11167,3 +11167,279 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
 })();
 </script>
 
+
+<!-- === Metaville: Stats & Modifiers Integration (drop-in) === -->
+<script id="mv-stats-integration">
+(function(){
+  if (window.__mvStatsInit) return; window.__mvStatsInit = true;
+
+  // --- Persistence & bootstrap ---
+  const STORE = 'mv_player_stats_v1';
+  const DEFAULT = {
+    level: 1, exp: 0, maxExp: 100, statPoints: 5,
+    stats: { firepower: 10, status: 10, energy: 10, defense: 10, health: 10 }
+  };
+  function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+  function load(){
+    try{
+      const raw = JSON.parse(localStorage.getItem(STORE)||'{}');
+      const merged = deepClone(DEFAULT);
+      merged.level      = raw.level      ?? DEFAULT.level;
+      merged.exp        = raw.exp        ?? DEFAULT.exp;
+      merged.maxExp     = raw.maxExp     ?? DEFAULT.maxExp;
+      merged.statPoints = raw.statPoints ?? DEFAULT.statPoints;
+      merged.stats = Object.assign({}, DEFAULT.stats, raw.stats||{});
+      return merged;
+    }catch(e){ return deepClone(DEFAULT); }
+  }
+  function save(p){ try{ localStorage.setItem(STORE, JSON.stringify(p)); }catch(e){} }
+
+  let player = load();
+  window.mvPlayerStats = player; // debug hook
+
+  // Attach into existing gameState
+  if (!window.gameState) window.gameState = {};
+  if (!gameState.player) gameState.player = {};
+  gameState.player.level      = player.level;
+  gameState.player.exp        = player.exp;
+  gameState.player.maxExp     = player.maxExp;
+  gameState.player.statPoints = player.statPoints;
+  gameState.player.stats      = player.stats;
+
+  // --- Modifiers ---
+  const StatModifiers = {
+    energyCostReduction: (en) => Math.min(0.30, (en|0) * 0.01),       // up to -30%
+    riskReduction:       (fp) => Math.min(0.40, (fp|0) * 0.008),      // up to -40%
+    priceMult:           (ht) => 1 - Math.min(0.15, (ht|0) * 0.003),  // up to -15%
+    regenFactor:         (hp) => 1 + ((hp|0) / 100),                  // +% to rest regen
+    lossMitigation:      (ed) => Math.min(0.50, (ed|0) * 0.01)        // up to -50% (optional)
+  };
+  window.StatModifiers = StatModifiers;
+
+  // --- Leveling (minimal, XP hooks can be added as needed) ---
+  const LevelSystem = {
+    addXP(amount){
+      amount = Math.max(0, Math.floor(amount||0));
+      player.exp += amount;
+      gameState.player.exp = player.exp;
+      while (player.exp >= player.maxExp){
+        player.exp -= player.maxExp;
+        player.level += 1;
+        player.statPoints += 3;
+        gameState.player.level = player.level;
+        gameState.player.statPoints = player.statPoints;
+        gameState.player.maxExp = player.maxExp = Math.round(player.maxExp * 1.25);
+        if (typeof showNotification === 'function') showNotification(`🎉 Уровень ${player.level}! +3 очка характеристик`, true);
+      }
+      save(player);
+    }
+  };
+  window.LevelSystem = LevelSystem;
+
+  // Award a little XP when scan results modal opens (demonstration)
+  (function hookScanXP(){
+    const hook = function(){
+      if (typeof window.showScanResultModal !== 'function') return false;
+      const orig = window.showScanResultModal;
+      window.showScanResultModal = function(sectorData, resourceOrArray, resourceAmount){
+        try { LevelSystem.addXP(25); } catch(e) {}
+        return orig.apply(this, arguments);
+      };
+      return true;
+    };
+    if (!hook()){
+      const t = setInterval(()=>{ if (hook()) clearInterval(t); }, 300);
+    }
+  })();
+
+  // --- Hook updateResource to reduce ENERGY spend with EN ---
+  (function hookUpdateResource(){
+    if (typeof window.updateResource !== 'function') return;
+    const orig = window.updateResource;
+    window.updateResource = function(resource, delta){
+      let d = delta;
+      if (resource === 'energy' && typeof delta === 'number' && delta < 0){
+        const r = StatModifiers.energyCostReduction(gameState.player.stats.energy||0);
+        const base = Math.abs(delta);
+        d = -Math.max(1, Math.floor(base * (1 - r)));
+        // Try to surface info near scan/harvest cost hint
+        try{
+          const hintEl = document.getElementById('result-cost');
+          if (hintEl && base !== Math.abs(d)){
+            const pct = Math.round(r*100);
+            if (!/EN\)/.test(hintEl.textContent)){
+              hintEl.innerHTML = hintEl.innerHTML + ` <span style="font-size:12px;opacity:.8">(-${pct}% EN)</span>`;
+            }
+          }
+        }catch(e){}
+      }
+      return orig.apply(this, [resource, d]);
+    };
+  })();
+
+  // --- Reduce scan risk with FP by wrapping startScanning ---
+  (function hookStartScanning(){
+    const wrap = function(){
+      if (typeof window.startScanning !== 'function') return false;
+      const orig = window.startScanning;
+      window.startScanning = function(sd){
+        try{
+          const fp = (gameState.player.stats.firepower||0);
+          const red = StatModifiers.riskReduction(fp);
+          const map = { low:10, medium:25, high:45 };
+          const baseNum = (typeof sd.risk === 'number') ? sd.risk :
+                          (sd && map[String(sd.risk).toLowerCase()]) ?? (+sd.risk||15);
+          const newRisk = Math.max(5, Math.round(baseNum * (1 - red)));
+          // store for UI
+          if (!gameState.missions) gameState.missions = {};
+          gameState.missions.risk = newRisk;
+          // also pass a cloned object to keep UI consistent
+          const patched = Object.assign({}, sd, { risk: newRisk });
+          return orig.call(this, patched);
+        }catch(e){
+          return orig.apply(this, arguments);
+        }
+      };
+      return true;
+    };
+    if (!wrap()){
+      const t = setInterval(()=>{ if (wrap()) clearInterval(t); }, 300);
+    }
+  })();
+
+  // --- Clarify risk & EN bonus in scan-result modal UI ---
+  (function improveScanResultUI(){
+    const hook = function(){
+      if (typeof window.showScanResultModal !== 'function') return false;
+      const orig = window.showScanResultModal;
+      window.showScanResultModal = function(sectorData, resourceOrArray, resourceAmount){
+        const res = orig.apply(this, arguments);
+        try{
+          const base = (typeof sectorData.risk === 'number') ? sectorData.risk : (+sectorData.risk||sectorData.risk);
+          const mod = (gameState.missions && gameState.missions.risk) || base;
+          const el = document.getElementById('result-risk');
+          if (el && typeof base === 'number' && typeof mod === 'number'){
+            const diff = base - mod;
+            el.textContent = `${mod}%` + (diff>0 ? ` (Base: ${base}%, FP: -${diff}%)` : '');
+          }
+          // Cost line is static in HTML; EN bonus tag is injected by updateResource hook on dispatch.
+        }catch(e){}
+        return res;
+      };
+      return true;
+    };
+    if (!hook()){
+      const t = setInterval(()=>{ if (hook()) clearInterval(t); }, 300);
+    }
+  })();
+
+  // --- Apply Status (HT) to vendor discounts ---
+  (function hookVendorDiscount(){
+    const rep = window.reputationSystem;
+    if (!rep || typeof rep.applyDiscount !== 'function') return;
+    const orig = rep.applyDiscount.bind(rep);
+    rep.applyDiscount = function(vendor, price){
+      // base reputation discount first
+      const p = orig(vendor, price);
+      // additional status-based discount
+      const ht = gameState?.player?.stats?.status || 0;
+      const mult = StatModifiers.priceMult(ht);
+      return Math.max(1, Math.round(p * mult));
+    };
+  })();
+
+  // --- Make Rest regen scale with HP ---
+  (function hookRest(){
+    if (typeof window.startRest !== 'function') return;
+    const orig = window.startRest;
+    window.startRest = function(){
+      if (gameState.player?.isResting) { try{ showNotification('You are already resting!', false);}catch(e){} return; }
+      if (gameState.resources.energy >= 1000){ try{ showNotification('Your energy is already full!', false);}catch(e){} return; }
+      gameState.player.isResting = true;
+      const btn = document.getElementById('rest-button');
+      if (btn){ btn.disabled = true; btn.innerHTML = '<i class="fas fa-hourglass-half"></i> Resting.'; }
+      const restTime = 8, tickMs = 1000;
+      let left = restTime;
+      const basePerSec = 1000/restTime;
+      const factor = StatModifiers.regenFactor(gameState.player.stats.health||0);
+      const perSec = Math.ceil(basePerSec * factor);
+      const interval = setInterval(()=>{
+        left--;
+        const prog = ((restTime-left)/restTime)*100;
+        gameState.player.restProgress = prog;
+        const fill = document.getElementById('rest-progress-fill'); if (fill) fill.style.width = prog+'%';
+        const tEl  = document.getElementById('rest-time'); if (tEl) tEl.textContent = Math.round(prog)+'%';
+        const st   = document.getElementById('rest-status'); if (st) st.textContent = `Rest: ${restTime-left}/${restTime} sec`;
+        if (left <= 0){
+          clearInterval(interval);
+          gameState.resources.energy = Math.min(1000, gameState.resources.energy + perSec);
+          gameState.player.isResting = false;
+          const rb = document.getElementById('rest-button');
+          if (rb){ rb.disabled = false; rb.innerHTML = '<i class="fas fa-bed"></i> Rest (8 hours)'; }
+          const rs = document.getElementById('rest-status'); if (rs) rs.textContent = "Rest complete!";
+          try { showNotification(`Восстановлено: +${perSec} ⚡ (+${Math.round((factor-1)*100)}% от HP)`, true); } catch(e){}
+          try { updateUI(); } catch(e){}
+          setTimeout(()=>{ const m = document.getElementById('rest-modal'); if (m) m.classList.remove('active'); }, 2000);
+        }
+      }, tickMs);
+    };
+  })();
+
+  // --- Profile: render stats cards with [+] ---
+  function renderProfileStats(){
+    const grid = document.querySelector('#profile-modal .stats-grid');
+    if (!grid) return;
+    const icons  = { firepower:'fa-crosshairs', status:'fa-star', energy:'fa-bolt', defense:'fa-shield-alt', health:'fa-heart' };
+    const labels = { firepower:'FP', status:'HT', energy:'EN', defense:'ED', health:'HP' };
+    const desc   = {
+      firepower:'Снижает риск сканирования и поломок.',
+      status:'Скидки у продавцов и выгодные сделки.',
+      energy:'Снижает расход ⚡ при действиях.',
+      defense:'Смягчает потери при негативных событиях.',
+      health:'Быстрее отдых (восстановление ⚡).'
+    };
+    grid.innerHTML = '';
+    const header = document.createElement('div');
+    header.className = 'stat-header';
+    header.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><strong>Очки характеристик:</strong> <span id="stat-points">${gameState.player.statPoints||0}</span></div>
+      <div style="font-size:12px;opacity:.8">Наведи на стат для описания</div>
+    </div>`;
+    grid.appendChild(header);
+    Object.keys(labels).forEach(k=>{
+      const card = document.createElement('div');
+      card.className = 'stat-card';
+      card.innerHTML = `
+        <div class="stat-icon"><i class="fas ${icons[k]}"></i></div>
+        <div class="stat-info">
+          <div class="stat-title">${labels[k]}</div>
+          <div class="stat-desc">${desc[k]}</div>
+        </div>
+        <div class="stat-value" data-k="${k}">${gameState.player.stats[k]}</div>
+        <button class="stat-plus" data-stat="${k}" ${ (gameState.player.statPoints||0) ? '' : 'disabled' }>+</button>
+      `;
+      grid.appendChild(card);
+    });
+    grid.addEventListener('click', function(e){
+      const btn = e.target.closest('.stat-plus'); if (!btn) return;
+      const stat = btn.dataset.stat;
+      if ((gameState.player.statPoints||0) <= 0) return;
+      gameState.player.statPoints -= 1;
+      gameState.player.stats[stat] = (gameState.player.stats[stat]||0) + 1;
+      // persist mirror
+      player.level = gameState.player.level;
+      player.exp = gameState.player.exp;
+      player.maxExp = gameState.player.maxExp;
+      player.statPoints = gameState.player.statPoints;
+      player.stats = gameState.player.stats;
+      save(player);
+      renderProfileStats();
+      try { updateUI(); } catch(e){}
+      try { showNotification(`+1 к ${stat.toUpperCase()}`, true); } catch(e){}
+    }, { passive:true });
+  }
+
+  document.addEventListener('DOMContentLoaded', renderProfileStats);
+
+})(); 
+</script>
