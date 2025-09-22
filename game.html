@@ -1992,59 +1992,6 @@ body.modal-open {
 }
 
 #solar-modal .status-sub{ margin-top:4px; font-size:12px; color:#a0a0d0; }
-
-/* ==== GREENHOUSE (v1 skeleton) ==== */
-.gh-layout{ display:grid; grid-template-columns: 1.3fr .9fr; gap:14px; margin-top:14px; }
-.gh-beds{ display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
-.gh-bed-card{
-  background: rgba(20,25,40,.7);
-  border:1px solid #3a3a5a;
-  border-radius:12px; padding:10px;
-  cursor:pointer;
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-.gh-bed-card:hover{ transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,0,0,.35); }
-.gh-bed-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
-.gh-bed-icon{ font-size:18px; }
-.gh-bed-name{ font-weight:700; font-size:14px; color:#e6ecff; }
-.gh-indicators{ display:flex; gap:6px; font-size:12px; color:#aab0ff; }
-.gh-pill{ padding:2px 8px; border-radius:9999px; border:1px solid #2b2f45; background:#181c2f; }
-.gh-progress{ height:8px; border-radius:999px; overflow:hidden; background:#141a2e; border:1px solid #2b2f45; }
-.gh-progress__fill{ height:100%; width:0%; background:linear-gradient(90deg,#00cc99,#00ffcc); transition: width .35s ease; }
-.gh-side{ background: rgba(20,25,40,.7); border:1px solid #3a3a5a; border-radius:12px; padding:12px; min-height: 220px; }
-.gh-side .title{ font-weight:800; color:#00ffcc; margin-bottom:8px; }
-.gh-side .stat{ font-size:13px; color:#aab0ff; margin:4px 0; }
-.gh-actions{ display:grid; grid-template-columns: repeat(2,1fr); gap:8px; margin:10px 0; }
-.gh-actions .btn{ padding:8px 10px; }
-.log-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; max-height: 180px; overflow:auto; }
-.log-item{ font-size:12px; color:#cfd3ff; background:#0f1524; border:1px solid #26324a; border-radius:8px; padding:6px 8px; }
-#greenhouse-open.btn{ margin: 10px 0 14px; }
-@media (max-width: 480px){ .gh-layout{ grid-template-columns: 1fr; } .gh-beds{ grid-template-columns: repeat(2,1fr); } }
-
-
-/* Greenhouse modal interactivity fixes */
-#greenhouse-modal[aria-hidden="true"]{ display:none !important; }
-#greenhouse-modal.active{ display:block !important; }
-#greenhouse-modal, #greenhouse-modal * { pointer-events:auto !important; }
-#greenhouse-modal .modal-content{ z-index:10001; }
-
-
-#greenhouse-modal .gh-bed-card{ position:relative; z-index:10002; }
-
-
-/* ==== Greenhouse clickability + highlight (v1.2) ==== */
-.modal{ pointer-events:none; } /* default block */
-.modal.active{ pointer-events:auto; }
-#greenhouse-modal{ z-index:999990; }
-#greenhouse-modal .modal-content{ z-index:999991; position:relative; }
-#greenhouse-modal .status-card{ position:relative; z-index:999992; transition: box-shadow .2s ease, border-color .2s ease, transform .12s ease; }
-#greenhouse-modal .status-card.clickable{ cursor:pointer; }
-#greenhouse-modal .status-card.clickable:hover{ border-color:#00ffcc !important; box-shadow:0 0 0 2px rgba(0,255,204,.25), 0 10px 22px rgba(0,0,0,.35); transform: translateY(-1px); }
-
-/* Extra visible hover for beds too */
-#greenhouse-modal .gh-bed-card{ position:relative; z-index:999992; }
-#greenhouse-modal .gh-bed-card:hover{ outline:2px solid #00ffcc; }
-
 </style>
 <!-- Drone UI styles -->
 <style>
@@ -2845,35 +2792,6 @@ html, body { overflow-x: hidden; }
   visibility: hidden !important;
 }
 </style>
-<style>
-/* ==== Greenhouse mobile scroll (v1.3) ==== */
-body.modal-open{ overflow: hidden; }
-
-#greenhouse-modal { overflow: hidden; }
-#greenhouse-modal .modal-content{
-  max-height: 88vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* make internal grids flexible and avoid forcing height */
-#greenhouse-modal .gh-layout{ min-height: 0; }
-#greenhouse-modal .gh-side{ min-height: 0; }
-
-/* Mobile full-viewport modal with scroll */
-@media (max-width: 640px){
-  #greenhouse-modal{ padding: 0 !important; }
-  #greenhouse-modal .modal-content{
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 96vh;
-    max-height: 96vh;
-    border-radius: 12px;
-  }
-  #greenhouse-modal .gh-beds{ grid-template-columns: repeat(2,1fr); }
-}
-</style>
 </head>
 <body>
 <div class="container" id="app">
@@ -2984,7 +2902,6 @@ body.modal-open{ overflow: hidden; }
 <button class="help-fab" id="help-map" title="Как работает сканирование">i</button>
 <!-- Bookmarks tray and modules toggle -->
 <div id="bookmarksTray"></div>
-<button id="modulesToggle" class="modules-btn">⚙️ Модули</button>
 <div class="map-container">
 <div class="map-circle inner-ring">
 </div>
@@ -3086,9 +3003,9 @@ body.modal-open{ overflow: hidden; }
 <div class="status-value" id="capsule-status">To recuperate.</div>
 <div>Visit the capsule</div>
 </div>
-<div class="status-card clickable" id="greenhouse-card" role="button" aria-label="Open Greenhouse <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>">
+<div class="status-card">
 <div class="status-title">
-<i class="fas fa-seedling"></i> Greenhouse <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
+<i class="fas fa-seedling"></i> Greenhouse
                         </div>
 <div class="status-value">+3%</div>
 <div>Recovery</div>
@@ -3479,9 +3396,11 @@ body.modal-open{ overflow: hidden; }
   </div>
   <!-- Интерфейс управления -->
   <div class="drone-card">
-    <div class="drone-actions">
-      <button class="btn" id="drone-repair"><i class="fas fa-tools"></i> Ремонт (10 🛠️ → +20 HP)</button>
+    <div class="drone-actions"><button class="btn" id="drone-repair"><i class="fas fa-tools"></i> Ремонт (10 🛠️ → +20 HP)</button>
       <button class="btn" id="drone-upgrade"><i class="fas fa-arrow-up"></i> Улучшить (модули)</button>
+      
+      <button class="btn modules-btn" id="modulesToggle">⚙️ Модули</button>
+      
       <button class="btn" id="drone-shop"><i class="fas fa-store"></i> Магазин</button>
       <button class="btn btn-primary" id="drone-scan"><i class="fas fa-satellite"></i> Сканировать</button>
     </div>
@@ -6248,8 +6167,8 @@ function bindSleepButtons(){
   const $  = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
 
-  function openModal(id){ const m=q(id); if(!m) return; m.classList.add('active'); m.setAttribute('aria-hidden','false'); document.body.classList.add('modal-open'); }
-  function closeModal(id){ const m=q(id); if(!m) return; m.classList.remove('active'); m.setAttribute('aria-hidden','true'); document.body.classList.remove('modal-open'); }
+  function openModal(id){ document.getElementById(id)?.classList.add('active'); }
+  function closeModal(id){ document.getElementById(id)?.classList.remove('active'); }
   document.addEventListener('click', e=>{
     const b = e.target.closest('[data-close]'); if (b) closeModal(b.getAttribute('data-close'));
   });
@@ -7321,44 +7240,7 @@ if (typeof battAbsEl !== 'undefined' && battAbsEl) {
       const want = Math.max(0, Math.floor(Number(input?.value || 0)));
       const took = transferFromBattery(want);
       if (typeof showNotification === 'function') {
-        if (took > 0) showNotification(`Withdrawn ${took} 
-
-  function bindStatusCards(){
-    const grid = document.querySelector('#greenhouse-modal .status-grid');
-    if (!grid) return;
-    grid.querySelectorAll('.status-card.clickable').forEach(card=>{
-      const action = card.getAttribute('data-action');
-      const activate = ()=>{
-        switch(action){
-          case 'lights':
-            GH.lightsOn = !GH.lightsOn;
-            logEvent('Лампы: ' + (GH.lightsOn ? 'включены' : 'выключены') + '.');
-            break;
-          case 'water':
-            GH.pumpOn = !GH.pumpOn;
-            logEvent('Помпа: ' + (GH.pumpOn ? 'включена' : 'выключена') + '.');
-            break;
-          case 'nutri':
-            logEvent('Питательный бак: ' + Math.floor(GH.nutri) + '/' + GH.nutriCap + ' 🧪.');
-            break;
-          case 'temp':
-            logEvent('Текущая температура: ' + GH.temp + '°C.');
-            break;
-          case 'hum':
-            logEvent('Текущая влажность: ' + GH.hum + '%.');
-            break;
-          case 'out':
-            logEvent('Оценочный выход/ч: ' + document.getElementById('gh-out').textContent + '.');
-            break;
-        }
-        updateGreenhouseUI();
-      };
-      card.addEventListener('click', activate);
-      card.addEventListener('keydown', (e)=>{ if(e.key==='Enter' or e.key===' '){ e.preventDefault(); activate(); } });
-    });
-  }
-
-⚡ from battery`, true);
+        if (took > 0) showNotification(`Withdrawn ${took} ⚡ from battery`, true);
         else showNotification('Nothing to withdraw', false);
       }
       updateCard(); updateModal(); updateSolarEnv(); persist();
@@ -7435,7 +7317,7 @@ if (typeof battAbsEl !== 'undefined' && battAbsEl) {
 
   // --- boot ---
   function boot(){
-    bindActions(); bindStatusCards();
+    bindActions();
     bindOpen();
     updateCard(); updateModal(); persist();
     // единый таймер для солнечной системы
@@ -9890,397 +9772,6 @@ document.addEventListener('click', (e)=>{
 // END PATCH
 </script>
 
-<script>
-/* ==== GREENHOUSE core (v1 skeleton) ==== */
-(function(){
-  const q = (sel, root=document)=>root.querySelector(sel);
-  const qa = (sel, root=document)=>Array.from(root.querySelectorAll(sel));
-  const now = ()=>Date.now();
-  const clamp = (v,min,max)=>Math.max(min, Math.min(max,v));
-  const pct = (x)=>Math.round(x*100)+'%';
-  const logEl = ()=>q('#greenhouse-log');
-  const logEvent = (msg)=>{
-    const li = document.createElement('li');
-    li.className = 'log-item';
-    const t = new Date().toLocaleTimeString();
-    li.textContent = `[${t}] ${msg}`;
-    logEl()?.prepend(li);
-  };
-
-  // --- Inventory / resources adapter ---
-  // Fallback store if project-level storage is absent
-  window.INV = window.INV || { food: 0, biomass: 0, seeds: {} };
-  function addResourceSafe(kind, amt){
-    try{
-      if (typeof window.addResource === 'function'){ window.addResource(kind, amt); return; }
-      if (window.RES && typeof window.RES === 'object'){
-        if (!RES[kind]) RES[kind] = 0;
-        RES[kind] += amt; return;
-      }
-    }catch(_){}
-    // fallback
-    if (!window.INV) window.INV = { food: 0, biomass: 0, seeds: {} };
-    if (!window.INV[kind]) window.INV[kind] = 0;
-    window.INV[kind] += amt;
-  }
-  function addSeedSafe(plantKey, n){
-    try{
-      if (typeof window.addSeeds === 'function'){ window.addSeeds(plantKey, n); return; }
-    
-
-  // --- Energy adapter (units/hour), not kWh ---
-  // Use project-level spenders if present; else fallback to RES.energy or GH._energySpent for debug
-  function spendEnergy(units){
-    try{
-      if (typeof window.spendEnergy === 'function') return window.spendEnergy(units);
-      if (typeof window.consumeEnergyUnits === 'function') return window.consumeEnergyUnits(units);
-      if (typeof window.consumeEnergy === 'function') return window.consumeEnergy(units); // assume same units
-    }catch(_){}
-    // Fallbacks
-    try{
-      if (window.RES){
-        if (!('energy' in RES)) RES.energy = 0;
-        RES.energy -= units;
-        return;
-      }
-    }catch(_){}
-    GH._energySpent = (GH._energySpent||0) + units; // debug counter
-  }
-
-}catch(_){}
-    window.INV = window.INV || { food: 0, biomass: 0, seeds: {} };
-    window.INV.seeds[plantKey] = (window.INV.seeds[plantKey]||0) + n;
-  }
-
-
-  // Fallback stubs to integrate with existing systems if available
-  const consumeEnergy = (kwh)=>{
-    try{ if(typeof window.consumeEnergy === 'function'){ window.consumeEnergy(kwh); } }catch(e){}
-  };
-  const WEATHER_MUL = { clear:1.0, cloudy:0.8, rain:0.6, storm:0.4, night:0.3 };
-  const S = window.S || { weather: 'clear' };
-
-  // Data
-  const GH = window.GH || (window.GH = {
-    beds: Array(6).fill(0).map(()=>({ plant:null, stage:0, growth:0, hyd:60, nut:40, hp:100, pests:0, plantedAt: now() })),
-    water: 300, waterCap: 500,
-    nutri: 60,  nutriCap: 200,
-    temp: 24, hum: 55,
-    lightsOn: true, pumpOn: true,
-    energyPerHour: 5,
-    lastTick: now(),
-    upgrades: { dripPro:false, ledMk2:false, hydroponics:false, irrigation:false }
-  });
-
-  const PLANTS = window.PLANTS || (window.PLANTS = {
-    lettuce:{ name:'Салат',   icon:'🥬', stages:[0.3,0.4,0.3], base:0.012, waterUse:0.6,  nutUse:0.3,  yield:6,  sell:3 },
-    tomato: { name:'Томат',   icon:'🍅', stages:[0.25,0.45,0.30], base:0.009, waterUse:0.8,  nutUse:0.5,  yield:10, sell:5 },
-    herb:   { name:'Травы',   icon:'🌿', stages:[0.35,0.35,0.30], base:0.011, waterUse:0.5,  nutUse:0.35, yield:5,  sell:4 },
-  });
-
-  // UI helpers
-  function setText(id, txt){ const el=q('#'+id); if(el) el.textContent = txt; }
-  function currentGhEnergyPerHour(){
-    // Lamps draw fixed units/hour when ON
-    const lampE = GH.lightsOn ? GH.energyPerHour : 0;
-    // If later we add pump cost as units/hour, include here
-    const pumpE = 0; // per request: only lamps consume energy
-    return lampE + pumpE;
-  }
-  function estPerHour(){
-    const activeBeds = GH.beds.filter(b=>b.plant).length;
-    // naive estimate
-    return (activeBeds * 6 | 0);
-  }
-
-  // Rate calc per spec
-  function plantRate(GH, b, p){
-    const lightMul = GH.lightsOn ? 1.0 : (0.6 * (WEATHER_MUL[S.weather]||0.8));
-    const tempMul  = clamp(1 - Math.abs(GH.temp - 24)/12, 0, 1);
-    const humMul   = clamp(1 - Math.abs(GH.hum - 60)/50, 0.4, 1);
-    const waterMul = b.hyd > 70 ? 1 : b.hyd > 30 ? 0.7 : 0.3;
-    const nutMul   = b.nut > 50 ? 1 : b.nut > 20 ? 0.7 : 0.4;
-    const pestMul  = 1 - b.pests*0.5;
-    return p.base * lightMul * tempMul * humMul * waterMul * nutMul * pestMul;
-  }
-  function advanceStages(b,p){
-    while (b.stage < p.stages.length && b.growth >= p.stages[b.stage]){
-      b.growth -= p.stages[b.stage];
-      b.stage++;
-      if (b.stage >= p.stages.length){
-        b.stage = p.stages.length; // ready
-        break;
-      }
-    }
-  }
-  function pullFromTanksAndBed(w, n, b){
-    // upgrades
-    if(GH.upgrades.dripPro) w *= 0.75;
-    if(GH.upgrades.hydroponics) n *= 1.1;
-
-    const wneed = Math.min(w, GH.water);
-    GH.water -= wneed;
-    b.hyd = clamp(b.hyd - w*0.4 + wneed*0.4, 0, 100);
-
-    const nneed = Math.min(n, GH.nutri);
-    GH.nutri -= nneed;
-    b.nut = clamp(b.nut - n*0.5 + nneed*0.5, 0, 100);
-  }
-  function pestsAndHealth(b, GH){
-    // simple model
-    if (b.hyd < 25 || b.nut < 15) b.pests = clamp(b.pests + 0.001, 0, 1);
-    if (b.pests > 0.6) b.hp = clamp(b.hp - 0.02, 0, 100);
-    if (b.hp <= 0) { b.plant = null; logEvent('Растение погибло на грядке.'); }
-  }
-
-  // Actions
-  let selected = 0;
-  function selectBed(i){
-    selected = i;
-    const b = GH.beds[i];
-    const el = q('#gh-selected');
-    if(!el) return;
-    if (!b.plant){
-      el.innerHTML = `<div class="stat"><strong>Пустая грядка.</strong> Нажмите «Посеять».</div>`;
-    } else {
-      const p = PLANTS[b.plant];
-      const stages = p.stages.reduce((s,a)=>s+a,0);
-      const progress = clamp(b.growth/(p.stages[b.stage]||1),0,1);
-      const ready = (b.stage >= p.stages.length);
-      const tta = ready ? 'готово' : '~' + Math.max(5, Math.round((1-progress)*120)) + ' c';
-      el.innerHTML = `
-        <div class="stat"><strong>${p.icon} ${p.name}</strong>, стадия ${Math.min(b.stage+1, p.stages.length)}/${p.stages.length}</div>
-        <div class="stat">Вода: ${Math.round(b.hyd)} • Питание: ${Math.round(b.nut)} • HP: ${Math.round(b.hp)} • Вредители: ${(b.pests*100|0)}%</div>
-        <div class="stat">TTA: ${tta}, ожидаемый урожай: ${p.yield}</div>
-      `;
-    }
-    updateActionStates();
-  }
-  function updateActionStates(){
-    const b = GH.beds[selected];
-    const ready = b.plant && (b.stage >= (PLANTS[b.plant].stages.length));
-    q('#gh-harvest')?.toggleAttribute('disabled', !ready);
-    q('#gh-water-btn')?.toggleAttribute('disabled', GH.water<=0);
-    q('#gh-fert-btn')?.toggleAttribute('disabled', GH.nutri<=0);
-    q('#gh-plant')?.toggleAttribute('disabled', !!b.plant);
-    q('#gh-remove-btn')?.toggleAttribute('disabled', !b.plant);
-    q('#gh-heal-btn')?.toggleAttribute('disabled', b.pests<=0);
-  }
-
-  function plantDialog(i){
-    const choices = Object.keys(PLANTS).map(k=>`${PLANTS[k].icon} ${PLANTS[k].name} — ${k}`).join('\\n');
-    const pick = prompt('Выберите растение (ключ):\\n' + choices, 'lettuce');
-    if (!pick || !PLANTS[pick]) return;
-    const b = GH.beds[i];
-    b.plant = pick; b.stage=0; b.growth=0; b.hyd=60; b.nut=40; b.hp=100; b.pests=0; b.plantedAt=now();
-    logEvent(`Посеяно: ${PLANTS[pick].name}.`);
-    renderBeds(); selectBed(i);
-  }
-  function waterSelected(){
-    const b = GH.beds[selected];
-    if (GH.water<=0) return;
-    const use = Math.min(40, GH.water);
-    GH.water -= use; b.hyd = clamp(b.hyd + use*0.3, 0, 100);
-    logEvent(`Полив грядки #${selected+1}: +${Math.round(use*0.3)} hyd.`);
-  }
-  function fertSelected(){
-    const b = GH.beds[selected];
-    if (GH.nutri<=0) return;
-    const use = Math.min(30, GH.nutri);
-    GH.nutri -= use; b.nut = clamp(b.nut + use*0.4, 0, 100);
-    logEvent(`Удобрение грядки #${selected+1}: +${Math.round(use*0.4)} nut.`);
-  }
-  function healSelected(){
-    const b = GH.beds[selected];
-    const before = b.pests;
-    b.pests = clamp(b.pests - 0.5, 0, 1);
-    logEvent(`Лечение вредителей: ${Math.round(before*100)}% → ${Math.round(b.pests*100)}%.`);
-  }
-  
-  function removeSelected(){
-    const b = GH.beds[selected];
-    if (!b.plant) return;
-    // compost a bit back
-    GH.nutri = clamp(GH.nutri + 8, 0, GH.nutriCap);
-    addResourceSafe('biomass', 2);
-    logEvent(`Грядка очищена, компост +8 🧪 и +2 биомассы.`);
-    GH.beds[selected] = { plant:null, stage:0, growth:0, hyd:60, nut:40, hp:100, pests:0, plantedAt: now() };
-    renderBeds(); selectBed(selected);
-  }
-
-  
-  function harvestSelected(){
-    const b = GH.beds[selected];
-    if (!b.plant) return;
-    const p = PLANTS[b.plant];
-    if (b.stage < p.stages.length) return;
-    // yield
-    const amount = p.yield;
-    addResourceSafe('food', amount);
-    logEvent(`Сбор урожая: ${p.icon} x${amount}. (+${amount} в запас)`);
-    // seed chance
-    if (Math.random()<0.10){ addSeedSafe(b.plant, 1); logEvent('Получены семена! 🌱 (+1)'); }
-    // reset bed
-    GH.beds[selected] = { plant:null, stage:0, growth:0, hyd:60, nut:40, hp:100, pests:0, plantedAt: now() };
-    renderBeds(); selectBed(selected);
-  }
-
-
-  // Rendering
-  function renderBeds(){
-    const wrap = q('#gh-beds'); if (!wrap) return;
-    wrap.innerHTML='';
-    GH.beds.forEach((b,i)=>{
-      const card = document.createElement('div');
-      card.className = 'gh-bed-card';
-      const p = b.plant ? PLANTS[b.plant] : null;
-      const ready = p && (b.stage >= p.stages.length);
-      const progress = !p ? 0 : (ready ? 1 : clamp(b.growth/(p.stages[b.stage]||1),0,1));
-      card.innerHTML = `
-        <div class="gh-bed-head">
-          <div class="gh-bed-icon">${p? p.icon : '🟫'}</div>
-          <div class="gh-bed-name">${p? p.name : 'Пусто'}</div>
-          <div class="gh-pill">${ready? 'Готово' : (p? ('S'+(b.stage+1)) : '')}</div>
-        </div>
-        <div class="gh-progress"><div class="gh-progress__fill" style="width:${Math.round(progress*100)}%"></div></div>
-        <div class="gh-indicators">
-          <span class="gh-pill">💧 ${Math.round(b.hyd)}</span>
-          <span class="gh-pill">🧪 ${Math.round(b.nut||0)}</span>
-          <span class="gh-pill">❤️ ${Math.round(b.hp)}</span>
-          <span class="gh-pill">🐛 ${(b.pests*100|0)}%</span>
-        </div>
-      `;
-      card.addEventListener('click', ()=>{ selectBed(i); qa('.gh-bed-card').forEach(el=>el.style.outline=''); card.style.outline='2px solid #00ffcc'; });
-      wrap.appendChild(card);
-    });
-  }
-
-  // Tick
-  function greenhouseTick(dtMs){
-    const activeBeds = GH.beds.filter(b=>b.plant);
-    // energy draw (units/hour → units)
-    const drawUnitsPerHour = currentGhEnergyPerHour();
-    const unitsSpent = drawUnitsPerHour * (dtMs/3600000);
-    spendEnergy(unitsSpent);
-    for (const b of activeBeds){
-      const p = PLANTS[b.plant];
-      const rate = plantRate(GH, b, p);
-      b.growth += rate * (dtMs/1000);
-      advanceStages(b,p);
-      // resources / minute scale
-      const w = p.waterUse * (dtMs/60000);
-      const n = p.nutUse   * (dtMs/60000);
-      pullFromTanksAndBed(w,n,b);
-      pestsAndHealth(b, GH);
-    }
-    updateGreenhouseUI();
-    GH.lastTick = now();
-  }
-
-  function updateGreenhouseUI(){
-    setText('gh-temp', GH.temp+'°C');
-    setText('gh-hum', GH.hum+'%');
-    setText('gh-water', Math.round((GH.water/GH.waterCap)*100)+'%');
-    setText('gh-water-abs', `${Math.floor(GH.water)}/${GH.waterCap} 💧`);
-    setText('gh-nutri', Math.round((GH.nutri/GH.nutriCap)*100)+'%');
-    setText('gh-nutri-abs', `${Math.floor(GH.nutri)}/${GH.nutriCap} 🧪`);
-    setText('gh-power', Math.round(currentGhEnergyPerHour())+' эн/ч');
-    setText('gh-out', estPerHour()+' 🍅/ч');
-    renderBeds();
-    selectBed(selected);
-  }
-
-  // Modal controls
-  function openModal(id){ const m=q(id); if(!m) return; m.classList.add('active'); document.body.classList.add('modal-open'); }
-  function closeModal(id){ const m=q(id); if(!m) return; m.classList.remove('active'); document.body.classList.remove('modal-open'); }
-
-  function ensureButton(){
-    // Try to place button near top of main-content
-    const btn = q('#greenhouse-open') || document.createElement('button');
-    btn.id='greenhouse-open'; btn.className='btn'; btn.textContent='🌿 Теплица';
-    const target = q('.main-content') || document.body;
-    if (!q('#greenhouse-open')) target.insertBefore(btn, target.firstChild);
-    btn.addEventListener('click', ()=> openModal('#greenhouse-modal'));
-  }
-
-  function bindActions(){
-    q('.modal-close[data-close="#greenhouse-modal"]')?.addEventListener('click', ()=> closeModal('#greenhouse-modal'));
-    q('#gh-plant')?.addEventListener('click', ()=> plantDialog(selected));
-    q('#gh-water-btn')?.addEventListener('click', ()=>{ waterSelected(); updateGreenhouseUI(); });
-    q('#gh-fert-btn')?.addEventListener('click', ()=>{ fertSelected(); updateGreenhouseUI(); });
-    q('#gh-heal-btn')?.addEventListener('click', ()=>{ healSelected(); updateGreenhouseUI(); });
-    q('#gh-remove-btn')?.addEventListener('click', ()=>{ removeSelected(); updateGreenhouseUI(); });
-    q('#gh-harvest')?.addEventListener('click', ()=>{ harvestSelected(); updateGreenhouseUI(); });
-
-    // Hotkeys
-    document.addEventListener('keydown', (e)=>{
-      if (!q('#greenhouse-modal')?.classList.contains('active')) return;
-      if (['INPUT','TEXTAREA'].includes((e.target?.tagName)||'')) return;
-      if (e.key==='w' || e.key==='W'){ e.preventDefault(); waterSelected(); updateGreenhouseUI(); }
-      if (e.key==='f' || e.key==='F'){ e.preventDefault(); fertSelected(); updateGreenhouseUI(); }
-      if (e.key==='h' || e.key==='H'){ e.preventDefault(); healSelected(); updateGreenhouseUI(); }
-      if (e.code==='Space'){ e.preventDefault(); harvestSelected(); updateGreenhouseUI(); }
-    });
-  }
-
-
-  function bindStatusCards(){
-    const root = document.getElementById('greenhouse-modal');
-    if (!root) return;
-    // Event delegation for small status cards at the top of the modal
-    root.addEventListener('click', (e)=>{
-      const sc = e.target.closest('#greenhouse-modal .status-card.clickable');
-      if (!sc) return;
-      const act = sc.dataset.action;
-      try {
-        if (act === 'water'){ waterSelected(); }
-        else if (act === 'nutri'){ fertSelected(); }
-        else if (act === 'hum'){ GH.hum = clamp(GH.hum + 5, 0, 100); logEvent('Влажность +5%'); }
-        else if (act === 'temp'){ GH.temp = clamp(GH.temp + 1, 0, 60); logEvent('Температура +1°C'); }
-      } catch(_) {}
-      updateGreenhouseUI();
-    });
-  }
-
-  // Loop (self-contained; you can disable if integrated to global loop)
-  let last = now();
-  function loop(){
-    const t = now();
-    const dt = t - last; last = t;
-    greenhouseTick(dt);
-    requestAnimationFrame(loop);
-  }
-
-  // Init after DOM ready
-  document.addEventListener('DOMContentLoaded', ()=>{
-    ensureButton();
-    
-    // Make base-screen Greenhouse card open the modal
-    (function(){
-      const ghCard = document.getElementById('greenhouse-card');
-      if (ghCard) ghCard.addEventListener('click', ()=> openModal('#greenhouse-modal'));
-    })();
-    // ensure modal markup exists (in case of JS-only injection)
-    if(!q('#greenhouse-modal')){
-      console.warn('Greenhouse modal not found.');
-    }
-    bindActions(); bindStatusCards();
-    renderBeds();
-    selectBed(0);
-    logEvent('Теплица инициализирована.');
-    // start loop
-    requestAnimationFrame(loop);
-  });
-
-  // Expose minimal API, if needed outside
-  window.greenhouseTick = greenhouseTick;
-  
-  if (typeof GH.energyPerHour !== 'number') GH.energyPerHour = 5;
-
-  window.GH = GH; window.PLANTS = PLANTS;
-})();
-
-</script>
 </html>
 <script id="disable-npc-orders-js">
 (function(){
@@ -11222,52 +10713,3 @@ document.addEventListener('click', function(e){
   document.addEventListener('DOMContentLoaded', relocate);
 })();
 </script>
-
-<!-- === GREENHOUSE UI === -->
-<button id="greenhouse-open" class="btn">🌿 Теплица</button>
-
-<div class="modal" id="greenhouse-modal" aria-hidden="true" role="dialog">
-  <div class="modal-content" style="max-width:980px; width:92vw; padding:16px;">
-    <div class="modal-header">
-      <h3 class="modal-title">🌿 Теплица</h3>
-      <button class="modal-close" data-close="#greenhouse-modal">✕</button>
-    </div>
-
-    <div class="status-grid" style="margin-bottom:10px;">
-      <div class="status-card clickable" data-action="temp" tabindex="0"><div class="status-title">Температура</div><div id="gh-temp" class="status-value">24°C</div></div>
-      <div class="status-card clickable" data-action="hum" tabindex="0"><div class="status-title">Влажность</div><div id="gh-hum" class="status-value">55%</div></div>
-
-      <div class="status-card clickable" data-action="water" tabindex="0">
-        <div class="status-title">Вода</div>
-        <div id="gh-water" class="status-value">60%</div>
-        <div id="gh-water-abs" class="status-sub">300/500 💧</div>
-      </div>
-      <div class="status-card clickable" data-action="nutri" tabindex="0">
-        <div class="status-title">Питание</div>
-        <div id="gh-nutri" class="status-value">30%</div>
-        <div id="gh-nutri-abs" class="status-sub">60/200 🧪</div>
-      </div>
-
-      <div class="status-card clickable" data-action="lights" tabindex="0"><div class="status-title">Потребление</div><div id="gh-power" class="status-value">0 эн/ч</div></div>
-      <div class="status-card clickable" data-action="out" tabindex="0"><div class="status-title">Выход/ч</div><div id="gh-out" class="status-value">0 🍅</div></div>
-    </div>
-
-    <div class="gh-layout">
-      <div class="gh-beds" id="gh-beds"></div>
-      <div class="gh-side">
-        <div class="title">Выбранная грядка</div>
-        <div id="gh-selected" class="stat">—</div>
-        <div class="gh-actions">
-          <button id="gh-plant" class="btn">Посеять</button>
-          <button id="gh-water-btn" class="btn">Полить (W)</button>
-          <button id="gh-fert-btn" class="btn">Удобрить (F)</button>
-          <button id="gh-heal-btn" class="btn">Лечить (H)</button>
-          <button id="gh-remove-btn" class="btn btn-warning">Убрать</button>
-          <button id="gh-harvest" class="btn btn-primary">Сбор (⎵)</button>
-        </div>
-        <div class="gh-log-title section-title" style="margin-top:8px;">События</div>
-        <ul id="greenhouse-log" class="log-list"></ul>
-      </div>
-    </div>
-  </div>
-</div>
