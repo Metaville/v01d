@@ -2902,6 +2902,7 @@ html, body { overflow-x: hidden; }
 <button class="help-fab" id="help-map" title="Как работает сканирование">i</button>
 <!-- Bookmarks tray and modules toggle -->
 <div id="bookmarksTray"></div>
+<button id="modulesToggle" class="modules-btn">⚙️ Модули</button>
 <div class="map-container">
 <div class="map-circle inner-ring">
 </div>
@@ -3003,13 +3004,16 @@ html, body { overflow-x: hidden; }
 <div class="status-value" id="capsule-status">To recuperate.</div>
 <div>Visit the capsule</div>
 </div>
-<div class="status-card">
-<div class="status-title">
-<i class="fas fa-seedling"></i> Greenhouse
-                        </div>
-<div class="status-value">+3%</div>
-<div>Recovery</div>
+
+<div class="status-card clickable" id="greenhouse-card">
+  <div class="status-title">
+    <i class="fas fa-seedling"></i> Greenhouse
+    <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
+  </div>
+  <div class="status-value" id="greenhouse-status">Active</div>
+  <div>Production: <span id="greenhouse-output">+0.5/h</span></div>
 </div>
+
 <div class="status-card">
 <div class="status-title">
 <i class="fas fa-shield-alt"></i> Shields
@@ -3396,11 +3400,9 @@ html, body { overflow-x: hidden; }
   </div>
   <!-- Интерфейс управления -->
   <div class="drone-card">
-    <div class="drone-actions"><button class="btn" id="drone-repair"><i class="fas fa-tools"></i> Ремонт (10 🛠️ → +20 HP)</button>
+    <div class="drone-actions">
+      <button class="btn" id="drone-repair"><i class="fas fa-tools"></i> Ремонт (10 🛠️ → +20 HP)</button>
       <button class="btn" id="drone-upgrade"><i class="fas fa-arrow-up"></i> Улучшить (модули)</button>
-      
-      <button class="btn modules-btn" id="modulesToggle">⚙️ Модули</button>
-      
       <button class="btn" id="drone-shop"><i class="fas fa-store"></i> Магазин</button>
       <button class="btn btn-primary" id="drone-scan"><i class="fas fa-satellite"></i> Сканировать</button>
     </div>
@@ -10713,3 +10715,455 @@ document.addEventListener('click', function(e){
   document.addEventListener('DOMContentLoaded', relocate);
 })();
 </script>
+
+
+<!-- [Injected] Greenhouse modal and logic -->
+<div class="modal" id="greenhouse-modal">
+  <div class="modal-content" style="max-width: 760px;">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-seedling"></i> Greenhouse</h3>
+      <button class="close-modal" data-close="greenhouse-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="status-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
+        <div class="status-card">
+          <div class="status-title">Water Tank</div>
+          <div class="status-value" id="gh-water">75%</div>
+          <div class="progress-bar"><div class="progress-fill" id="gh-water-fill" style="width: 75%; background: #00aaff;"></div></div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">Nutrients</div>
+          <div class="status-value" id="gh-nutrients">60%</div>
+          <div class="progress-bar"><div class="progress-fill" id="gh-nutrients-fill" style="width: 60%; background: #cc66ff;"></div></div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">Production</div>
+          <div class="status-value" id="gh-production">+0.5/h</div>
+          <div class="progress-bar"><div class="progress-fill" id="gh-prod-fill" style="width: 45%; background: #00cc99;"></div></div>
+        </div>
+      </div>
+
+      <h4 class="section-title">Plant Beds</h4>
+      <div class="beds-grid" id="beds-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;"></div>
+
+      <div class="action-buttons">
+        <button class="btn" id="gh-refill-water"><i class="fas fa-fill-drip"></i> Refill Water (10 ⚡)</button>
+        <button class="btn" id="gh-add-nutrients"><i class="fas fa-vial"></i> Add Nutrients (5 🧪)</button>
+        <button class="btn btn-primary" id="gh-plant-seed"><i class="fas fa-seedling"></i> Plant Seed (3 🧪)</button>
+      </div>
+
+      <div class="upgrade-options" style="margin-top: 20px;">
+        <h4 class="section-title">Greenhouse Upgrades</h4>
+        <div id="gh-upgrades" class="gh-upgrades-grid">
+          <div class="gh-node" id="gh-node-irrigation">
+            <div class="gh-node-head">
+              <div class="gh-node-icon"><i class="fas fa-tint"></i></div>
+              <div class="gh-node-title">
+                <div class="t1">Automated Irrigation</div>
+                <div class="t2">Reduce water usage per tick</div>
+              </div>
+              <div class="gh-level-badge"><span id="gh-lvl-irrigation">Lv. 0</span></div>
+            </div>
+            <div class="gh-node-body">
+              <div class="gh-effect">
+                <span class="chip" title="Current reduction of water drain"><i class="fas fa-percentage"></i> <span id="gh-eff-irrigation">0%</span> less water</span>
+              </div>
+              <div class="gh-cost">
+                <div class="cost"><i class="fas fa-coins"></i> <span id="gh-cost-irrigation-mvc">—</span> MVC</div>
+                <div class="cost"><i class="fas fa-cog"></i> <span id="gh-cost-irrigation-parts">—</span> 🛠️</div>
+              </div>
+              <button class="btn btn-primary gh-upgrade-btn" id="gh-upg-irrigation"><i class="fas fa-arrow-up"></i> Upgrade</button>
+            </div>
+          </div>
+
+          <div class="gh-node" id="gh-node-lighting">
+            <div class="gh-node-head">
+              <div class="gh-node-icon"><i class="fas fa-lightbulb"></i></div>
+              <div class="gh-node-title">
+                <div class="t1">Grow Lights</div>
+                <div class="t2">Boost plant growth speed</div>
+              </div>
+              <div class="gh-level-badge"><span id="gh-lvl-lighting">Lv. 0</span></div>
+            </div>
+            <div class="gh-node-body">
+              <div class="gh-effect">
+                <span class="chip" title="Current growth speed bonus"><i class="fas fa-bolt"></i> +<span id="gh-eff-lighting">0%</span> growth</span>
+                <span class="chip ghost" title="Lights slightly increase nutrient consumption">+<span id="gh-eff-lighting-nutr">0%</span> nutrient drain</span>
+              </div>
+              <div class="gh-cost">
+                <div class="cost"><i class="fas fa-coins"></i> <span id="gh-cost-lighting-mvc">—</span> MVC</div>
+                <div class="cost"><i class="fas fa-cog"></i> <span id="gh-cost-lighting-parts">—</span> 🛠️</div>
+              </div>
+              <button class="btn btn-primary gh-upgrade-btn" id="gh-upg-lighting"><i class="fas fa-arrow-up"></i> Upgrade</button>
+            </div>
+          </div>
+
+          <div class="gh-node" id="gh-node-capacity">
+            <div class="gh-node-head">
+              <div class="gh-node-icon"><i class="fas fa-database"></i></div>
+              <div class="gh-node-title">
+                <div class="t1">Capacity Expansion</div>
+                <div class="t2">Larger water & nutrient tanks</div>
+              </div>
+              <div class="gh-level-badge"><span id="gh-lvl-capacity">Lv. 0</span></div>
+            </div>
+            <div class="gh-node-body">
+              <div class="gh-effect">
+                <span class="chip" title="Current max water"><i class="fas fa-tint"></i> Max water: <span id="gh-eff-cap-water">100</span></span>
+                <span class="chip" title="Current max nutrients"><i class="fas fa-vial"></i> Max nutrients: <span id="gh-eff-cap-nutr">100</span></span>
+              </div>
+              <div class="gh-cost">
+                <div class="cost"><i class="fas fa-coins"></i> <span id="gh-cost-capacity-mvc">—</span> MVC</div>
+                <div class="cost"><i class="fas fa-cog"></i> <span id="gh-cost-capacity-parts">—</span> 🛠️</div>
+              </div>
+              <button class="btn btn-primary gh-upgrade-btn" id="gh-upg-capacity"><i class="fas fa-arrow-up"></i> Upgrade</button>
+            </div>
+          </div>
+        </div>
+        <div class="gh-note">Max level: <b>3</b>. Costs scale per level. Effects apply immediately.</div>
+
+        <style>
+        /* Scoped styles for greenhouse upgrades */
+        #greenhouse-modal .gh-upgrades-grid{
+          display:grid; grid-template-columns:repeat(2,1fr); gap:14px;
+        }
+        #greenhouse-modal .gh-node{
+          background: linear-gradient(180deg, rgba(20,30,50,0.9), rgba(15,18,30,0.9));
+          border:1px solid rgba(255,255,255,0.06);
+          border-radius:16px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,0.35);
+          transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+        #greenhouse-modal .gh-node:hover{
+          transform: translateY(-2px);
+          border-color: rgba(0,255,204,0.25);
+          box-shadow: 0 12px 28px rgba(0,255,204,0.06);
+        }
+        #greenhouse-modal .gh-node-head{ display:flex; align-items:center; gap:12px; }
+        #greenhouse-modal .gh-node-icon{ width:40px; height:40px; display:grid; place-items:center;
+          border-radius:12px; background:rgba(0,255,204,0.08); }
+        #greenhouse-modal .gh-node-icon i{ font-size:18px; color:#00ffcc; }
+        #greenhouse-modal .gh-node-title .t1{ font-weight:700; letter-spacing:.2px; }
+        #greenhouse-modal .gh-node-title .t2{ font-size:12px; opacity:.8; margin-top:2px; }
+        #greenhouse-modal .gh-level-badge{ margin-left:auto; }
+        #greenhouse-modal .gh-level-badge span{
+          display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px;
+          background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);
+        }
+        #greenhouse-modal .gh-node-body{ margin-top:10px; display:grid; gap:10px; }
+        #greenhouse-modal .gh-effect{ display:flex; gap:8px; flex-wrap:wrap; }
+        #greenhouse-modal .chip{
+          display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px;
+          font-size:12px; background:rgba(0,255,204,0.08); border:1px solid rgba(0,255,204,0.18);
+        }
+        #greenhouse-modal .chip.ghost{
+          background: rgba(255,255,255,0.05);
+          border-color: rgba(255,255,255,0.08);
+        }
+        #greenhouse-modal .gh-cost{ display:flex; gap:16px; opacity:.95; }
+        #greenhouse-modal .gh-cost .cost{ display:flex; align-items:center; gap:6px; }
+        #greenhouse-modal .gh-upgrade-btn{ width:100%; }
+        #greenhouse-modal .gh-upgrade-btn[disabled]{ opacity:.6; cursor:not-allowed; }
+        #greenhouse-modal .gh-note{ margin-top:6px; font-size:12px; opacity:.7; }
+        @media (max-width:720px){
+          #greenhouse-modal .gh-upgrades-grid{ grid-template-columns:1fr; }
+        }
+        .sparkline{ width:100%; height:32px; display:block; opacity:.9; }
+        </style>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// === Greenhouse: state ===
+window.gameState = window.gameState || {};
+if (!gameState.greenhouse) {
+  gameState.greenhouse = {
+    water: 75,
+    nutrients: 60,
+    productionRate: 0.5,
+    beds: [
+      { plant: null, growth: 0, health: 100, history: [] },
+      { plant: null, growth: 0, health: 100, history: [] },
+      { plant: null, growth: 0, health: 100, history: [] }
+    ],
+    upgrades: { irrigation: 0, lighting: 0, capacity: 0 }
+  };
+}
+
+// === Greenhouse: upgrades config & helpers ===
+const GH_UPGR = {
+  maxLevel: 3,
+  irrigation: {
+    baseCost: { mvc: 150, parts: 30 },
+    costAt(level){ const mul = Math.pow(1.6, level); return { mvc: Math.round(this.baseCost.mvc*mul), parts: Math.round(this.baseCost.parts*mul) }; },
+    effect(level){ return { waterReductionPct: Math.min(75, level*25) }; }
+  },
+  lighting: {
+    baseCost: { mvc: 120, parts: 20 },
+    costAt(level){ const mul = Math.pow(1.6, level); return { mvc: Math.round(this.baseCost.mvc*mul), parts: Math.round(this.baseCost.parts*mul) }; },
+    effect(level){ return { growthBonusPct: level*30, nutrDrainBonusPct: level*10 }; }
+  },
+  capacity: {
+    baseCost: { mvc: 200, parts: 40 },
+    costAt(level){ const mul = Math.pow(1.6, level); return { mvc: Math.round(this.baseCost.mvc*mul), parts: Math.round(this.baseCost.parts*mul) }; },
+    effect(level){ const mult = 1 + 0.5*level; return { waterMax: Math.round(100*mult), nutrMax: Math.round(100*mult) }; }
+  }
+};
+
+function ghMaxValues(){
+  const gh = gameState.greenhouse;
+  const capL = (gh.upgrades && gh.upgrades.capacity)||0;
+  const eff = (window.GH_UPGR && GH_UPGR.capacity ? GH_UPGR.capacity.effect(capL) : { waterMax:100, nutrMax:100 });
+  return { waterMax: eff.waterMax, nutrMax: eff.nutrMax };
+}
+function ghSparkPath(arr, w, h){
+  if (!arr || arr.length<2) return '';
+  const n = arr.length;
+  const maxY = 100, minY = 0;
+  const dx = w/(n-1);
+  const mapY = v => h - ( (Math.max(minY, Math.min(maxY, v)) - minY) / (maxY-minY) ) * h;
+  let d = `M 0 ${mapY(arr[0])}`;
+  for (let i=1;i<n;i++){ d += ` L ${dx*i} ${mapY(arr[i])}`; }
+  return d;
+}
+function ghEnsureBeds(minCount=3){
+  const gh = gameState.greenhouse || (gameState.greenhouse = {});
+  if (!Array.isArray(gh.beds)) gh.beds = [];
+  while (gh.beds.length < minCount){
+    gh.beds.push({ plant: null, growth: 0, health: 100, history: [] });
+  }
+  return gh.beds;
+}
+
+// === Greenhouse: UI ===
+function updateGreenhouseUI() {
+  const gh = gameState.greenhouse;
+  const out = `+${Number(gh.productionRate || 0).toFixed(1)}/h`;
+  const outEl1 = document.getElementById('gh-production');
+  const outEl2 = document.getElementById('greenhouse-output');
+  if (outEl1) outEl1.textContent = out;
+  if (outEl2) outEl2.textContent = out;
+
+  const caps = ghMaxValues();
+  const wPct = Math.max(0, Math.min(100, (gh.water/caps.waterMax)*100));
+  const nPct = Math.max(0, Math.min(100, (gh.nutrients/caps.nutrMax)*100));
+  const ws = document.getElementById('gh-water');        if (ws) ws.textContent = `${Math.round(wPct)}%`;
+  const wf = document.getElementById('gh-water-fill');   if (wf) wf.style.width = `${wPct}%`;
+  const ns = document.getElementById('gh-nutrients');    if (ns) ns.textContent = `${Math.round(nPct)}%`;
+  const nf = document.getElementById('gh-nutrients-fill'); if (nf) nf.style.width = `${nPct}%`;
+
+  // Upgrades UI
+  (function updateGreenhouseUpgradesUI(){
+    const irL = Math.max(0, gh.upgrades.irrigation|0);
+    const liL = Math.max(0, gh.upgrades.lighting|0);
+    const caL = Math.max(0, gh.upgrades.capacity|0);
+
+    const irEff = GH_UPGR.irrigation.effect(irL).waterReductionPct;
+    const liEff = GH_UPGR.lighting.effect(liL);
+    const capEff = GH_UPGR.capacity.effect(caL);
+
+    const irLvlEl = document.getElementById('gh-lvl-irrigation');
+    const liLvlEl = document.getElementById('gh-lvl-lighting');
+    const caLvlEl = document.getElementById('gh-lvl-capacity');
+    if (irLvlEl) irLvlEl.textContent = `Lv. ${irL}`;
+    if (liLvlEl) liLvlEl.textContent = `Lv. ${liL}`;
+    if (caLvlEl) caLvlEl.textContent = `Lv. ${caL}`;
+
+    const irEffEl = document.getElementById('gh-eff-irrigation');
+    if (irEffEl) irEffEl.textContent = irEff;
+    const liEffEl = document.getElementById('gh-eff-lighting');
+    if (liEffEl) liEffEl.textContent = liEff.growthBonusPct;
+    const liEffNut = document.getElementById('gh-eff-lighting-nutr');
+    if (liEffNut) liEffNut.textContent = liEff.nutrDrainBonusPct;
+
+    const capWater = document.getElementById('gh-eff-cap-water');
+    const capNutr  = document.getElementById('gh-eff-cap-nutr');
+    if (capWater) capWater.textContent = String(capEff.waterMax);
+    if (capNutr)  capNutr.textContent  = String(capEff.nutrMax);
+
+    function setCost(kind, level){
+      const next = level >= GH_UPGR.maxLevel ? null : GH_UPGR[kind].costAt(level);
+      const mvcEl   = document.getElementById(`gh-cost-${kind}-mvc`);
+      const partsEl = document.getElementById(`gh-cost-${kind}-parts`);
+      const btnEl   = document.getElementById(`gh-upg-${kind}`);
+      if (!btnEl) return;
+      if (next){
+        mvcEl && (mvcEl.textContent = String(next.mvc));
+        partsEl && (partsEl.textContent = String(next.parts));
+        const afford = (gameState.resources.mvc >= next.mvc) && (gameState.resources.parts >= next.parts);
+        btnEl.disabled = !afford;
+      } else {
+        mvcEl && (mvcEl.textContent = '—');
+        partsEl && (partsEl.textContent = '—');
+        btnEl.disabled = true; btnEl.textContent = 'Max level';
+      }
+    }
+    setCost('irrigation', irL);
+    setCost('lighting', liL);
+    setCost('capacity', caL);
+  })();
+
+  // Beds
+  const bedsGrid = document.getElementById('beds-grid');
+  if (bedsGrid) {
+    try{ ghEnsureBeds(3); }catch(e){}
+    bedsGrid.innerHTML = '';
+    gh.beds.forEach((bed, i) => {
+      const el = document.createElement('div');
+      el.className = 'status-card';
+      const hist = bed.history || [];
+      const path = ghSparkPath(hist.slice(-40), 120, 28);
+      el.innerHTML = `
+        <div class="status-title">Bed ${i + 1}</div>
+        <div class="status-value">${bed.plant ? bed.plant : 'Empty'}</div>
+        ${bed.plant ? `
+          <div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0,Math.min(100,bed.growth))}%;"></div></div>
+          <div>Health: ${Math.max(0,Math.min(100,bed.health))}%</div>
+          <svg class="sparkline" viewBox="0 0 120 28" preserveAspectRatio="none">
+            <path d="${path}" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.85"></path>
+          </svg>
+        ` : ''}`;
+      bedsGrid.appendChild(el);
+    });
+  }
+}
+
+// === Greenhouse: open/close ===
+document.getElementById('greenhouse-card')?.addEventListener('click', () => {
+  document.getElementById('greenhouse-modal')?.classList.add('active');
+  updateGreenhouseUI();
+});
+document.querySelector('[data-close="greenhouse-modal"]')?.addEventListener('click', () => {
+  document.getElementById('greenhouse-modal')?.classList.remove('active');
+});
+
+// === Greenhouse: actions ===
+document.getElementById('gh-refill-water')?.addEventListener('click', () => {
+  const caps = ghMaxValues();
+  if (typeof updateResource === 'function' ? updateResource('energy', -10) : true) {
+    gameState.greenhouse.water = Math.min(caps.waterMax, gameState.greenhouse.water + 0.5*caps.waterMax);
+    updateGreenhouseUI();
+    if (typeof showNotification === 'function') showNotification('Water tank refilled!', true);
+  }
+});
+document.getElementById('gh-add-nutrients')?.addEventListener('click', () => {
+  const caps = ghMaxValues();
+  if (typeof updateResource === 'function' ? updateResource('bio', -5) : true) {
+    gameState.greenhouse.nutrients = Math.min(caps.nutrMax, gameState.greenhouse.nutrients + 0.3*caps.nutrMax);
+    updateGreenhouseUI();
+    if (typeof showNotification === 'function') showNotification('Nutrients added!', true);
+  }
+});
+document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
+  if (typeof updateResource === 'function' ? updateResource('bio', -3) : true) {
+    const i = (gameState.greenhouse.beds||[]).findIndex(b => !b.plant);
+    if (i !== -1) {
+      gameState.greenhouse.beds[i] = { plant: 'Lettuce', growth: 0, health: 100, history: [] };
+      updateGreenhouseUI();
+      if (typeof showNotification === 'function') showNotification('Seed planted!', true);
+    } else {
+      if (typeof showNotification === 'function') showNotification('No empty beds available!', false);
+    }
+  }
+});
+
+// === Greenhouse: upgrades actions ===
+(function(){
+  function buyUpgrade(kind){
+    const gh = gameState.greenhouse;
+    const level = gh.upgrades[kind]||0;
+    if (level >= GH_UPGR.maxLevel){
+      if (typeof showNotification==='function') showNotification('Already at max level', false);
+      return;
+    }
+    const cost = GH_UPGR[kind].costAt(level);
+    if (!((gameState.resources.mvc >= cost.mvc) && (gameState.resources.parts >= cost.parts))){
+      if (typeof showNotification==='function') showNotification('Not enough resources for upgrade', false);
+      return;
+    }
+    if (typeof updateResource==='function'){ updateResource('mvc', -cost.mvc); updateResource('parts', -cost.parts); }
+    if (kind==='capacity'){
+      const before = ghMaxValues(); const oldW = before.waterMax; const oldN = before.nutrMax;
+      gh.upgrades[kind] = level + 1;
+      const after = ghMaxValues(); const nw = after.waterMax; const nn = after.nutrMax;
+      if (oldW>0) gh.water = gh.water * (nw/oldW);
+      if (oldN>0) gh.nutrients = gh.nutrients * (nn/oldN);
+    } else {
+      gh.upgrades[kind] = level + 1;
+    }
+    if (typeof showNotification==='function') showNotification(kind==='irrigation' ? 'Irrigation upgraded!' : (kind==='lighting'?'Grow lights upgraded!':'Capacity upgraded!'), true);
+    updateGreenhouseUI();
+  }
+  document.getElementById('gh-upg-irrigation')?.addEventListener('click', ()=>buyUpgrade('irrigation'));
+  document.getElementById('gh-upg-lighting')?.addEventListener('click', ()=>buyUpgrade('lighting'));
+  document.getElementById('gh-upg-capacity')?.addEventListener('click', ()=>buyUpgrade('capacity'));
+})();
+
+// ensure greenhouse beds on load
+(function(){
+  function ensure(){ try{ ghEnsureBeds(3); }catch(e){} }
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ensure, { once:true });
+  } else { ensure(); }
+})();
+
+// === Greenhouse: tick loop ===
+(function greenhouseLoop(){
+  var TICK_MS = 1000;
+  setInterval(function(){
+    var gh = gameState.greenhouse;
+    if (!gh) return;
+
+    // Apply upgrade modifiers
+    var irLvl = (gh.upgrades && gh.upgrades.irrigation)||0;
+    var liLvl = (gh.upgrades && gh.upgrades.lighting)||0;
+    var waterDrainBase = 0.10;
+    var nutrDrainBase  = 0.05;
+    var waterMult = Math.max(0.25, 1 - 0.25*irLvl); // up to -75%
+    var nutrMult  = 1 + 0.10*liLvl; // lights raise nutr drain
+    if (gh.water > 0)     gh.water     = Math.max(0, gh.water     - waterDrainBase*waterMult);
+    if (gh.nutrients > 0) gh.nutrients = Math.max(0, gh.nutrients - nutrDrainBase*nutrMult);
+
+    var produced = 0;
+
+    (gh.beds||[]).forEach(function(bed){
+      if (!bed.plant) return;
+
+      if (gh.water/ghMaxValues().waterMax > 0.2 && gh.nutrients/ghMaxValues().nutrMax > 0.1) {
+        var growthBase = 0.20;
+        var growthMult = 1 + 0.30*liLvl; // +30% per lighting level
+        bed.growth = Math.min(100, bed.growth + growthBase*growthMult);
+        bed.health = Math.min(100, bed.health + 0.10);
+      } else {
+        bed.health = Math.max(0, bed.health - 0.30);
+      }
+
+      // push growth history
+      try{ (bed.history||(bed.history=[])).push(Math.max(0,Math.min(100, bed.growth))); if (bed.history.length>120) bed.history.shift(); }catch(e){}
+
+      if (bed.growth >= 100) {
+        produced += 1;
+        bed.growth = 0;
+        try { if (typeof updateResource === 'function') updateResource('bio', 1); } catch(e){}
+        if (typeof showNotification === 'function') showNotification('Harvested ' + bed.plant + '! +1 🧪', true);
+      }
+
+      if (bed.health <= 0) {
+        if (typeof showNotification === 'function') showNotification(bed.plant + ' has died!', false);
+        bed.plant = null; bed.growth = 0; bed.health = 100;
+      }
+    });
+
+    gh.productionRate = produced;
+
+    var modal = document.getElementById('greenhouse-modal');
+    if (modal && modal.classList.contains('active')) {
+      updateGreenhouseUI();
+    }
+    var outEl2 = document.getElementById('greenhouse-output');
+    if (outEl2) outEl2.textContent = '+' + Number(gh.productionRate || 0).toFixed(1) + '/h';
+  }, TICK_MS);
+})();
+</script>
+
