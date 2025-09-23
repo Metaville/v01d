@@ -4584,6 +4584,19 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
 
         // Отправка харвестера
         function sendHarvester() {
+    // Helpers for priority resolution
+    const __HVST_PRIO_STORE = 'mv_hvst_priority_v1';
+    function __hvstLoadPrio(){
+      try{ const o = JSON.parse(localStorage.getItem(__HVST_PRIO_STORE)||'{}'); if (Array.isArray(o.types)) return o.types.map(x=>String(x).toLowerCase()); }catch(_){}
+      return [];
+    }
+    function __hvstDomPrio(){
+      try{
+        return Array.from(document.querySelectorAll('.hvst-badge[data-type][data-priority="1"], .sr-badge[data-type][data-priority="1"]'))
+          .map(el => String(el.dataset.type).toLowerCase());
+      }catch(_){ return []; }
+    }
+    
     // Harvest resources from a completed scan.  This version supports multiple
     // dispatches and will continue to remove resources from the scanned
     // allocation until either the capacity for the current trip is reached or
@@ -4621,7 +4634,9 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
         };
 
         if (Array.isArray(res)) {
-            const pri = (gameState.missions && Array.isArray(gameState.missions.priorityTypes)) ? gameState.missions.priorityTypes : [];
+            let pri = (gameState.missions && Array.isArray(gameState.missions.priorityTypes)) ? gameState.missions.priorityTypes : [];
+            if (!pri.length) { pri = __hvstDomPrio(); }
+            if (!pri.length) { pri = __hvstLoadPrio(); }
             const ordered = pri.length ? res.slice().sort((a,b)=>{
                 const at = String(a.type).toLowerCase();
                 const bt = String(b.type).toLowerCase();
@@ -10657,29 +10672,68 @@ document.addEventListener('click', function(e){
 </script>
 
 
+
 <script id="hvst-priority-script">
 (function(){
   if (window.__hvstPriorityInit) return; window.__hvstPriorityInit = true;
+  const STORE = 'mv_hvst_priority_v1';
+
+  function save(pri){
+    try{ localStorage.setItem(STORE, JSON.stringify({ types: pri.slice(0,5) })); }catch(_){}
+  }
+  function load(){
+    try{ const o = JSON.parse(localStorage.getItem(STORE)||'{}'); if (Array.isArray(o.types)) return o.types.map(x=>String(x).toLowerCase()); }catch(_){}
+    return [];
+  }
+  function collectSelected(){
+    return Array.from(document.querySelectorAll('.hvst-badge[data-type][data-priority=\"1\"], .sr-badge[data-type][data-priority=\"1\"]'))
+      .map(el => String(el.dataset.type).toLowerCase());
+  }
+  function applyAria(){
+    document.querySelectorAll('.hvst-badge[data-type], .sr-badge[data-type]').forEach(el=>{
+      el.setAttribute('role','button');
+      el.setAttribute('aria-pressed', el.dataset.priority === '1' ? 'true' : 'false');
+    });
+  }
   document.addEventListener('click', function(e){
     const badge = e.target.closest('.hvst-badge[data-type], .sr-badge[data-type]');
     if (!badge) return;
     const on = (badge.dataset.priority === '1') ? '0' : '1';
     badge.dataset.priority = on;
     badge.classList.toggle('priority', on === '1');
-
-    const selected = Array.from(document.querySelectorAll('.hvst-badge[data-type][data-priority="1"], .sr-badge[data-type][data-priority="1"]'))
-      .map(el => String(el.dataset.type).toLowerCase());
+    badge.setAttribute('aria-pressed', on === '1' ? 'true' : 'false');
 
     const uniq = [];
-    for (const t of selected) if (!uniq.includes(t)) uniq.push(t);
+    for (const t of collectSelected()) if (!uniq.includes(t)) uniq.push(t);
     try {
       if (!window.gameState) window.gameState = {};
       if (!window.gameState.missions) window.gameState.missions = {};
       window.gameState.missions.priorityTypes = uniq;
     } catch(_) {}
+    save(uniq);
   }, false);
+
+  // On modal open or DOM changes, attempt to restore last selection
+  function restore(){
+    const pri = (window.gameState && gameState.missions && Array.isArray(gameState.missions.priorityTypes))
+      ? gameState.missions.priorityTypes : load();
+    if (!pri || !pri.length) { applyAria(); return; }
+    document.querySelectorAll('.hvst-badge[data-type], .sr-badge[data-type]').forEach(el=>{
+      const t = String(el.dataset.type||'').toLowerCase();
+      const on = pri.includes(t) ? '1' : '0';
+      el.dataset.priority = on;
+      el.classList.toggle('priority', on==='1');
+    });
+    applyAria();
+  }
+  document.addEventListener('DOMContentLoaded', ()=> setTimeout(restore, 0));
+  // Also observe for dynamic creation inside modals
+  if (window.MutationObserver){
+    new MutationObserver(()=> restore()).observe(document.body, { childList:true, subtree:true });
+  }
 })();
 </script>
+
 
 
 <script id="hide-minimap-guard">
