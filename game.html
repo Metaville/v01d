@@ -5282,7 +5282,7 @@ if (closeBtn) {
       `;
     }
 
-    if (gameState.inventory.includes("Таинственный Чип") && !gameState.parcelDeliveredLate) {
+    if (gameState.inventory.includes("Таинственный Чип") && gameState.parcelDeliveredLate) {
       content += `<p>Вы показываете Борису странный чип, найденный у курьера.</p>`;
       if (!gameState.chipExamined) {
         content += `<p><span class="npc">Борис</span> замирает. Его лицо сначала выражает жадность, а затем панический страх. Он молча протягивает руку, явно желая забрать чип.</p>`;
@@ -5832,7 +5832,7 @@ if (typeof gameState.o2Generation.buffer === 'undefined') {
     const energyCons = rate * ENERGY_PER_O2;
     energyEl.textContent = `−${energyCons.toFixed(1)} ⚡`;
     // Запас льда (целые единицы)
-    iceEl.textContent = Math.floor(gameState.resources.ice).toLocaleString();
+    iceEl.textContent = Math.floor(gameState.resources.ice).toLocaleString();;
     // Пока мод производительности фиксирован
     modEl.textContent = '×1.00';
     // Состояние: проверяем ресурсы
@@ -11894,19 +11894,22 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
 <style id="mv-profile-edit-css">
   #profile-modal .edit-actions{display:flex;gap:8px;align-items:center}
   #profile-modal .edit-btn{padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);cursor:pointer;font:600 12px/1 system-ui}
-  #profile-modal .name-edit{display:none;align-items:center;gap:8px;margin-top:4px}
+  #profile-modal .name-edit{display:none;grid-template-columns:1fr;grid-auto-rows:auto;gap:8px;margin-top:6px}
   #profile-modal .name-input{flex:1;min-width:180px;max-width:320px;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);color:#fff;font:600 14px/1.2 system-ui}
   #profile-modal .name-input::placeholder{opacity:.5}
   #profile-modal .btn-pill{padding:8px 10px;border-radius:999px;cursor:pointer;border:1px solid rgba(122,243,214,.35);background:rgba(122,243,214,.12);color:#7af3d6;font:700 12px/1 system-ui}
   #profile-modal .btn-pill.cancel{border-color:rgba(255,120,120,.35);background:rgba(255,120,120,.10);color:#ffbdbd}
   #profile-modal .err{color:#ff9a9a;font:600 11px/1.2 system-ui;margin-top:4px;display:none}
+
+  #profile-modal .name-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 </style>
+
 
 <script id="mv-profile-edit-js">
 (function(){
   if (window.__mvProfileEdit) return; window.__mvProfileEdit = true;
 
-  const STORE = 'mv_player_stats_v1'; // reuse same store, only 'callsign'
+  const STORE = 'mv_player_stats_v1';
 
   function loadCallsign(){
     let cs = null;
@@ -11959,7 +11962,6 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
     const modal = document.getElementById('profile-modal');
     if (!modal) return;
 
-    // locate identity area created by profile-ux (fallback if missing)
     let identity = modal.querySelector('.profile-top .identity');
     if (!identity){
       identity = document.createElement('div');
@@ -11968,7 +11970,6 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
       hdr && hdr.insertAdjacentElement('afterend', identity);
     }
 
-    // Ensure name element exists
     let nameEl = identity.querySelector('.name');
     if (!nameEl){
       nameEl = document.createElement('div');
@@ -11977,29 +11978,38 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
     }
     nameEl.textContent = loadCallsign();
 
-    // INLINE editor row
     let editRow = modal.querySelector('.name-edit');
+    let err;
     if (!editRow){
       editRow = document.createElement('div');
       editRow.className = 'name-edit';
+
       const input = document.createElement('input');
       input.type = 'text';
       input.className = 'name-input';
       input.placeholder = 'Enter hero name';
       input.maxLength = 24;
+
       const ok = document.createElement('button');
       ok.type = 'button';
       ok.className = 'btn-pill';
       ok.textContent = 'Save';
+
       const cancel = document.createElement('button');
       cancel.type = 'button';
       cancel.className = 'btn-pill cancel';
       cancel.textContent = 'Cancel';
-      const err = document.createElement('div');
+
+      const actions = document.createElement('div');
+      actions.className = 'name-actions';
+      actions.appendChild(ok);
+      actions.appendChild(cancel);
+
+      err = document.createElement('div');
       err.className = 'err';
-      editRow.appendChild(input);
-      editRow.appendChild(ok);
-      editRow.appendChild(cancel);
+
+      editRow.appendChild(input);      // row 1: input
+      editRow.appendChild(actions);    // row 2: buttons
       identity.appendChild(editRow);
       identity.appendChild(err);
 
@@ -12028,19 +12038,16 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
         if (e.key === 'Escape') { e.preventDefault(); closeEdit(); }
       });
 
-      // expose open function for button
       window.__mvOpenNameEditor = function(){
-        editRow.style.display = 'flex';
+        editRow.style.display = 'grid';   // two-row layout
         const inputEl = editRow.querySelector('.name-input');
         inputEl.value = nameEl.textContent || '';
         inputEl.focus(); inputEl.select();
       };
     }
 
-    // Hook existing primary "Edit profile" button
-    let primaryBtn = null;
-    // prefer explicit id if exists
-    primaryBtn = modal.querySelector('#profile-edit-primary') || null;
+    // Hook primary Edit profile button
+    let primaryBtn = modal.querySelector('#profile-edit-primary') || null;
     if (!primaryBtn){
       const candidates = Array.from(modal.querySelectorAll('button.btn.primary, a.btn.primary'));
       primaryBtn = candidates.find(b => /edit profile/i.test(b.textContent||'')) || null;
@@ -12052,16 +12059,10 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
       });
     }
 
-    // Remove old small edit button if present
-    const smallBtn = modal.querySelector('#profile-edit-btn');
-    if (smallBtn && smallBtn.parentNode){
-      smallBtn.parentNode.remove();
-    }
-
-    // Keep name in sync
     setInterval(function(){
       const cs = loadCallsign();
-      if (nameEl.textContent !== cs) nameEl.textContent = cs;
+      const n = identity.querySelector('.name');
+      if (n && n.textContent !== cs) n.textContent = cs;
     }, 2000);
   }
 
@@ -12073,3 +12074,142 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
 })();
 </script>
 
+
+
+<!-- === Metaville: Core Fixes (P0+P1) === -->
+<script id="mv-core-fixes">
+(function(){
+  if (window.__mvCoreFixes) return; window.__mvCoreFixes = true;
+
+  // ---- Timers manager (non-breaking) ----
+  window.Timers = window.Timers || {
+    _i:{}, _r:{},
+    set(name, ms, fn){ this.clear(name); this._i[name] = setInterval(fn, ms); return this._i[name]; },
+    raf(name, fn){ this.clear(name); const loop=()=>{ this._r[name]=requestAnimationFrame(loop); fn(); }; loop(); return this._r[name]; },
+    clear(name){ if (this._i[name]){ clearInterval(this._i[name]); delete this._i[name]; } if (this._r[name]){ cancelAnimationFrame(this._r[name]); delete this._r[name]; } }
+  };
+
+  // ---- Caps for resources ----
+  const RESOURCE_MAX = {
+    oxygen: 1000, energy: 1000, mvc: Infinity,
+    bio: 9999, parts: 9999, ice: 9999, polymers: 9999, rare: 9999
+  };
+
+  // ---- Wrap updateResource: clamp to 0..cap, integrate EN reduction ----
+  (function wrapUpdateResource(){
+    const orig = window.updateResource;
+    if (!orig) return;
+    // avoid double wrapping
+    if (orig.__mvWrapped) return;
+
+    function getName(res){
+      try{
+        return (window.getResourceName && getResourceName(res)) || res.toUpperCase();
+      }catch(_){ return res.toUpperCase(); }
+    }
+
+    const wrapped = function(resource, amount){
+      const res = String(resource);
+      let delta = Number(amount)||0;
+      if (!window.gameState) window.gameState = {};
+      if (!gameState.resources) gameState.resources = {};
+      const cur = Number(gameState.resources[res]||0);
+
+      // Apply EN reduction to energy consumption
+      if (res === 'energy' && delta < 0){
+        try{
+          const en = (gameState.player && gameState.player.stats && gameState.player.stats.energy) || 0;
+          const SM = window.StatModifiers || { energyCostReduction:(x)=>Math.min(0.30,x*0.01) };
+          const r = SM.energyCostReduction(en);
+          const base = Math.abs(delta);
+          delta = -Math.max(1, Math.floor(base * (1 - r)));
+        }catch(_){}
+      }
+
+      // No negatives
+      if (delta < 0 && cur + delta < 0){
+        try{ if (typeof showNotification==='function') showNotification(`Недостаточно ${getName(res)}!`, false); }catch(_){}
+        return false;
+      }
+
+      // Cap to max
+      const cap = RESOURCE_MAX.hasOwnProperty(res) ? RESOURCE_MAX[res] : Infinity;
+      let next = cur + delta;
+      if (Number.isFinite(cap)) next = Math.min(next, cap);
+
+      const applyDelta = next - cur;
+      const ok = applyDelta === 0 ? true : orig.call(this, res, applyDelta);
+
+      // Subtle UI flash
+      try{
+        const el = document.getElementById(`${res}-resource`) || document.getElementById(`${res}-value`) || document.getElementById(`${res}-val`);
+        if (el){ el.classList.add('changed'); setTimeout(()=> el.classList.remove('changed'), 500); }
+      }catch(_){}
+
+      return ok;
+    };
+    wrapped.__mvWrapped = true;
+    window.__origUpdateResource = orig;
+    window.updateResource = wrapped;
+  })();
+
+  // ---- Prevent re-scan of same sector & risk tweak; unlock HVST after scan ----
+  (function hooks(){
+    // registry of scanned sector keys
+    if (!window.gameState) window.gameState = {};
+    if (!gameState.missions) gameState.missions = {};
+    gameState.missions.scannedKeys = gameState.missions.scannedKeys || [];
+
+    function sectorKey(sd){
+      try {
+        const belt = (sd && (sd.belt||sd.beltName||sd.region)) || 'belt';
+        const sec  = (sd && (sd.sector||sd.id||sd.name)) || '0';
+        return String(belt)+'|'+String(sec);
+      } catch(_){ return 'belt|0'; }
+    }
+
+    // Wrap startScanning
+    (function wrapStartScan(){
+      if (typeof window.startScanning !== 'function') return;
+      const orig = window.startScanning;
+      if (orig.__mvWrapped) return;
+
+      window.startScanning = function(sd){
+        try{
+          const key = sectorKey(sd);
+          const list = gameState.missions.scannedKeys;
+          if (Array.isArray(list) && list.includes(key)){
+            if (typeof showNotification==='function') showNotification('Этот сектор уже отсканирован', false);
+            return;
+          }
+          // mark as scanned now (optimistic)
+          if (Array.isArray(list)) list.push(key);
+        }catch(_){}
+        return orig.apply(this, arguments);
+      };
+      window.startScanning.__mvWrapped = true;
+    })();
+
+    // Wrap showScanResultModal to (1) add XP (если есть твой хук — не страшно), (2) разблокировать харвестер
+    (function wrapResult(){
+      if (typeof window.showScanResultModal !== 'function') return;
+      const orig = window.showScanResultModal;
+      if (orig.__mvWrapped2) return;
+
+      window.showScanResultModal = function(){
+        const res = orig.apply(this, arguments);
+        try{
+          const hasFindings = Array.isArray(gameState.missions?.scannedResources) && gameState.missions.scannedResources.length>0;
+          const harvestsLeft = (gameState.missions?.harvestCount||0) < (gameState.missions?.maxHarvests||0);
+          const harvestBtn = document.getElementById('harvest-btn');
+          if (harvestBtn) harvestBtn.disabled = !(hasFindings && harvestsLeft);
+          const hvstBtn = document.getElementById('hvstScanBtn');
+          if (hvstBtn) hvstBtn.disabled = !(hasFindings && harvestsLeft);
+        }catch(_){}
+        return res;
+      };
+      window.showScanResultModal.__mvWrapped2 = true;
+    })();
+  })();
+})();
+</script>
