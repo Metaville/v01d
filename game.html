@@ -11167,76 +11167,37 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
 })();
 </script>
 
-
 <!-- === Metaville: Stats & Modifiers Integration (drop-in) === -->
 <script id="mv-stats-integration">
 (function(){
   if (window.__mvStatsInit) return; window.__mvStatsInit = true;
-
-  // --- Persistence & bootstrap ---
   const STORE = 'mv_player_stats_v1';
-  const DEFAULT = {
-    level: 1, exp: 0, maxExp: 100, statPoints: 5,
-    stats: { firepower: 10, status: 10, energy: 10, defense: 10, health: 10 }
-  };
+  const DEFAULT = { level: 1, exp: 0, maxExp: 100, statPoints: 5, stats: { firepower: 10, status: 10, energy: 10, defense: 10, health: 10 } };
   function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
-  function load(){
-    try{
-      const raw = JSON.parse(localStorage.getItem(STORE)||'{}');
-      const merged = deepClone(DEFAULT);
-      merged.level      = raw.level      ?? DEFAULT.level;
-      merged.exp        = raw.exp        ?? DEFAULT.exp;
-      merged.maxExp     = raw.maxExp     ?? DEFAULT.maxExp;
-      merged.statPoints = raw.statPoints ?? DEFAULT.statPoints;
-      merged.stats = Object.assign({}, DEFAULT.stats, raw.stats||{});
-      return merged;
-    }catch(e){ return deepClone(DEFAULT); }
-  }
+  function load(){ try{ const raw = JSON.parse(localStorage.getItem(STORE)||'{}'); const merged = deepClone(DEFAULT);
+    merged.level = raw.level ?? 1; merged.exp = raw.exp ?? 0; merged.maxExp = raw.maxExp ?? 100; merged.statPoints = raw.statPoints ?? 5;
+    merged.stats = Object.assign({}, DEFAULT.stats, raw.stats||{}); return merged; }catch(e){ return deepClone(DEFAULT);} }
   function save(p){ try{ localStorage.setItem(STORE, JSON.stringify(p)); }catch(e){} }
-
-  let player = load();
-  window.mvPlayerStats = player; // debug hook
-
-  // Attach into existing gameState
-  if (!window.gameState) window.gameState = {};
-  if (!gameState.player) gameState.player = {};
-  gameState.player.level      = player.level;
-  gameState.player.exp        = player.exp;
-  gameState.player.maxExp     = player.maxExp;
-  gameState.player.statPoints = player.statPoints;
-  gameState.player.stats      = player.stats;
-
-  // --- Modifiers ---
+  let player = load(); window.mvPlayerStats = player;
+  if (!window.gameState) window.gameState = {}; if (!gameState.player) gameState.player = {};
+  gameState.player.level = player.level; gameState.player.exp = player.exp; gameState.player.maxExp = player.maxExp;
+  gameState.player.statPoints = player.statPoints; gameState.player.stats = player.stats;
   const StatModifiers = {
-    energyCostReduction: (en) => Math.min(0.30, (en|0) * 0.01),       // up to -30%
-    riskReduction:       (fp) => Math.min(0.40, (fp|0) * 0.008),      // up to -40%
-    priceMult:           (ht) => 1 - Math.min(0.15, (ht|0) * 0.003),  // up to -15%
-    regenFactor:         (hp) => 1 + ((hp|0) / 100),                  // +% to rest regen
-    lossMitigation:      (ed) => Math.min(0.50, (ed|0) * 0.01)        // up to -50% (optional)
+    energyCostReduction: (en) => Math.min(0.30, (en|0) * 0.01),
+    riskReduction:       (fp) => Math.min(0.40, (fp|0) * 0.008),
+    priceMult:           (ht) => 1 - Math.min(0.15, (ht|0) * 0.003),
+    regenFactor:         (hp) => 1 + ((hp|0) / 100),
+    lossMitigation:      (ed) => Math.min(0.50, (ed|0) * 0.01)
   };
   window.StatModifiers = StatModifiers;
-
-  // --- Leveling (minimal, XP hooks can be added as needed) ---
   const LevelSystem = {
-    addXP(amount){
-      amount = Math.max(0, Math.floor(amount||0));
-      player.exp += amount;
-      gameState.player.exp = player.exp;
-      while (player.exp >= player.maxExp){
-        player.exp -= player.maxExp;
-        player.level += 1;
-        player.statPoints += 3;
-        gameState.player.level = player.level;
-        gameState.player.statPoints = player.statPoints;
+    addXP(amount){ amount = Math.max(0, Math.floor(amount||0)); player.exp += amount; gameState.player.exp = player.exp;
+      while (player.exp >= player.maxExp){ player.exp -= player.maxExp; player.level += 1; player.statPoints += 3;
+        gameState.player.level = player.level; gameState.player.statPoints = player.statPoints;
         gameState.player.maxExp = player.maxExp = Math.round(player.maxExp * 1.25);
         if (typeof showNotification === 'function') showNotification(`🎉 Уровень ${player.level}! +3 очка характеристик`, true);
-      }
-      save(player);
-    }
-  };
-  window.LevelSystem = LevelSystem;
-
-  // Award a little XP when scan results modal opens (demonstration)
+      } save(player); }
+  }; window.LevelSystem = LevelSystem;
   (function hookScanXP(){
     const hook = function(){
       if (typeof window.showScanResultModal !== 'function') return false;
@@ -11247,12 +11208,8 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
       };
       return true;
     };
-    if (!hook()){
-      const t = setInterval(()=>{ if (hook()) clearInterval(t); }, 300);
-    }
+    if (!hook()){ const t = setInterval(()=>{ if (hook()) clearInterval(t); }, 300); }
   })();
-
-  // --- Hook updateResource to reduce ENERGY spend with EN ---
   (function hookUpdateResource(){
     if (typeof window.updateResource !== 'function') return;
     const orig = window.updateResource;
@@ -11262,7 +11219,6 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
         const r = StatModifiers.energyCostReduction(gameState.player.stats.energy||0);
         const base = Math.abs(delta);
         d = -Math.max(1, Math.floor(base * (1 - r)));
-        // Try to surface info near scan/harvest cost hint
         try{
           const hintEl = document.getElementById('result-cost');
           if (hintEl && base !== Math.abs(d)){
@@ -11276,8 +11232,6 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
       return orig.apply(this, [resource, d]);
     };
   })();
-
-  // --- Reduce scan risk with FP by wrapping startScanning ---
   (function hookStartScanning(){
     const wrap = function(){
       if (typeof window.startScanning !== 'function') return false;
@@ -11287,27 +11241,17 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
           const fp = (gameState.player.stats.firepower||0);
           const red = StatModifiers.riskReduction(fp);
           const map = { low:10, medium:25, high:45 };
-          const baseNum = (typeof sd.risk === 'number') ? sd.risk :
-                          (sd && map[String(sd.risk).toLowerCase()]) ?? (+sd.risk||15);
+          const baseNum = (typeof sd.risk === 'number') ? sd.risk : (sd && map[String(sd.risk).toLowerCase()]) ?? (+sd.risk||15);
           const newRisk = Math.max(5, Math.round(baseNum * (1 - red)));
-          // store for UI
           if (!gameState.missions) gameState.missions = {};
           gameState.missions.risk = newRisk;
-          // also pass a cloned object to keep UI consistent
           const patched = Object.assign({}, sd, { risk: newRisk });
           return orig.call(this, patched);
-        }catch(e){
-          return orig.apply(this, arguments);
-        }
-      };
-      return true;
+        }catch(e){ return orig.apply(this, arguments); }
+      }; return true;
     };
-    if (!wrap()){
-      const t = setInterval(()=>{ if (wrap()) clearInterval(t); }, 300);
-    }
+    if (!wrap()){ const t = setInterval(()=>{ if (wrap()) clearInterval(t); }, 300); }
   })();
-
-  // --- Clarify risk & EN bonus in scan-result modal UI ---
   (function improveScanResultUI(){
     const hook = function(){
       if (typeof window.showScanResultModal !== 'function') return false;
@@ -11322,38 +11266,27 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
             const diff = base - mod;
             el.textContent = `${mod}%` + (diff>0 ? ` (Base: ${base}%, FP: -${diff}%)` : '');
           }
-          // Cost line is static in HTML; EN bonus tag is injected by updateResource hook on dispatch.
-        }catch(e){}
-        return res;
-      };
-      return true;
+        }catch(e){} return res;
+      }; return true;
     };
-    if (!hook()){
-      const t = setInterval(()=>{ if (hook()) clearInterval(t); }, 300);
-    }
+    if (!hook()){ const t = setInterval(()=>{ if (hook()) clearInterval(t); }, 300); }
   })();
-
-  // --- Apply Status (HT) to vendor discounts ---
   (function hookVendorDiscount(){
     const rep = window.reputationSystem;
     if (!rep || typeof rep.applyDiscount !== 'function') return;
     const orig = rep.applyDiscount.bind(rep);
     rep.applyDiscount = function(vendor, price){
-      // base reputation discount first
       const p = orig(vendor, price);
-      // additional status-based discount
       const ht = gameState?.player?.stats?.status || 0;
       const mult = StatModifiers.priceMult(ht);
       return Math.max(1, Math.round(p * mult));
     };
   })();
-
-  // --- Make Rest regen scale with HP ---
   (function hookRest(){
     if (typeof window.startRest !== 'function') return;
     const orig = window.startRest;
     window.startRest = function(){
-      if (gameState.player?.isResting) { try{ showNotification('You are already resting!', false);}catch(e){} return; }
+      if (gameState.player?.isResting){ try{ showNotification('You are already resting!', false);}catch(e){} return; }
       if (gameState.resources.energy >= 1000){ try{ showNotification('Your energy is already full!', false);}catch(e){} return; }
       gameState.player.isResting = true;
       const btn = document.getElementById('rest-button');
@@ -11384,40 +11317,21 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
       }, tickMs);
     };
   })();
-
-  // --- Profile: render stats cards with [+] ---
   function renderProfileStats(){
     const grid = document.querySelector('#profile-modal .stats-grid');
     if (!grid) return;
     const icons  = { firepower:'fa-crosshairs', status:'fa-star', energy:'fa-bolt', defense:'fa-shield-alt', health:'fa-heart' };
     const labels = { firepower:'FP', status:'HT', energy:'EN', defense:'ED', health:'HP' };
-    const desc   = {
-      firepower:'Снижает риск сканирования и поломок.',
-      status:'Скидки у продавцов и выгодные сделки.',
-      energy:'Снижает расход ⚡ при действиях.',
-      defense:'Смягчает потери при негативных событиях.',
-      health:'Быстрее отдых (восстановление ⚡).'
-    };
+    const desc   = { firepower:'Снижает риск сканирования и поломок.', status:'Скидки у продавцов и выгодные сделки.', energy:'Снижает расход ⚡ при действиях.', defense:'Смягчает потери при негативных событиях.', health:'Быстрее отдых (восстановление ⚡).' };
     grid.innerHTML = '';
     const header = document.createElement('div');
     header.className = 'stat-header';
-    header.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;">
-      <div><strong>Очки характеристик:</strong> <span id="stat-points">${gameState.player.statPoints||0}</span></div>
-      <div style="font-size:12px;opacity:.8">Наведи на стат для описания</div>
-    </div>`;
+    header.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;"><div><strong>Очки характеристик:</strong> <span id="stat-points">${gameState.player.statPoints||0}</span></div><div style="font-size:12px;opacity:.8">Наведи на стат для описания</div></div>`;
     grid.appendChild(header);
     Object.keys(labels).forEach(k=>{
       const card = document.createElement('div');
       card.className = 'stat-card';
-      card.innerHTML = `
-        <div class="stat-icon"><i class="fas ${icons[k]}"></i></div>
-        <div class="stat-info">
-          <div class="stat-title">${labels[k]}</div>
-          <div class="stat-desc">${desc[k]}</div>
-        </div>
-        <div class="stat-value" data-k="${k}">${gameState.player.stats[k]}</div>
-        <button class="stat-plus" data-stat="${k}" ${ (gameState.player.statPoints||0) ? '' : 'disabled' }>+</button>
-      `;
+      card.innerHTML = `<div class="stat-icon"><i class="fas ${icons[k]}"></i></div><div class="stat-info"><div class="stat-title">${labels[k]}</div><div class="stat-desc">${desc[k]}</div></div><div class="stat-value" data-k="${k}">${gameState.player.stats[k]}</div><button class="stat-plus" data-stat="${k}" ${ (gameState.player.statPoints||0) ? '' : 'disabled' }>+</button>`;
       grid.appendChild(card);
     });
     grid.addEventListener('click', function(e){
@@ -11426,21 +11340,14 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
       if ((gameState.player.statPoints||0) <= 0) return;
       gameState.player.statPoints -= 1;
       gameState.player.stats[stat] = (gameState.player.stats[stat]||0) + 1;
-      // persist mirror
-      player.level = gameState.player.level;
-      player.exp = gameState.player.exp;
-      player.maxExp = gameState.player.maxExp;
-      player.statPoints = gameState.player.statPoints;
-      player.stats = gameState.player.stats;
-      save(player);
+      player.level = gameState.player.level; player.exp = gameState.player.exp; player.maxExp = gameState.player.maxExp;
+      player.statPoints = gameState.player.statPoints; player.stats = gameState.player.stats; save(player);
       renderProfileStats();
       try { updateUI(); } catch(e){}
       try { showNotification(`+1 к ${stat.toUpperCase()}`, true); } catch(e){}
     }, { passive:true });
   }
-
   document.addEventListener('DOMContentLoaded', renderProfileStats);
-
 })(); 
 </script>
 
@@ -11451,15 +11358,13 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
   const safe = (fn)=>{ try{ return fn(); }catch(e){} };
   const getStats = ()=> (window.gameState && gameState.player && gameState.player.stats) ? gameState.player.stats : { firepower:0, status:0, energy:0, defense:0, health:0 };
   const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
-
-  // --- Helper: apply ED mitigation to any *event* loss and show a toast
   window.applyEventLoss = function(resource, baseLoss, reason){
     const stats = getStats();
     const ed = +stats.defense||0;
     const fp = +stats.firepower||0;
     const edMit = (window.StatModifiers && StatModifiers.lossMitigation)? StatModifiers.lossMitigation(ed) : Math.min(0.50, ed*0.01);
     const fpMit = (window.StatModifiers && StatModifiers.riskReduction)? StatModifiers.riskReduction(fp) : Math.min(0.40, fp*0.008);
-    const totalMit = 1 - (1 - edMit) * (1 - fpMit);   // combine multiplicatively
+    const totalMit = 1 - (1 - edMit) * (1 - fpMit);
     const finalLoss = Math.max(1, Math.ceil(baseLoss * (1 - totalMit)));
     const saved = baseLoss - finalLoss;
     const ok = (typeof window.updateResource === 'function') ? updateResource(resource, -finalLoss) : false;
@@ -11469,93 +11374,63 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
     }
     return ok;
   };
-
-  // --- Harvester: post-process after performScan to apply ED/FP on *lost* and EN on O2 cost
   (function hookHvstScan(){
-    // Use capturing to snapshot BEFORE onclick handler inside the harvester script runs
     document.addEventListener('click', function onCap(e){
       const btn = e.target.closest('#hvstScanBtn');
       if (!btn) return;
       const st = (window.state && state.harvester) ? state.harvester : null;
       const p  = window.currentHvstPoint || null;
       if (!st || !p) return;
-      // Snapshot pre-scan state
-      const pre = {
-        cargo: +st.cargo || 0,
-        o2: +st.o2used || 0,
-        hp: +st.droneHP || 0,
-        left: +p.left || 0,
-        cap: +st.capacity || 0
-      };
-      // Defer post-processing after original click handler finishes
+      const pre = { cargo:+st.cargo||0, o2:+st.o2used||0, hp:+st.droneHP||0, left:+p.left||0, cap:+st.capacity||0 };
       setTimeout(function(){
         try{
           const stats = getStats();
           const enRed = (window.StatModifiers && StatModifiers.energyCostReduction) ? StatModifiers.energyCostReduction(stats.energy||0) : Math.min(0.30, (stats.energy||0)*0.01);
           const edMit = (window.StatModifiers && StatModifiers.lossMitigation) ? StatModifiers.lossMitigation(stats.defense||0) : Math.min(0.50, (stats.defense||0)*0.01);
           const fpMit = (window.StatModifiers && StatModifiers.riskReduction) ? StatModifiers.riskReduction(stats.firepower||0) : Math.min(0.40, (stats.firepower||0)*0.008);
-          const st2 = (window.state && state.harvester) ? state.harvester : null;
-          if (!st2) return;
+          const st2 = (window.state && state.harvester) ? state.harvester : null; if (!st2) return;
           const p2 = window.currentHvstPoint || null;
-
           const cargoDelta = (+st2.cargo||0) - pre.cargo;
           const o2Delta    = (+st2.o2used||0) - pre.o2;
           const hpDrop     = pre.hp - (+st2.droneHP||0);
           const idealChunk = Math.max(0, Math.min(pre.cap - pre.cargo, pre.left));
           const lost = Math.max(0, idealChunk - Math.max(0,cargoDelta));
-
-          // --- Apply EN: reduce O2 used this scan
           if (o2Delta > 0 && enRed > 0){
             const save = Math.round(o2Delta * enRed);
             st2.o2used = Math.max(pre.o2, (+st2.o2used||0) - save);
             safe(()=> showNotification(`Экономия O₂: -${save} (${Math.round(enRed*100)}% от EN)`, true));
           }
-
-          // --- Apply ED+FP: recover part of 'lost' as cargo, respecting capacity and remaining resources
           if (lost > 0 && (edMit > 0 || fpMit > 0) && p2){
             const totalMit = 1 - (1 - edMit) * (1 - fpMit);
             let rec = Math.floor(lost * totalMit);
-            // Respect capacity and available resources on point
             const freeNow = Math.max(0, (+st2.capacity||0) - (+st2.cargo||0));
             rec = Math.max(0, Math.min(rec, freeNow, (+p2.left||0)));
             if (rec > 0){
-              st2.cargo += rec;
-              p2.left = Math.max(0, (+p2.left||0) - rec);
+              st2.cargo += rec; p2.left = Math.max(0, (+p2.left||0) - rec);
               safe(()=> showNotification(`Потери смягчены: +${rec} (ED/FP ${Math.round(totalMit*100)}%)`, true));
             }
           }
-
-          // --- Apply FP: reduce drone damage by part of drop
           if (hpDrop > 0 && fpMit > 0){
             const restore = Math.max(0, Math.floor(hpDrop * fpMit));
-            if (restore > 0){
-              st2.droneHP = clamp((+st2.droneHP||0) + restore, 0, 100);
-              safe(()=> showNotification(`Повреждения снижены: +${restore}% HP (FP)`, true));
-            }
+            if (restore > 0){ st2.droneHP = Math.min(100, (+st2.droneHP||0) + restore);
+              safe(()=> showNotification(`Повреждения снижены: +${restore}% HP (FP)`, true)); }
           }
-
-          // Update HUD if available
           safe(()=> typeof refreshHud==='function' && refreshHud());
         }catch(_){}
       }, 0);
     }, true);
   })();
-
-  // --- XP hooks: market buy/sell
   (function xpMarket(){
     function getQtyFromRow(row){
       if (!row) return 1;
-      const qtyEl = row.querySelector('input[type="number"], [data-qty]');
-      let q = 1;
+      const qtyEl = row.querySelector('input[type="number"], [data-qty]'); let q = 1;
       if (qtyEl) q = parseInt(qtyEl.value || qtyEl.textContent || '1', 10) || 1;
       return Math.max(1, q);
     }
     document.addEventListener('click', function(e){
-      const buyBtn = e.target.closest('[data-action="buy"], .buy-btn');
-      if (!buyBtn) return;
+      const buyBtn = e.target.closest('[data-action="buy"], .buy-btn'); if (!buyBtn) return;
       const row = buyBtn.closest('[data-resource]') || buyBtn.closest('.market-row');
-      const res = row && row.dataset.resource;
-      const qty = getQtyFromRow(row);
+      const res = row && row.dataset.resource; const qty = getQtyFromRow(row);
       const preRes = (res && gameState?.resources && typeof gameState.resources[res]==='number') ? gameState.resources[res] : null;
       const preMvc = gameState?.resources?.mvc;
       setTimeout(function(){
@@ -11567,13 +11442,10 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
         }catch(_){}
       }, 0);
     }, false);
-
     document.addEventListener('click', function(e){
-      const sellBtn = e.target.closest('[data-action="sell"], .sell-btn');
-      if (!sellBtn) return;
+      const sellBtn = e.target.closest('[data-action="sell"], .sell-btn'); if (!sellBtn) return;
       const row = sellBtn.closest('[data-resource]') || sellBtn.closest('.market-row');
-      const res = row && row.dataset.resource;
-      const qty = getQtyFromRow(row);
+      const res = row && row.dataset.resource; const qty = getQtyFromRow(row);
       const preRes = (res && gameState?.resources && typeof gameState.resources[res]==='number') ? gameState.resources[res] : null;
       const preMvc = gameState?.resources?.mvc;
       setTimeout(function(){
@@ -11586,152 +11458,560 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
       }, 0);
     }, false);
   })();
-
-  // --- XP hooks: research buttons (radiation/engine/solar upgrade)
   (function xpResearch(){
     function addXPDeferred(xp){ setTimeout(()=>{ try{ window.LevelSystem && LevelSystem.addXP(xp); }catch(_){}} ,0); }
     document.addEventListener('click', function(e){
       if (e.target?.id === 'radiation-btn'){
         const pre = gameState?.research?.radiation||0;
-        setTimeout(()=>{
-          try{
-            const post = gameState?.research?.radiation||0;
-            if (post > pre) addXPDeferred(20);
-          }catch(_){}
-        },0);
+        setTimeout(()=>{ try{ const post = gameState?.research?.radiation||0; if (post > pre) addXPDeferred(20); }catch(_){} },0);
       }
       if (e.target?.id === 'engine-btn'){
         const pre = !!(gameState?.research?.engines);
-        setTimeout(()=>{
-          try{
-            const post = !!(gameState?.research?.engines);
-            if (post && !pre) addXPDeferred(50);
-          }catch(_){}
-        },0);
+        setTimeout(()=>{ try{ const post = !!(gameState?.research?.engines); if (post && !pre) addXPDeferred(50); }catch(_){}} ,0);
       }
       if (e.target?.id === 'solar-upgrade-confirm'){
         const preMvc = gameState?.resources?.mvc||0;
-        setTimeout(()=>{
-          try{
-            const postMvc = gameState?.resources?.mvc||0;
-            if (postMvc < preMvc) addXPDeferred(15);
-          }catch(_){}
-        },0);
+        setTimeout(()=>{ try{ const postMvc = gameState?.resources?.mvc||0; if (postMvc < preMvc) addXPDeferred(15); }catch(_){} },0);
       }
     }, false);
   })();
-
 })(); 
 </script>
 
-<!-- === Metaville: Notifications on top of everything === -->
-
-
-
-<!-- === Metaville: Notifications on top of everything (dedup + single-source) === -->
+<!-- === Metaville: Single-line queued notifications under resource bar === -->
 <style id="mv-toast-overlay-css">
-  /* Always on top */
-  .notification,
-  #mv-toast,
-  .mv-toast-fixed {
-    position: fixed !important;
-    z-index: 2147483647 !important;
+  #mv-toast-bar { position: fixed !important; z-index: 2147483647 !important; left: 0; top: 0; width: 100%; pointer-events: none !important; }
+  #mv-toast-bar .notification {
+    position: relative !important; top: 0 !important; left: 0 !important; right: auto !important; width: 100% !important; margin: 0 !important;
+    border-radius: 10px !important; box-shadow: 0 10px 24px rgba(0,0,0,.25); padding: 10px 14px !important;
+    display: flex !important; align-items: center !important; justify-content: center !important; pointer-events: none !important;
+    white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important;
+    opacity: 0; transform: translateY(-6px); transition: opacity .22s ease, transform .22s ease;
   }
-  /* Do not block clicks underneath */
-  .notification,
-  #mv-toast,
-  .mv-toast-fixed {
-    pointer-events: none !important;
-  }
-  /* Hide legacy single-banner if any script still creates it directly */
+  #mv-toast-bar .notification.mv-show { opacity: 1; transform: translateY(0); visibility: visible !important; }
+
+  #mv-toast-bar .notification.mv-show { opacity: 1; transform: translateY(0); }
   #mv-toast:not(.mv-allow) { display: none !important; }
 
-  /* Top-right stack */
-  #mv-toast-stack {
-    position: fixed;
-    top: 18px;
-    right: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 2147483647;
-    pointer-events: none;
-  }
-  #mv-toast-stack .notification {
-    width: auto;
-    max-width: min(560px, 92vw);
-    left: auto !important;
-    right: 0 !important;
-    top: 0 !important;
-    border-radius: 12px !important;
-    box-shadow: 0 12px 30px rgba(0,0,0,.35);
-    padding: 12px 14px;
+  /* Mobile: allow up to 2 lines for long messages */
+  @media (max-width: 560px) {
+    #mv-toast-bar .notification {
+      white-space: normal !important;
+      display: -webkit-box !important;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      word-break: break-word;
+      line-height: 1.25;
+      padding: 10px 12px !important;
+    }
   }
 </style>
 <script id="mv-toast-overlay-js">
 (function(){
   if (window.__mvToastTopInit) return; window.__mvToastTopInit = true;
-
-  // ensure stack container
-  function ensureStack(){
-    var stack = document.getElementById('mv-toast-stack');
-    if (!stack){
-      stack = document.createElement('div');
-      stack.id = 'mv-toast-stack';
-      document.body.appendChild(stack);
-    }
-    return stack;
+  function ensureBar(){ var b = document.getElementById('mv-toast-bar'); if (!b){ b = document.createElement('div'); b.id='mv-toast-bar'; document.body.appendChild(b);} return b; }
+  function positionBar(){
+    var box = ensureBar(); var bar = document.querySelector('.resource-bar');
+    if (bar){ var r = bar.getBoundingClientRect(); box.style.top = Math.round(r.bottom + 10 + window.scrollY) + 'px'; box.style.left = Math.round(r.left + window.scrollX) + 'px'; box.style.width = Math.round(r.width) + 'px'; }
+    else { box.style.top = (10 + window.scrollY) + 'px'; box.style.left = '0'; box.style.width = '100%'; }
   }
-
-  // simple dedupe within a short window
-  var _recent = [];
-  function seenRecently(key){
-    var now = Date.now();
-    _recent = _recent.filter(function(x){ return (now - x.t) < 1200; });
-    var hit = _recent.some(function(x){ return x.k === key; });
-    if (!hit) _recent.push({ k: key, t: now });
-    return hit;
+  window.addEventListener('scroll', positionBar, { passive:true }); window.addEventListener('resize', positionBar);
+  document.addEventListener('DOMContentLoaded', positionBar); setTimeout(positionBar, 0);
+  var queue = [], showing = false, dedupe = [];
+  function seenRecently(key){ var now=Date.now(); dedupe = dedupe.filter(x=> (now-x.t) < 1200); var hit = dedupe.some(x=> x.k===key); if(!hit) dedupe.push({k:key,t:now}); return hit; }
+  function enqueue(kind, text, ms){ var key=(kind||'')+'|'+(text||'').toString().trim(); if(seenRecently(key)) return; queue.push({kind:kind||'info', text:text, ms: Math.max(1500, ms||2500)}); if(!showing) showNext(); }
+  function showNext(){ if(queue.length===0){showing=false;return;} showing=true; var item=queue.shift(); var box=ensureBar(); while(box.firstChild) box.removeChild(box.firstChild);
+    var el=document.createElement('div'); el.className='notification '+item.kind; if(/<[a-z][\s\S]*>/i.test(item.text||'')) el.innerHTML=item.text; else el.textContent=item.text; box.appendChild(el);
+    requestAnimationFrame(()=> el.classList.add('mv-show')); setTimeout(()=>{ el.classList.remove('mv-show'); setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); showNext(); }, 200); }, item.ms);
   }
-
-  function pushToast(kind, htmlOrText, ms){
-    var key = (kind||'') + '|' + (htmlOrText||'').toString().trim();
-    if (seenRecently(key)) return; // DROP DUPLICATE
-    var stack = ensureStack();
-    var el = document.createElement('div');
-    el.className = 'notification ' + (kind||'info') + ' mv-toast-fixed';
-    if (/<[a-z][\s\S]*>/i.test(htmlOrText||'')) el.innerHTML = htmlOrText;
-    else el.textContent = htmlOrText;
-    stack.appendChild(el);
-    requestAnimationFrame(function(){ el.classList.add('show'); });
-    setTimeout(function(){
-      el.classList.remove('show');
-      setTimeout(function(){ el.remove(); }, 400);
-    }, Math.max(1500, ms||2500));
-  }
-
-  // Replace showNotification/notify with *single* source of truth.
-  // Do NOT call originals to avoid double rendering.
-  try {
-    window.showNotification = function(text, ok){
-      pushToast(ok ? 'success':'error', text, 2600);
-    };
-  } catch(_) {}
-
-  try {
-    window.notify = function(type, text){
-      pushToast(type||'info', text, 2600);
-    };
-  } catch(_){}
-
-  // Hoist legacy #mv-toast into our stack if created elsewhere, but keep it hidden
-  document.addEventListener('DOMNodeInserted', function(ev){
-    var n = ev.target;
-    if (n && n.id === 'mv-toast' && !n.__mvHoisted){
-      n.__mvHoisted = true;
-      ensureStack().appendChild(n);
-      n.classList.add('mv-toast-fixed');
-      n.classList.remove('show');
-    }
-  }, false);
+  window.showNotification = function(text, ok){ enqueue(ok ? 'success':'error', text, 2600); };
+  window.notify = function(type, text){ enqueue(type||'info', text, 2600); };
+  document.addEventListener('DOMNodeInserted', function(ev){ var n=ev.target; if(n && n.id==='mv-toast' && !n.__mvHoisted){ n.__mvHoisted=true; ensureBar().appendChild(n); n.classList.remove('show'); } }, false);
 })();
 </script>
+
+
+<!-- === Metaville: move modulesToggle into drone-actions === -->
+<script id="mv-move-modulestoggle">
+(function(){
+  if (window.__mvMoveModsToggle) return; window.__mvMoveModsToggle = true;
+  function moveToggle(){
+    var container = document.querySelector('.drone-actions');
+    if (!container) return;
+    var btn = document.getElementById('modulesToggle');
+    if (!btn){
+      // if button not found (was removed in markup), create it
+      btn = document.createElement('button');
+      btn.id = 'modulesToggle';
+      btn.textContent = '⚙️ Модули';
+    }
+    // match drone-actions button style
+    btn.classList.add('btn');
+    btn.classList.remove('modules-btn');
+    // move into container (as the last action)
+    if (btn.parentNode !== container) container.appendChild(btn);
+    // do NOT bind click here to avoid double handlers; ensureModulesUI already binds it.
+  }
+  if (document.readyState === 'complete' || document.readyState === 'interactive'){
+    setTimeout(moveToggle, 0);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(moveToggle, 0); });
+  }
+})();
+</script>
+
+<!-- === Metaville: Mehanics status-card -> clickable + drone info === -->
+<script id="mv-mehanics-card">
+(function(){
+  if (window.__mvMechCardInit) return; window.__mvMechCardInit = true;
+
+  function findMechCard(){
+    var cards = document.querySelectorAll('#base-screen .status-card');
+    for (var i=0;i<cards.length;i++){
+      var t = cards[i].querySelector('.status-title');
+      if (!t) continue;
+      var txt = (t.textContent||'').trim().toLowerCase();
+      if (txt.indexOf('mehanics') !== -1 || txt.indexOf('mechanics') !== -1) return cards[i];
+    }
+    return null;
+  }
+
+  function syncCard(){
+    var card = findMechCard();
+    if (!card) return;
+    var modelEl = document.getElementById('drone-model');
+    var hpEl = document.getElementById('drone-hp');
+    var model = modelEl ? (modelEl.textContent||'').trim() : (window.state && state.model) || '—';
+    var hp    = hpEl ? (hpEl.textContent||'').trim() : (window.state && (state.hp+'/'+state.maxHp)) || '—';
+    var v1 = card.querySelector('#mech-card-model');
+    var v2 = card.querySelector('#mech-card-hp');
+    if (v1) v1.textContent = 'Model: ' + model;
+    if (v2) v2.textContent = 'HP: ' + hp;
+  }
+
+  function init(){
+    var card = findMechCard();
+    if (!card) return;
+
+    card.id = card.id || 'mehanics-card';
+    card.classList.add('clickable');
+
+    // Rebuild inner content: keep the title, replace body with model+hp
+    var title = card.querySelector('.status-title');
+    if (!title){
+      title = document.createElement('div');
+      title.className = 'status-title';
+      title.innerHTML = '<i class="fas fa-hard-hat"></i> Mehanics';
+      card.prepend(title);
+    }
+    // Clear non-title siblings (old text)
+    Array.from(card.children).forEach(function(ch){
+      if (ch !== title) card.removeChild(ch);
+    });
+
+    var vModel = document.createElement('div');
+    vModel.className = 'status-value';
+    vModel.id = 'mech-card-model';
+    vModel.textContent = 'Model: —';
+    var vHP = document.createElement('div');
+    vHP.className = 'status-sub';
+    vHP.id = 'mech-card-hp';
+    vHP.textContent = 'HP: —';
+    card.appendChild(vModel);
+    card.appendChild(vHP);
+
+    // Click to open the mehanics screen
+    card.addEventListener('click', function(){
+      try {
+        document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+        var scr = document.getElementById('mehanics-screen');
+        if (scr) scr.classList.add('active');
+        // Optional: highlight DRONES nav if present
+        var navs = document.querySelectorAll('.nav-item');
+        navs.forEach(function(n){ n.classList.remove('active'); });
+        // Try to activate a nav item bound to mehanics-screen or DRONES
+        var tgt = Array.from(navs).find(function(n){ return n.getAttribute('data-screen')==='mehanics-screen' || /drones/i.test(n.textContent||''); });
+        if (tgt) tgt.classList.add('active');
+      } catch(_) {}
+    });
+
+    // Initial sync + observers to reflect changes
+    syncCard();
+    var mo1 = document.getElementById('drone-model');
+    var mo2 = document.getElementById('drone-hp');
+    if (window.MutationObserver){
+      if (mo1){
+        new MutationObserver(syncCard).observe(mo1, { characterData:true, subtree:true, childList:true });
+      }
+      if (mo2){
+        new MutationObserver(syncCard).observe(mo2, { characterData:true, subtree:true, childList:true });
+      }
+    }
+    // Fallback periodic sync for safety
+    setInterval(syncCard, 2000);
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive'){
+    setTimeout(init, 0);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init,0); });
+  }
+})();
+</script>
+
+<!-- === Metaville: Polished Profile UI (tabs + level + bonuses) === -->
+<style id="mv-profile-ux-css">
+  /* Layout */
+  #profile-modal .profile-shell{display:flex;flex-direction:column;gap:16px;padding:8px 0;}
+  #profile-modal .profile-top{display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;}
+  #profile-modal .avatar{width:72px;height:72px;border-radius:16px;background:linear-gradient(135deg,#5b8cff,#7af3d6);display:flex;align-items:center;justify-content:center;color:#0b0f18;font-weight:800;font-size:28px;box-shadow:0 8px 24px rgba(0,0,0,.25);}
+  #profile-modal .identity{display:flex;flex-direction:column;gap:4px;}
+  #profile-modal .identity .name{font:600 20px/1.1 system-ui, -apple-system, Segoe UI, Roboto;}
+  #profile-modal .identity .meta{opacity:.8;font:500 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto;}
+  #profile-modal .lvl{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  #profile-modal .lvl .pill{background:rgba(122,243,214,.15);border:1px solid rgba(122,243,214,.35);padding:6px 10px;border-radius:999px;font:600 12px/1 system-ui}
+  #profile-modal .xpbar{width:240px;max-width:48vw;height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+  #profile-modal .xpbar .fill{height:100%;width:0%;background:linear-gradient(90deg,#7af3d6,#5b8cff);}
+
+  /* Tabs */
+  #profile-modal .tabs{display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:8px;margin-top:8px}
+  #profile-modal .tab{padding:8px 12px;border-radius:12px;cursor:pointer;font:600 13px/1 system-ui;opacity:.85}
+  #profile-modal .tab.active{background:rgba(91,140,255,.18);border:1px solid rgba(91,140,255,.35);opacity:1}
+  #profile-modal .tabpanes{padding-top:12px}
+  #profile-modal .tabpane{display:none}
+  #profile-modal .tabpane.active{display:block}
+
+  /* Stat cards */
+  #profile-modal .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  #profile-modal .stat-card{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 12px}
+  #profile-modal .stat-icon i{font-size:18px;opacity:.9}
+  #profile-modal .stat-info{display:flex;flex-direction:column;gap:2px}
+  #profile-modal .stat-title{font:700 13px/1.1 system-ui}
+  #profile-modal .stat-desc{font:500 12px/1.2 system-ui;opacity:.75}
+  #profile-modal .stat-value{font:800 16px/1 system-ui}
+  #profile-modal .stat-plus{width:28px;height:28px;border-radius:10px;border:1px solid rgba(122,243,214,.35);background:rgba(122,243,214,.12);color:#7af3d6;font-weight:800;cursor:pointer}
+  #profile-modal .stat-plus:disabled{opacity:.5;cursor:not-allowed}
+
+  /* Bonuses list */
+  #profile-modal .bonus-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin-top:6px}
+  #profile-modal .bonus{display:flex;gap:8px;align-items:flex-start;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:8px 10px;font:500 12px/1.3 system-ui}
+  #profile-modal .bonus i{opacity:.8;margin-top:1px}
+
+  /* Reputation badges */
+  #profile-modal .reps{display:flex;flex-wrap:wrap;gap:8px}
+  #profile-modal .rep{border-radius:999px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font:600 12px/1}
+</style>
+
+<script id="mv-profile-ux-js">
+(function(){
+  if (window.__mvProfileUX) return; window.__mvProfileUX = true;
+
+  function el(tag, cls, html){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html!=null) n.innerHTML = html;
+    return n;
+  }
+
+  function fmtPct(x){ return Math.round(x*100) + '%'; }
+
+  function build(){
+    var modal = document.getElementById('profile-modal');
+    if (!modal) return;
+
+    // shell
+    var shell = el('div','profile-shell');
+    // header
+    var top = el('div','profile-top');
+    var av = el('div','avatar','MV');
+    var id = el('div','identity');
+    var name = el('div','name', (gameState?.player?.callsign || 'Citizen'));
+    var meta = el('div','meta', 'ID: V01D‑031 • Sector 7G');
+    id.appendChild(name); id.appendChild(meta);
+    var lvl = el('div','lvl');
+    var pill = el('div','pill','Lv. <span id="pf-level">'+(gameState?.player?.level||1)+'</span>');
+    var bar = el('div','xpbar'); var fill = el('div','fill'); fill.style.width = (Math.min(100, Math.round(100*(gameState?.player?.exp||0)/Math.max(1,(gameState?.player?.maxExp||100)))))+'%'; bar.appendChild(fill);
+    lvl.appendChild(pill); lvl.appendChild(bar);
+    top.appendChild(av); top.appendChild(id); top.appendChild(lvl);
+
+    // tabs
+    var tabs = el('div','tabs');
+    var t1 = el('div','tab active','Характеристики');
+    var t2 = el('div','tab','Репутация');
+    var t3 = el('div','tab','Активные бонусы');
+    tabs.appendChild(t1); tabs.appendChild(t2); tabs.appendChild(t3);
+
+    var panes = el('div','tabpanes');
+    var p1 = el('div','tabpane active');
+    var p2 = el('div','tabpane');
+    var p3 = el('div','tabpane');
+
+    // move existing stats-grid into p1 (if exists), else create
+    var grid = modal.querySelector('.stats-grid') || el('section','stats-grid');
+    p1.appendChild(grid);
+
+    // reputation (mock from gameState.player.reputation if present)
+    var reps = el('div','reps');
+    try{
+      var rep = gameState?.player?.reputation || {};
+      var keys = Object.keys(rep);
+      if (keys.length){
+        keys.forEach(function(k){
+          var v = rep[k];
+          reps.appendChild(el('div','rep', (k+': '+v)));
+        });
+      }else{
+        reps.appendChild(el('div','rep','Нет данных о фракциях'));
+      }
+    }catch(_){
+      reps.appendChild(el('div','rep','Нет данных о фракциях'));
+    }
+    p2.appendChild(reps);
+
+    // bonuses computed from current stats
+    var bonuses = el('div','bonus-list');
+    function pushBonus(icon, text){ var b = el('div','bonus'); b.innerHTML = '<i class="fas '+icon+'"></i> <span>'+ text +'</span>'; bonuses.appendChild(b); }
+    try{
+      var s = gameState?.player?.stats || {firepower:0,status:0,energy:0,defense:0,health:0};
+      var SM = window.StatModifiers || {
+        energyCostReduction:(x)=>Math.min(0.30,x*0.01),
+        riskReduction:(x)=>Math.min(0.40,x*0.008),
+        priceMult:(x)=>1-Math.min(0.15,x*0.003),
+        regenFactor:(x)=>1+x/100,
+        lossMitigation:(x)=>Math.min(0.50,x*0.01)
+      };
+      pushBonus('fa-bolt', 'Снижение расхода ⚡: ' + Math.round( SM.energyCostReduction(s.energy)*100 ) + '%');
+      pushBonus('fa-crosshairs', 'Снижение риска скана: ' + Math.round( SM.riskReduction(s.firepower)*100 ) + '%');
+      pushBonus('fa-tag', 'Скидка на рынке: ~' + Math.round( (1-SM.priceMult(s.status))*100 ) + '%');
+      pushBonus('fa-heart', 'Бонус к отдыху: +' + Math.round( (SM.regenFactor(s.health)-1)*100 ) + '%');
+      pushBonus('fa-shield-alt', 'Смягчение потерь (ивенты): ' + Math.round( SM.lossMitigation(s.defense)*100 ) + '%');
+    }catch(_){}
+    p3.appendChild(bonuses);
+
+    panes.appendChild(p1); panes.appendChild(p2); panes.appendChild(p3);
+
+    shell.appendChild(top); shell.appendChild(tabs); shell.appendChild(panes);
+
+    // Inject at the top of modal content (after header)
+    var hdr = modal.querySelector('.modal-header');
+    var after = hdr && hdr.nextElementSibling;
+    if (after && after.classList.contains('stats-grid')){
+      // our previous "stats-grid" placeholder is here; replace it with shell
+      after.replaceWith(shell);
+    } else {
+      // prepend shell if not present
+      hdr ? hdr.insertAdjacentElement('afterend', shell) : modal.prepend(shell);
+    }
+
+    // Tab switching
+    [t1,t2,t3].forEach(function(t, idx){
+      t.addEventListener('click', function(){
+        [t1,t2,t3].forEach(x=>x.classList.remove('active'));
+        [p1,p2,p3].forEach(x=>x.classList.remove('active'));
+        t.classList.add('active');
+        [p1,p2,p3][idx].classList.add('active');
+      });
+    });
+
+    // Level pill live update on XP changes
+    setInterval(function(){
+      var lvlEl = document.getElementById('pf-level');
+      if (!lvlEl) return;
+      lvlEl.textContent = gameState?.player?.level || 1;
+      var exp = gameState?.player?.exp || 0, mx = gameState?.player?.maxExp || 100;
+      var w = Math.min(100, Math.round(100*exp/Math.max(1,mx)));
+      var fill = modal.querySelector('.xpbar .fill');
+      if (fill) fill.style.width = w + '%';
+    }, 1500);
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive'){ setTimeout(build, 0); }
+  else { document.addEventListener('DOMContentLoaded', build); }
+})();
+</script>
+
+<!-- === Metaville: Profile name editor (Edit profile) === -->
+<style id="mv-profile-edit-css">
+  #profile-modal .edit-actions{display:flex;gap:8px;align-items:center}
+  #profile-modal .edit-btn{padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);cursor:pointer;font:600 12px/1 system-ui}
+  #profile-modal .name-edit{display:none;align-items:center;gap:8px;margin-top:4px}
+  #profile-modal .name-input{flex:1;min-width:180px;max-width:320px;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);color:#fff;font:600 14px/1.2 system-ui}
+  #profile-modal .name-input::placeholder{opacity:.5}
+  #profile-modal .btn-pill{padding:8px 10px;border-radius:999px;cursor:pointer;border:1px solid rgba(122,243,214,.35);background:rgba(122,243,214,.12);color:#7af3d6;font:700 12px/1 system-ui}
+  #profile-modal .btn-pill.cancel{border-color:rgba(255,120,120,.35);background:rgba(255,120,120,.10);color:#ffbdbd}
+  #profile-modal .err{color:#ff9a9a;font:600 11px/1.2 system-ui;margin-top:4px;display:none}
+</style>
+
+<script id="mv-profile-edit-js">
+(function(){
+  if (window.__mvProfileEdit) return; window.__mvProfileEdit = true;
+
+  const STORE = 'mv_player_stats_v1'; // reuse same store, only 'callsign'
+
+  function loadCallsign(){
+    let cs = null;
+    try{
+      const raw = localStorage.getItem(STORE);
+      if (raw){
+        const obj = JSON.parse(raw);
+        if (obj && typeof obj.callsign === 'string' && obj.callsign.trim()) cs = obj.callsign.trim();
+      }
+    }catch(_){}
+    if (!cs){
+      try{
+        const gs = window.gameState && gameState.player;
+        if (gs && typeof gs.callsign === 'string' && gs.callsign.trim()) cs = gs.callsign.trim();
+      }catch(_){}
+    }
+    return cs || 'Citizen';
+  }
+
+  function saveCallsign(name){
+    const safe = sanitize(name);
+    try{
+      const raw = localStorage.getItem(STORE);
+      const obj = raw ? (JSON.parse(raw)||{}) : {};
+      obj.callsign = safe;
+      localStorage.setItem(STORE, JSON.stringify(obj));
+    }catch(_){}
+    try{
+      if (!window.gameState) window.gameState = {};
+      if (!gameState.player) gameState.player = {};
+      gameState.player.callsign = safe;
+    }catch(_){}
+    return safe;
+  }
+
+  function sanitize(s){
+    s = (s||'').toString().trim();
+    s = s.replace(/[^\w \-\u0400-\u04FF]/g, '');
+    s = s.replace(/\s+/g, ' ');
+    return s.slice(0, 24);
+  }
+
+  function validate(s){
+    if (!s) return 'Имя не может быть пустым';
+    if (s.length < 2) return 'Слишком короткое имя (мин. 2 символа)';
+    return null;
+  }
+
+  function init(){
+    const modal = document.getElementById('profile-modal');
+    if (!modal) return;
+
+    // locate identity area created by profile-ux (fallback if missing)
+    let identity = modal.querySelector('.profile-top .identity');
+    if (!identity){
+      identity = document.createElement('div');
+      identity.className = 'identity';
+      const hdr = modal.querySelector('.modal-header');
+      hdr && hdr.insertAdjacentElement('afterend', identity);
+    }
+
+    // Ensure name element exists
+    let nameEl = identity.querySelector('.name');
+    if (!nameEl){
+      nameEl = document.createElement('div');
+      nameEl.className = 'name';
+      identity.prepend(nameEl);
+    }
+    nameEl.textContent = loadCallsign();
+
+    // INLINE editor row
+    let editRow = modal.querySelector('.name-edit');
+    if (!editRow){
+      editRow = document.createElement('div');
+      editRow.className = 'name-edit';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'name-input';
+      input.placeholder = 'Enter hero name';
+      input.maxLength = 24;
+      const ok = document.createElement('button');
+      ok.type = 'button';
+      ok.className = 'btn-pill';
+      ok.textContent = 'Save';
+      const cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.className = 'btn-pill cancel';
+      cancel.textContent = 'Cancel';
+      const err = document.createElement('div');
+      err.className = 'err';
+      editRow.appendChild(input);
+      editRow.appendChild(ok);
+      editRow.appendChild(cancel);
+      identity.appendChild(editRow);
+      identity.appendChild(err);
+
+      function closeEdit(){
+        editRow.style.display = 'none';
+        err.style.display = 'none';
+        err.textContent = '';
+      }
+      function doSave(){
+        const sanitized = sanitize(input.value);
+        const msg = validate(sanitized);
+        if (msg){
+          err.textContent = msg;
+          err.style.display = 'block';
+          return;
+        }
+        const saved = saveCallsign(sanitized);
+        nameEl.textContent = saved;
+        try{ if (typeof showNotification==='function') showNotification('Имя обновлено', true); }catch(_){}
+        closeEdit();
+      }
+      cancel.addEventListener('click', closeEdit);
+      ok.addEventListener('click', doSave);
+      input.addEventListener('keydown', function(e){
+        if (e.key === 'Enter') { e.preventDefault(); doSave(); }
+        if (e.key === 'Escape') { e.preventDefault(); closeEdit(); }
+      });
+
+      // expose open function for button
+      window.__mvOpenNameEditor = function(){
+        editRow.style.display = 'flex';
+        const inputEl = editRow.querySelector('.name-input');
+        inputEl.value = nameEl.textContent || '';
+        inputEl.focus(); inputEl.select();
+      };
+    }
+
+    // Hook existing primary "Edit profile" button
+    let primaryBtn = null;
+    // prefer explicit id if exists
+    primaryBtn = modal.querySelector('#profile-edit-primary') || null;
+    if (!primaryBtn){
+      const candidates = Array.from(modal.querySelectorAll('button.btn.primary, a.btn.primary'));
+      primaryBtn = candidates.find(b => /edit profile/i.test(b.textContent||'')) || null;
+    }
+    if (primaryBtn){
+      primaryBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        if (typeof window.__mvOpenNameEditor === 'function') window.__mvOpenNameEditor();
+      });
+    }
+
+    // Remove old small edit button if present
+    const smallBtn = modal.querySelector('#profile-edit-btn');
+    if (smallBtn && smallBtn.parentNode){
+      smallBtn.parentNode.remove();
+    }
+
+    // Keep name in sync
+    setInterval(function(){
+      const cs = loadCallsign();
+      if (nameEl.textContent !== cs) nameEl.textContent = cs;
+    }, 2000);
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive'){
+    setTimeout(init, 0);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init,0); });
+  }
+})();
+</script>
+
