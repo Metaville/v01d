@@ -11726,7 +11726,7 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
   #profile-modal .identity .meta{opacity:.8;font:500 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto;}
   #profile-modal .lvl{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
   #profile-modal .lvl .pill{background:rgba(122,243,214,.15);border:1px solid rgba(122,243,214,.35);padding:6px 10px;border-radius:999px;font:600 12px/1 system-ui}
-  #profile-modal .xpbar{width:240px;max-width:48vw;height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+  #profile-modal .xpbar{width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
   #profile-modal .xpbar .fill{height:100%;width:0%;background:linear-gradient(90deg,#7af3d6,#5b8cff);}
 
   /* Tabs */
@@ -11756,7 +11756,8 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
   /* Reputation badges */
   #profile-modal .reps{display:flex;flex-wrap:wrap;gap:8px}
   #profile-modal .rep{border-radius:999px;padding:6px 10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font:600 12px/1}
-</style>
+
+  #profile-modal .xpbar-row{display:block;margin-top:4px}</style>
 
 <script id="mv-profile-ux-js">
 (function(){
@@ -11786,8 +11787,11 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
     id.appendChild(name); id.appendChild(meta);
     var lvl = el('div','lvl');
     var pill = el('div','pill','Lv. <span id="pf-level">'+(gameState?.player?.level||1)+'</span>');
+    lvl.appendChild(pill);
+    // XP bar moved to its own row to avoid layout shifts on name edit
+    var xpRow = el('div','xpbar-row');
     var bar = el('div','xpbar'); var fill = el('div','fill'); fill.style.width = (Math.min(100, Math.round(100*(gameState?.player?.exp||0)/Math.max(1,(gameState?.player?.maxExp||100)))))+'%'; bar.appendChild(fill);
-    lvl.appendChild(pill); lvl.appendChild(bar);
+    xpRow.appendChild(bar);
     top.appendChild(av); top.appendChild(id); top.appendChild(lvl);
 
     // tabs
@@ -11846,7 +11850,7 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
 
     panes.appendChild(p1); panes.appendChild(p2); panes.appendChild(p3);
 
-    shell.appendChild(top); shell.appendChild(tabs); shell.appendChild(panes);
+    shell.appendChild(top); shell.appendChild(xpRow); shell.appendChild(tabs); shell.appendChild(panes);
 
     // Inject at the top of modal content (after header)
     var hdr = modal.querySelector('.modal-header');
