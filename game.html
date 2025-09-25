@@ -4864,7 +4864,7 @@ function startRest() {
 }
 
 function completeRest() {
-    gameState.resources.energy = 1000;
+    gameState.resources.energy = Math.min(1000, gameState.resources.energy + 500);
     gameState.player.health = 100;
     gameState.player.isResting = false;
     
@@ -12211,5 +12211,19 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
       window.showScanResultModal.__mvWrapped2 = true;
     })();
   })();
+})();
+</script>
+
+
+<script id="mv-solar-close-fallback">
+(function(){
+  try{
+    var btn = document.querySelector('#solar-modal .close-modal');
+    var modal = document.getElementById('solar-modal');
+    if (btn && modal && !btn.dataset.mvBound){
+      btn.addEventListener('click', function(){ modal.classList.remove('active'); document.body.classList.remove('modal-open'); });
+      btn.dataset.mvBound = '1';
+    }
+  }catch(e){}
 })();
 </script>
