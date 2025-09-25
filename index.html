@@ -19,6 +19,34 @@
       if (location.href !== url) location.replace(url);
     })();
   </script>
+<script>
+  const API = "https://vibrant-upliftment-production-fc51.up.railway.app";
+
+  async function register(email, password) {
+    const r = await fetch(API + "/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    return r.json();
+  }
+
+  async function login(email, password) {
+    const r = await fetch(API + "/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    return r.json();
+  }
+
+  async function me(token) {
+    const r = await fetch(API + "/api/me", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    return r.json();
+  }
+</script>
 
   <style>
     html,body{
