@@ -19,11 +19,36 @@ const pool = new Pool({ connectionString: DB_URL, ssl: SSL });
 const PLAYERS_TABLE = 'v01dsql';    // твоя таблица прогресса
 const EVENTS_TABLE  = 'events';     // создашь позже — можно оставить
 
-// CORS: список origin через запятую
+// CORS: белый список из FRONT_ORIGIN, нормализуем хвостовой слэш
 const ALLOWED_ORIGINS = (process.env.FRONT_ORIGIN || '')
   .split(',')
-  .map(s => s.trim())
+  .map(s => s.trim().replace(/\/$/, ''))   // убираем завершающий /
   .filter(Boolean);
+
+const corsOptions = {
+  origin(origin, cb) {
+    if (!origin) return cb(null, true);   // curl/health/webhook
+    const o = origin.replace(/\/$/, '');
+    if (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(o)) {
+      return cb(null, true);
+    }
+    return cb(new Error('CORS'));
+  },
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','X-Requested-With']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));       // обязательный preflight handler
+
+// (необязательно, но красиво вернуть 403 вместо 500 при запрете)
+app.use((err, req, res, next) => {
+  if (err && err.message === 'CORS') {
+    return res.status(403).json({ ok:false, error:'CORS' });
+  }
+  return next(err);
+});
 
 // Telegram (название переменной изменено, чтобы не конфликтовало)
 const TG_BOT_TOKEN      = process.env.TG_BOT_TOKEN || '';
