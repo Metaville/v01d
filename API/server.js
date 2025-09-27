@@ -15,6 +15,52 @@ const pool = new Pool({ connectionString: conn, ssl });
 const app = express();
 app.use(express.json());
 
+// === Telegram Webhook ===
+const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN;
+const TG_SECRET    = process.env.TG_SECRET || 'change_me';
+const FRONT_URL    = process.env.FRONT_URL || 'https://v01d-production.up.railway.app';
+const TG_API       = TG_BOT_TOKEN ? `https://api.telegram.org/bot${TG_BOT_TOKEN}` : null;
+
+async function tgSend(chat_id, text, extra = {}) {
+  if (!TG_API) return;
+  await fetch(`${TG_API}/sendMessage`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ chat_id, text, ...extra })
+  });
+}
+
+// сам webhook
+app.post('/api/tg/webhook', async (req, res) => {
+  // (опц.) проверяем секрет
+  const hdr = req.get('X-Telegram-Bot-Api-Secret-Token');
+  if (TG_SECRET && hdr !== TG_SECRET) return res.sendStatus(401);
+
+  const u = req.body;
+  try {
+    if (u.message) {
+      const chatId = u.message.chat.id;
+      const text = (u.message.text || '').trim();
+
+      if (text === '/start' || text.startsWith('/start ')) {
+        await tgSend(chatId, 'Запускаю WebApp 👇', {
+          reply_markup: {
+            inline_keyboard: [[{ text: 'Открыть игру', web_app: { url: FRONT_URL } }]]
+          }
+        });
+      } else {
+        await tgSend(chatId, 'Напишите /start, чтобы открыть игру');
+      }
+    }
+    // Телеграму достаточно 200 OK
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('tg webhook error:', e);
+    res.json({ ok: true });
+  }
+});
+
+
 // CORS (пока открыто; позже сузишь FRONT_ORIGIN-ом)
 app.use(cors());
 
@@ -71,3 +117,4 @@ app.post('/api/events', async (req,res)=>{
   );
   res.json({ ok:true, ...q.rows[0] });
 });
+
