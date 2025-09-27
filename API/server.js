@@ -71,8 +71,7 @@ app.get('/api/health', async (_, res) => {
 });
 app.get('/', (_, res) => res.type('text/plain').send('Metaville API is running'));
 
-// --- ЕДИНСТВЕННЫЙ запуск ---
-app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
+
 
 // сохранить снапшот прогресса
 app.post('/api/player/sync', async (req,res) => {
@@ -118,3 +117,5 @@ app.post('/api/events', async (req,res)=>{
   res.json({ ok:true, ...q.rows[0] });
 });
 
+// --- ЕДИНСТВЕННЫЙ запуск ---
+app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
