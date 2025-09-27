@@ -12449,3 +12449,42 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
   }
 })();
 </script>
+<script>
+async function syncPlayerToServer() {
+  const GS = window.gameState || {};
+  const player = GS.player || {};
+  const resources = GS.resources || {};
+  const stats = player.stats || {};
+
+  let telegramId = null;
+  try {
+    const tg = (window.Telegram && Telegram.WebApp) ? Telegram.WebApp : null;
+    if (tg?.initDataUnsafe?.user?.id) telegramId = tg.initDataUnsafe.user.id;
+  } catch (_) {}
+
+  const res = await fetch('/api/player/sync', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      telegramId,
+      solAddress: player.solAddress || null,
+      callsign: player.callsign || 'Citizen',
+      level: player.level || 1,
+      exp: player.exp || 0,
+      stats, resources
+    })
+  });
+  const data = await res.json();
+  if (res.ok) window.__playerId = data.player.id;
+}
+
+async function logEvent(type, payload){
+  if (!window.__playerId) return;
+  try {
+    await fetch('/api/events', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ playerId: window.__playerId, type, payload })
+    });
+  } catch(e){}
+}
+document.addEventListener('DOMContentLoaded', ()=> setTimeout(syncPlayerToServer, 800));
+</script>
