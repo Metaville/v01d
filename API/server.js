@@ -10,6 +10,46 @@ const PORT = process.env.PORT || 3000;
 const FRONT_URL = process.env.FRONT_ORIGIN || 'https://v01d-production.up.railway.app';
 const TABLE = 'v01dsql';         // <— имя твоей таблицы игроков
 const EVENTS_TABLE = 'events';    // если у тебя другое имя — поменяй тут
+const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN;
+const TG_SECRET    = process.env.TG_SECRET || 'change_me';
+const FRONT_URL    = process.env.FRONT_URL || 'https://v01d-production.up.railway.app';
+const TG_API       = TG_BOT_TOKEN ? `https://api.telegram.org/bot${TG_BOT_TOKEN}` : null;
+
+async function tgSend(chat_id, text, extra = {}) {
+  if (!TG_API) return;
+  await fetch(`${TG_API}/sendMessage`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ chat_id, text, ...extra })
+  });
+}
+
+app.post('/api/tg/webhook', async (req, res) => {
+  const hdr = req.get('X-Telegram-Bot-Api-Secret-Token');
+  if (TG_SECRET && hdr !== TG_SECRET) return res.sendStatus(401);
+
+  const u = req.body;
+  try {
+    if (u.message) {
+      const chatId = u.message.chat.id;
+      const text = (u.message.text || '').trim();
+
+      if (text === '/start' || text.startsWith('/start ')) {
+        await tgSend(chatId, 'Открыть игру 👇', {
+          reply_markup: {
+            inline_keyboard: [[{ text: 'Metaville', web_app: { url: FRONT_URL } }]]
+          }
+        });
+      } else {
+        await tgSend(chatId, 'Напишите /start, чтобы открыть игру');
+      }
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('tg webhook error:', e);
+    res.json({ ok: true });
+  }
+});
 
 // SSL только если оно требуется в DATABASE_URL
 const conn = process.env.DATABASE_URL;
@@ -152,3 +192,4 @@ app.get('/', (_, res) => res.type('text/plain').send('Metaville API is running')
 
 // ==== запуск ====
 app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
+
