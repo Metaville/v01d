@@ -9,7 +9,7 @@
 <title>METAVILLE: V.01.D / Genesis Platform</title>
 <script>
   window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
-  // Хак, чтобы не переписывать все места:
+  // Автоподмена относительных /api/* на абсолютный URL API
   const _fetch = window.fetch.bind(window);
   window.fetch = (url, opts) => {
     if (typeof url === 'string' && url.startsWith('/api/')) {
