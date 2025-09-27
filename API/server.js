@@ -120,3 +120,17 @@ app.listen(PORT, () => console.log("API listening on", PORT));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => console.log('API on :' + PORT));
+
+const cors = require('cors'); // или: import cors from 'cors'
+
+const allowed = (process.env.FRONT_ORIGIN || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);                 // curl/health
+    return allowed.includes(origin) ? cb(null, true) : cb(new Error('CORS'));
+  }
+}));
