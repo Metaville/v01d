@@ -74,13 +74,13 @@ app.get('/', (_, res) => res.type('text/plain').send('Metaville API is running')
 
 
 // сохранить снапшот прогресса
-app.post('/api/player/sync', async (req,res) => {
+app.post('/api/v01dsql/sync', async (req,res) => {
   const { telegramId, solAddress, callsign, level=1, exp=0, resources={}, progress={}, stats={} } = req.body||{};
   if (!telegramId && !solAddress) return res.status(400).json({ ok:false, error:'Need telegramId or solAddress' });
 
   const args = [telegramId ?? null, solAddress ?? null, callsign ?? null, level, exp, resources, progress, stats];
   const sqlByTg = `
-    INSERT INTO players(telegram_id, sol_address, callsign, level, exp, resources, progress, stats)
+    INSERT INTO v01dsql(telegram_id, sol_address, callsign, level, exp, resources, progress, stats)
     VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb)
     ON CONFLICT (telegram_id) DO UPDATE SET
       sol_address = COALESCE(EXCLUDED.sol_address, players.sol_address),
@@ -119,3 +119,4 @@ app.post('/api/events', async (req,res)=>{
 
 // --- ЕДИНСТВЕННЫЙ запуск ---
 app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
+
