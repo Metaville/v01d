@@ -156,41 +156,66 @@ app.post('/api/events', async (req, res) => {
   }
 });
 
-// --------- Telegram webhook ----------
-app.post('/api/tg/webhook', async (req, res) => {
-  // проверка секрета
-  const hdr = req.get('X-Telegram-Bot-Api-Secret-Token');
-  if (TG_SECRET && hdr !== TG_SECRET) return res.sendStatus(401);
+// --- Telegram webhook (диагностический) ---
+const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN || '';
+const TG_SECRET    = process.env.TG_SECRET || '';
+const FRONT_URL_FOR_TG = process.env.FRONT_URL || 'https://v01d-production.up.railway.app';
+const TG_API = TG_BOT_TOKEN ? `https://api.telegram.org/bot${TG_BOT_TOKEN}` : null;
 
+app.post('/api/tg/webhook', async (req, res) => {
   try {
+    // 1) проверка секрета
+    const hdr = req.get('X-Telegram-Bot-Api-Secret-Token');
+    if (TG_SECRET && hdr !== TG_SECRET) {
+      console.error('TG: bad secret header:', hdr);
+      return res.sendStatus(401);
+    }
+
+    // 2) лог апдейта
+    console.log('TG update:', JSON.stringify(req.body));
+
+    // 3) обработка
     const u = req.body;
     if (u?.message && TG_API) {
       const chatId = u.message.chat.id;
       const text = (u.message.text || '').trim();
 
-      if (text === '/start' || text.startsWith('/start ')) {
-        await fetch(`${TG_API}/sendMessage`, {
+      if (text === '/start' || text.startsWith('/start')) {
+        const payload = {
+          chat_id: chatId,
+          text: 'Открыть игру 👇',
+          reply_markup: {
+            inline_keyboard: [[{ text: 'Metaville', web_app: { url: FRONT_URL_FOR_TG } }]]
+          }
+        };
+
+        const resp = await fetch(`${TG_API}/sendMessage`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: 'Открыть игру 👇',
-            reply_markup: {
-              inline_keyboard: [[{ text: 'Metaville', web_app: { url: FRONT_URL_FOR_TG } }]]
-            }
-          })
+          body: JSON.stringify(payload)
         });
+
+        const body = await resp.text(); // чтобы увидеть ошибку, если будет
+        if (!resp.ok) {
+          console.error('TG sendMessage failed:', resp.status, body);
+        } else {
+          console.log('TG sendMessage ok:', body);
+        }
       }
     }
+
+    // 4) Telegram ждёт только 200 OK
     res.sendStatus(200);
   } catch (e) {
-    console.error('tg webhook error:', e);
+    console.error('TG webhook error:', e);
     res.sendStatus(200);
   }
 });
+
 
 // корень API для проверки
 app.get('/', (_, res) => res.type('text/plain').send('Metaville API is running'));
 
 // --------- START (единственный) ----------
 app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
+
