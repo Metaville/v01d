@@ -49,7 +49,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // preflight
-// Логируем приходящие preflight, чтобы увидеть точный Origin
+// логируем префлайт, чтобы увидеть точный Origin
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     console.log('CORS preflight:', req.method, req.path, 'origin=', req.headers.origin);
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Явно разрешим preflight для всех /api/* (возвращает 204)
+// Явно разрешим префлайт для всех API-роутов
 app.options('/api/*', cors(corsOptions));
 
 // (аккуратная обработка ошибки CORS)
@@ -159,28 +159,28 @@ app.post('/api/events', async (req, res) => {
 app.post('/api/tg/webhook', async (req, res) => {
   try {
     const hdr = req.get('X-Telegram-Bot-Api-Secret-Token');
-    if (TG_SECRET && hdr !== TG_SECRET) return res.sendStatus(401);
+    if (process.env.TG_SECRET && hdr !== process.env.TG_SECRET) return res.sendStatus(401);
 
     const u = req.body;
-    if (u?.message && TG_API) {
+    if (u?.message && process.env.TG_BOT_TOKEN) {
       const chatId = u.message.chat.id;
       const text = (u.message.text || '').trim();
 
       if (text === '/start' || text.startsWith('/start')) {
-        const r = await fetch(`${TG_API}/sendMessage`, {
+        const resp = await fetch(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
             chat_id: chatId,
             text: 'Открыть игру 👇',
             reply_markup: {
-              inline_keyboard: [[{ text: 'Metaville', web_app: { url: FRONT_URL_FOR_TG } }]]
+              inline_keyboard: [[{ text: 'Metaville', web_app: { url: process.env.FRONT_URL || 'https://v01d-production.up.railway.app' } }]]
             }
           })
         });
-        const body = await r.text();
-        if (!r.ok) console.error('TG sendMessage failed:', r.status, body);
-        else       console.log('TG sendMessage ok');
+        const body = await resp.text();
+        if (!resp.ok) console.error('TG sendMessage failed:', resp.status, body);
+        else          console.log('TG sendMessage ok');
       }
     }
     res.sendStatus(200);
@@ -190,9 +190,11 @@ app.post('/api/tg/webhook', async (req, res) => {
   }
 });
 
+
 // корень для проверки
 app.get('/', (_, res) => res.type('text/plain').send('Metaville API is running'));
 
 /* ========= START (один раз) ========= */
 app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
+
 
