@@ -7,17 +7,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
 <title>METAVILLE: V.01.D / Genesis Platform</title>
-<script>
+  <script>
+  // БЕЗ завершающего слеша
   window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
-  // Автоподмена относительных /api/* на абсолютный URL API
-  const _fetch = window.fetch.bind(window);
-  window.fetch = (url, opts) => {
-    if (typeof url === 'string' && url.startsWith('/api/')) {
-      url = window.API_BASE + url;
-    }
-    return _fetch(url, opts);
-  };
 </script>
+
+//<script>
+ // window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
+  // Автоподмена относительных /api/* на абсолютный URL API
+ // const _fetch = window.fetch.bind(window);
+ // window.fetch = (url, opts) => {
+ //   if (typeof url === 'string' && url.startsWith('/api/')) {
+ //     url = window.API_BASE + url;
+ //   }
+ //   return _fetch(url, opts);
+ // };
+//</script>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -12498,4 +12503,69 @@ async function logEvent(type, payload){
   } catch(e){}
 }
 document.addEventListener('DOMContentLoaded', ()=> setTimeout(syncPlayerToServer, 800));
+</script>
+<script>
+(function(){
+  // Берём Telegram ID, если игра открыта внутри Telegram Web App
+  function getTgId(){
+    try {
+      return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
+    } catch(_) { return null; }
+  }
+
+  // Собираем «игровое» состояние из вашего глобального объекта
+  function collectState(){
+    const gs = window.gameState || {};
+    const player = gs.player || {};
+    return {
+      telegramId: getTgId(),                              // ЛИБО это
+      solAddress: player.solAddress || null,              // ЛИБО это (одно из двух обязательно)
+      callsign:   player.callsign || 'Citizen',
+      level:      Number(player.level || 1),
+      exp:        Number(player.exp || 0),
+      resources:  gs.resources || {},                     // любые ваши структуры
+      progress:   gs.progress  || {},                     // можно оставить пустыми {}
+      stats:      player.stats  || {}
+    };
+  }
+
+  // Отправка на API
+  async function syncPlayer(reason){
+    try {
+      const payload = collectState();
+
+      // сервер требует хотя бы telegramId ИЛИ solAddress
+      if (!payload.telegramId && !payload.solAddress) {
+        console.warn('sync: пропускаю — нет telegramId и solAddress');
+        return;
+      }
+
+      const r = await fetch(`${window.API_BASE}/api/player/sync`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+
+      if (!r.ok) {
+        const txt = await r.text().catch(()=> '');
+        console.warn('sync fail', r.status, txt);
+        return;
+      }
+      // Можно разобрать ответ при желании:
+      // const data = await r.json();
+      // console.log('sync ok', data);
+    } catch (e) {
+      console.error('sync error', e);
+    }
+  }
+
+  // Экспорт для использования из других скриптов
+  window.mvSyncPlayer = syncPlayer;
+
+  // Быстрые точки вызова (чтобы сразу увидеть 200 в логах):
+  // 1) при первом показе страницы
+  document.addEventListener('DOMContentLoaded', () => syncPlayer('boot'));
+  // 2) перед уходом со страницы
+  window.addEventListener('beforeunload', () => { try { navigator.sendBeacon?.(`${window.API_BASE}/api/health`); } catch(_) {} });
+})();
 </script>
