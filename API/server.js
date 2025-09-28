@@ -6,8 +6,8 @@ import pg from 'pg';
 const { Pool } = pg;
 
 /* ========= ENV ========= */
-const PORT = process.env.PORT || 8080;
-const DATABASE_URL = process.env.DATABASE_URL;
+const PORT          = process.env.PORT || 8080;
+const DATABASE_URL  = process.env.DATABASE_URL;
 
 // таблицы
 const PLAYERS_TABLE = 'v01dsql';
@@ -39,7 +39,19 @@ const pool = new Pool({
 
 /* ========= APP ========= */
 const app = express();
+
+// --- парсеры тела запроса ---
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));      // поддержка x-www-form-urlencoded
+app.use(express.text({ type: 'text/*' }));            // на случай text/plain
+
+// если body — строка, попробуем распарсить JSON вручную
+app.use((req, _res, next) => {
+  if (typeof req.body === 'string') {
+    try { req.body = JSON.parse(req.body); } catch {}
+  }
+  next();
+});
 
 /* ========= CORS ========= */
 const corsOptions = {
@@ -97,11 +109,16 @@ app.post('/api/player/sync', async (req, res) => {
   try {
     const raw = req.body || {};
 
-    // поддерживаем несколько названий ключей
-    const telegramId = raw.telegramId ?? raw.telegram_id ?? raw.tgId ?? raw.tg_id ?? null;
-    const solAddress = raw.solAddress ?? raw.sol_address ?? null;
+    // поддерживаем разные названия ключей
+    const telegramId =
+      raw.telegramId ?? raw.telegram_id ?? raw.tgId ?? raw.tg_id ??
+      raw.userId ?? raw.user_id ?? null;
 
-    const callsign  = raw.callsign ?? null;
+    const solAddress =
+      raw.solAddress ?? raw.sol_address ?? raw.address ?? raw.wallet ??
+      raw.phantom ?? raw.solanaAddress ?? null;
+
+    const callsign  = raw.callsign ?? raw.nickname ?? raw.name ?? null;
     const level     = Number(raw.level ?? 1);
     const exp       = Number(raw.exp ?? 0);
     const resources = raw.resources ?? {};
@@ -109,6 +126,7 @@ app.post('/api/player/sync', async (req, res) => {
     const stats     = raw.stats ?? {};
 
     if (!telegramId && !solAddress) {
+      console.warn('sync 400: bad body', req.headers['content-type'], req.body);
       return res.status(400).json({ ok:false, error:'Need telegramId or solAddress' });
     }
 
@@ -233,4 +251,3 @@ app.get('/', (_req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log('API on :', PORT);
 });
-
