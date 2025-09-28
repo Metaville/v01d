@@ -11,7 +11,7 @@ const DATABASE_URL = process.env.DATABASE_URL;
 
 // таблицы
 const PLAYERS_TABLE = 'v01dsql';
-const EVENTS_TABLE  = 'events'; // используйте, если таблица есть
+const EVENTS_TABLE  = 'events'; // используйте, если эта таблица создана
 
 // список доменов фронта для CORS (через запятую, без завершающих "/")
 const ALLOWED_ORIGINS = (process.env.FRONT_ORIGIN || '')
@@ -19,11 +19,11 @@ const ALLOWED_ORIGINS = (process.env.FRONT_ORIGIN || '')
   .map(s => s.trim().replace(/\/$/, ''))
   .filter(Boolean);
 
-// URL игры для кнопки WebApp в Телеграме (ОДИН url!)
+// URL игры для кнопки WebApp в Телеграме (ОДИН url)
 const FRONT_URL_FOR_TG = (
   process.env.FRONT_URL || 'https://v01d-production.up.railway.app'
 )
-  .split(',')[0]                        // если по ошибке список — берём первый
+  .split(',')[0]                        // если по ошибке список — возьмём первый
   .trim()
   .replace(/^FRONT_ORIGIN\s*=\s*/i, ''); // если по ошибке вставили "FRONT_ORIGIN = ..."
 
@@ -58,7 +58,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// логируем префлайт, чтобы увидеть фактический Origin
+// логируем префлайт — удобная диагностика
 app.use((req, _res, next) => {
   if (req.method === 'OPTIONS') {
     console.log('CORS preflight:', req.method, req.path, 'origin=', req.headers.origin);
@@ -91,23 +91,25 @@ app.get('/api/health', async (_req, res) => {
 });
 
 // сохранить/обновить прогресс игрока
-// ВНИМАНИЕ: колонки resources/progress/stats в таблице должны быть JSONB,
-// т.к. используется ::jsonb и оператор объединения "||".
+// ВАЖНО: колонки resources/progress/stats в таблице должны быть JSONB,
+// т.к. ниже используется ::jsonb и оператор объединения "||".
 app.post('/api/player/sync', async (req, res) => {
   try {
-    const {
-      telegramId,
-      solAddress,
-      callsign,
-      level = 1,
-      exp = 0,
-      resources = {},
-      progress = {},
-      stats = {},
-    } = req.body || {};
+    const raw = req.body || {};
+
+    // поддерживаем несколько названий ключей
+    const telegramId = raw.telegramId ?? raw.telegram_id ?? raw.tgId ?? raw.tg_id ?? null;
+    const solAddress = raw.solAddress ?? raw.sol_address ?? null;
+
+    const callsign  = raw.callsign ?? null;
+    const level     = Number(raw.level ?? 1);
+    const exp       = Number(raw.exp ?? 0);
+    const resources = raw.resources ?? {};
+    const progress  = raw.progress ?? {};
+    const stats     = raw.stats ?? {};
 
     if (!telegramId && !solAddress) {
-      return res.status(400).json({ ok: false, error: 'Need telegramId or solAddress' });
+      return res.status(400).json({ ok:false, error:'Need telegramId or solAddress' });
     }
 
     let q;
@@ -128,7 +130,7 @@ app.post('/api/player/sync', async (req, res) => {
           stats       = ${PLAYERS_TABLE}.stats || EXCLUDED.stats
         RETURNING id, telegram_id, sol_address, callsign, level, exp, resources, progress, stats;
         `,
-        [telegramId, solAddress ?? null, callsign ?? null, level, exp, resources, progress, stats]
+        [telegramId, solAddress ?? null, callsign, level, exp, resources, progress, stats]
       );
     } else {
       q = await pool.query(
@@ -145,22 +147,22 @@ app.post('/api/player/sync', async (req, res) => {
           stats       = ${PLAYERS_TABLE}.stats || EXCLUDED.stats
         RETURNING id, telegram_id, sol_address, callsign, level, exp, resources, progress, stats;
         `,
-        [solAddress, callsign ?? null, level, exp, resources, progress, stats]
+        [solAddress, callsign, level, exp, resources, progress, stats]
       );
     }
 
-    res.json({ ok: true, player: q.rows[0] });
+    res.json({ ok:true, player: q.rows[0] });
   } catch (e) {
     console.error('sync error:', e);
-    res.status(500).json({ ok: false, error: 'server_error' });
+    res.status(500).json({ ok:false, error:'server_error' });
   }
 });
 
-// (опц.) события, если есть таблица events (player_id -> players.id)
+// (опц.) события — если есть таблица events (player_id -> players.id)
 app.post('/api/events', async (req, res) => {
   try {
     const { playerId, type, payload = {} } = req.body || {};
-    if (!playerId || !type) return res.status(400).json({ ok: false, error: 'bad_request' });
+    if (!playerId || !type) return res.status(400).json({ ok:false, error:'bad_request' });
 
     const q = await pool.query(
       `INSERT INTO ${EVENTS_TABLE} (player_id, type, payload)
@@ -169,14 +171,14 @@ app.post('/api/events', async (req, res) => {
       [playerId, type, payload]
     );
 
-    res.json({ ok: true, id: q.rows[0].id, created_at: q.rows[0].created_at });
+    res.json({ ok:true, id: q.rows[0].id, created_at: q.rows[0].created_at });
   } catch (e) {
     console.error('events error:', e);
-    res.status(500).json({ ok: false, error: 'server_error' });
+    res.status(500).json({ ok:false, error:'server_error' });
   }
 });
 
-// Telegram webhook (единственный)
+// Telegram webhook (единственный обработчик)
 app.post('/api/tg/webhook', async (req, res) => {
   try {
     const hdr = req.get('X-Telegram-Bot-Api-Secret-Token');
@@ -214,10 +216,10 @@ app.post('/api/tg/webhook', async (req, res) => {
       }
     }
 
+    // Телеграм ожидает 200 даже при наших ошибках, чтобы не ретраить
     res.sendStatus(200);
   } catch (e) {
     console.error('tg webhook error:', e);
-    // Телеграм просит 200 даже при наших ошибках, чтобы не ретраить
     res.sendStatus(200);
   }
 });
@@ -231,3 +233,4 @@ app.get('/', (_req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log('API on :', PORT);
 });
+
