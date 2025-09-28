@@ -49,13 +49,6 @@ app.use((err, req, res, next) => {
   }
   return next(err);
 });
-
-// Telegram (название переменной изменено, чтобы не конфликтовало)
-const TG_BOT_TOKEN      = process.env.TG_BOT_TOKEN || '';
-const TG_SECRET         = process.env.TG_SECRET || '';
-const FRONT_URL_FOR_TG  = process.env.FRONT_URL || 'https://v01d-production.up.railway.app';
-const TG_API            = TG_BOT_TOKEN ? `https://api.telegram.org/bot${TG_BOT_TOKEN}` : null;
-
 // --------- APP ----------
 const app = express();
 app.use(express.json());
@@ -218,4 +211,5 @@ app.get('/', (_, res) => res.type('text/plain').send('Metaville API is running')
 
 // --------- START (единственный) ----------
 app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
+
 
