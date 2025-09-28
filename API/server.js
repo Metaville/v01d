@@ -11,7 +11,7 @@ const DB_URL = process.env.DATABASE_URL;
 
 // таблицы
 const PLAYERS_TABLE = 'v01dsql';
-const EVENTS_TABLE  = 'events'; // можно не использовать, если таблицы нет
+//  const EVENTS_TABLE  = 'events'; // можно не использовать, если таблицы нет
 
 // CORS: список доменов через запятую, БЕЗ завершающего /
 const ALLOWED_ORIGINS = (process.env.FRONT_ORIGIN || '')
@@ -34,37 +34,49 @@ const pool = new Pool({
 /* ========= APP (ВАЖНЫЙ ПОРЯДОК!) ========= */
 const app = express();              // 1) создаём app
 app.use(express.json());            // 2) парсим json
-
+// ваш corsOptions …
+app.use(cors(corsOptions));
+app.options('/api/*', cors(corsOptions));     // явный префлайт
+app.options('*', cors(corsOptions));          // можно оставить
 // 3) CORS
+const app = express();
+app.use(express.json());
+
+// 1) сначала объявляем corsOptions
 const corsOptions = {
   origin(origin, cb) {
-    if (!origin) return cb(null, true); // curl/health/webhook
+    if (!origin) return cb(null, true);
     const o = origin.replace(/\/$/, '');
-    if (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(o)) return cb(null, true);
-    return cb(new Error('CORS'));
+    return (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(o))
+      ? cb(null, true)
+      : cb(new Error('CORS'));
   },
   credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization','X-Requested-With']
 };
+
+// 2) затем подключаем CORS
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // preflight
-// логируем префлайт, чтобы увидеть точный Origin
-app.use((req, res, next) => {
+
+// 3) (опц.) лог префлайта
+app.use((req, _res, next) => {
   if (req.method === 'OPTIONS') {
     console.log('CORS preflight:', req.method, req.path, 'origin=', req.headers.origin);
   }
   next();
 });
 
-// Явно разрешим префлайт для всех API-роутов
+// 4) явный префлайт
 app.options('/api/*', cors(corsOptions));
+// app.options('*', cors(corsOptions)); // можно, но не обязательно
 
-// (аккуратная обработка ошибки CORS)
-app.use((err, req, res, next) => {
+// 5) обработчик ошибки CORS
+app.use((err, _req, res, next) => {
   if (err && err.message === 'CORS') return res.status(403).json({ ok:false, error:'CORS' });
-  return next(err);
+  next(err);
 });
+
 
 /* ========= ROUTES ========= */
 
@@ -196,5 +208,6 @@ app.get('/', (_, res) => res.type('text/plain').send('Metaville API is running')
 
 /* ========= START (один раз) ========= */
 app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
+
 
 
