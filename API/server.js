@@ -49,6 +49,16 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // preflight
+// Логируем приходящие preflight, чтобы увидеть точный Origin
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    console.log('CORS preflight:', req.method, req.path, 'origin=', req.headers.origin);
+  }
+  next();
+});
+
+// Явно разрешим preflight для всех /api/* (возвращает 204)
+app.options('/api/*', cors(corsOptions));
 
 // (аккуратная обработка ошибки CORS)
 app.use((err, req, res, next) => {
@@ -185,3 +195,4 @@ app.get('/', (_, res) => res.type('text/plain').send('Metaville API is running')
 
 /* ========= START (один раз) ========= */
 app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
+
