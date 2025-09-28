@@ -1,4 +1,4 @@
-// API/server.js  (ESM)
+// API/server.js  (ESM, Node 18+)
 import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
@@ -7,59 +7,58 @@ const { Pool } = pg;
 
 /* ========= ENV ========= */
 const PORT = process.env.PORT || 8080;
-const DB_URL = process.env.DATABASE_URL;
+const DATABASE_URL = process.env.DATABASE_URL;
 
 // таблицы
 const PLAYERS_TABLE = 'v01dsql';
-//  const EVENTS_TABLE  = 'events'; // можно не использовать, если таблицы нет
+const EVENTS_TABLE  = 'events'; // используйте, если таблица есть
 
-// CORS: список доменов через запятую, БЕЗ завершающего /
+// список доменов фронта для CORS (через запятую, без завершающих "/")
 const ALLOWED_ORIGINS = (process.env.FRONT_ORIGIN || '')
   .split(',')
   .map(s => s.trim().replace(/\/$/, ''))
   .filter(Boolean);
 
-// Telegram Webhook
-const TG_BOT_TOKEN     = process.env.TG_BOT_TOKEN || '';
-const TG_SECRET        = process.env.TG_SECRET || '';
-const FRONT_URL_FOR_TG = process.env.FRONT_URL || 'https://v01d-production.up.railway.app';
-const TG_API           = TG_BOT_TOKEN ? `https://api.telegram.org/bot${TG_BOT_TOKEN}` : null;
+// URL игры для кнопки WebApp в Телеграме (ОДИН url!)
+const FRONT_URL_FOR_TG = (
+  process.env.FRONT_URL || 'https://v01d-production.up.railway.app'
+)
+  .split(',')[0]                        // если по ошибке список — берём первый
+  .trim()
+  .replace(/^FRONT_ORIGIN\s*=\s*/i, ''); // если по ошибке вставили "FRONT_ORIGIN = ..."
+
+const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN || '';
+const TG_SECRET    = process.env.TG_SECRET || '';
+const TG_API       = TG_BOT_TOKEN ? `https://api.telegram.org/bot${TG_BOT_TOKEN}` : null;
 
 /* ========= DB ========= */
 const pool = new Pool({
-  connectionString: DB_URL,
-  ssl: { rejectUnauthorized: false } // для Railway PG обычно нужно
+  connectionString: DATABASE_URL,
+  ssl: { rejectUnauthorized: false }, // Railway PG
 });
 
-/* ========= APP (ВАЖНЫЙ ПОРЯДОК!) ========= */
-const app = express();              // 1) создаём app
-app.use(express.json());            // 2) парсим json
-// ваш corsOptions …
-app.use(cors(corsOptions));
-app.options('/api/*', cors(corsOptions));     // явный префлайт
-app.options('*', cors(corsOptions));          // можно оставить
-// 3) CORS
+/* ========= APP ========= */
 const app = express();
 app.use(express.json());
 
-// 1) сначала объявляем corsOptions
+/* ========= CORS ========= */
 const corsOptions = {
   origin(origin, cb) {
-    if (!origin) return cb(null, true);
+    if (!origin) return cb(null, true); // curl/health/webhook без Origin
     const o = origin.replace(/\/$/, '');
-    return (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(o))
-      ? cb(null, true)
-      : cb(new Error('CORS'));
+    if (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(o)) {
+      return cb(null, true);
+    }
+    return cb(new Error('CORS'));
   },
   credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','X-Requested-With']
+  allowedHeaders: ['Content-Type','Authorization','X-Requested-With'],
 };
 
-// 2) затем подключаем CORS
 app.use(cors(corsOptions));
 
-// 3) (опц.) лог префлайта
+// логируем префлайт, чтобы увидеть фактический Origin
 app.use((req, _res, next) => {
   if (req.method === 'OPTIONS') {
     console.log('CORS preflight:', req.method, req.path, 'origin=', req.headers.origin);
@@ -67,26 +66,33 @@ app.use((req, _res, next) => {
   next();
 });
 
-// 4) явный префлайт
+// явный префлайт для API
 app.options('/api/*', cors(corsOptions));
-// app.options('*', cors(corsOptions)); // можно, но не обязательно
 
-// 5) обработчик ошибки CORS
+// аккуратный ответ при ошибке CORS
 app.use((err, _req, res, next) => {
-  if (err && err.message === 'CORS') return res.status(403).json({ ok:false, error:'CORS' });
+  if (err && err.message === 'CORS') {
+    return res.status(403).json({ ok: false, error: 'CORS' });
+  }
   next(err);
 });
-
 
 /* ========= ROUTES ========= */
 
 // health
-app.get('/api/health', async (_, res) => {
-  try { await pool.query('SELECT 1'); res.json({ ok:true }); }
-  catch (e) { console.error('health db:', e); res.status(500).json({ ok:false }); }
+app.get('/api/health', async (_req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('health db:', e);
+    res.status(500).json({ ok: false });
+  }
 });
 
-// сохранить/обновить прогресс
+// сохранить/обновить прогресс игрока
+// ВНИМАНИЕ: колонки resources/progress/stats в таблице должны быть JSONB,
+// т.к. используется ::jsonb и оператор объединения "||".
 app.post('/api/player/sync', async (req, res) => {
   try {
     const {
@@ -97,14 +103,15 @@ app.post('/api/player/sync', async (req, res) => {
       exp = 0,
       resources = {},
       progress = {},
-      stats = {}
+      stats = {},
     } = req.body || {};
 
     if (!telegramId && !solAddress) {
-      return res.status(400).json({ ok:false, error:'Need telegramId or solAddress' });
+      return res.status(400).json({ ok: false, error: 'Need telegramId or solAddress' });
     }
 
     let q;
+
     if (telegramId) {
       q = await pool.query(
         `
@@ -113,9 +120,9 @@ app.post('/api/player/sync', async (req, res) => {
         VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb)
         ON CONFLICT (telegram_id) DO UPDATE SET
           sol_address = COALESCE(EXCLUDED.sol_address, ${PLAYERS_TABLE}.sol_address),
-          callsign    = COALESCE(EXCLUDED.callsign, ${PLAYERS_TABLE}.callsign),
+          callsign    = COALESCE(EXCLUDED.callsign,    ${PLAYERS_TABLE}.callsign),
           level       = GREATEST(${PLAYERS_TABLE}.level, EXCLUDED.level),
-          exp         = GREATEST(${PLAYERS_TABLE}.exp, EXCLUDED.exp),
+          exp         = GREATEST(${PLAYERS_TABLE}.exp,   EXCLUDED.exp),
           resources   = EXCLUDED.resources,
           progress    = EXCLUDED.progress,
           stats       = ${PLAYERS_TABLE}.stats || EXCLUDED.stats
@@ -130,9 +137,9 @@ app.post('/api/player/sync', async (req, res) => {
           (sol_address, callsign, level, exp, resources, progress, stats)
         VALUES ($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7::jsonb)
         ON CONFLICT (sol_address) DO UPDATE SET
-          callsign    = COALESCE(EXCLUDED.callsign, ${PLAYERS_TABLE}.callsign),
-          level       = GREATEСТ(${PLAYERS_TABLE}.level, EXCLUDED.level),
-          exp         = GREATEСТ(${PLAYERS_TABLE}.exp, EXCLUDED.exp),
+          callsign    = COALESCE(EXCLUDED.callsign,    ${PLAYERS_TABLE}.callsign),
+          level       = GREATEST(${PLAYERS_TABLE}.level, EXCLUDED.level),
+          exp         = GREATEST(${PLAYERS_TABLE}.exp,   EXCLUDED.exp),
           resources   = EXCLUDED.resources,
           progress    = EXCLUDED.progress,
           stats       = ${PLAYERS_TABLE}.stats || EXCLUDED.stats
@@ -142,28 +149,30 @@ app.post('/api/player/sync', async (req, res) => {
       );
     }
 
-    res.json({ ok:true, player: q.rows[0] });
+    res.json({ ok: true, player: q.rows[0] });
   } catch (e) {
     console.error('sync error:', e);
-    res.status(500).json({ ok:false, error:'server_error' });
+    res.status(500).json({ ok: false, error: 'server_error' });
   }
 });
 
-// (опц.) события — если создашь таблицу events
+// (опц.) события, если есть таблица events (player_id -> players.id)
 app.post('/api/events', async (req, res) => {
   try {
     const { playerId, type, payload = {} } = req.body || {};
-    if (!playerId || !type) return res.status(400).json({ ok:false, error:'bad_request' });
+    if (!playerId || !type) return res.status(400).json({ ok: false, error: 'bad_request' });
 
     const q = await pool.query(
-      `INSERT INTO ${EVENTS_TABLE} (player_id, type, payload) VALUES ($1,$2,$3::jsonb)
+      `INSERT INTO ${EVENTS_TABLE} (player_id, type, payload)
+       VALUES ($1,$2,$3::jsonb)
        RETURNING id, created_at`,
       [playerId, type, payload]
     );
-    res.json({ ok:true, id: q.rows[0].id, created_at: q.rows[0].created_at });
+
+    res.json({ ok: true, id: q.rows[0].id, created_at: q.rows[0].created_at });
   } catch (e) {
     console.error('events error:', e);
-    res.status(500).json({ ok:false, error:'server_error' });
+    res.status(500).json({ ok: false, error: 'server_error' });
   }
 });
 
@@ -171,43 +180,54 @@ app.post('/api/events', async (req, res) => {
 app.post('/api/tg/webhook', async (req, res) => {
   try {
     const hdr = req.get('X-Telegram-Bot-Api-Secret-Token');
-    if (process.env.TG_SECRET && hdr !== process.env.TG_SECRET) return res.sendStatus(401);
+    if (TG_SECRET && hdr !== TG_SECRET) {
+      return res.sendStatus(401);
+    }
 
     const u = req.body;
-    if (u?.message && process.env.TG_BOT_TOKEN) {
+
+    if (u?.message && TG_API) {
       const chatId = u.message.chat.id;
-      const text = (u.message.text || '').trim();
+      const text = String(u.message.text || '').trim();
 
       if (text === '/start' || text.startsWith('/start')) {
-        const resp = await fetch(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
+        const resp = await fetch(`${TG_API}/sendMessage`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
             chat_id: chatId,
             text: 'Открыть игру 👇',
             reply_markup: {
-              inline_keyboard: [[{ text: 'Metaville', web_app: { url: process.env.FRONT_URL || 'https://v01d-production.up.railway.app' } }]]
+              inline_keyboard: [[
+                { text: 'Metaville', web_app: { url: FRONT_URL_FOR_TG } }
+              ]]
             }
           })
         });
+
         const body = await resp.text();
-        if (!resp.ok) console.error('TG sendMessage failed:', resp.status, body);
-        else          console.log('TG sendMessage ok');
+        if (!resp.ok) {
+          console.error('TG sendMessage failed:', resp.status, body);
+        } else {
+          console.log('TG sendMessage ok');
+        }
       }
     }
+
     res.sendStatus(200);
   } catch (e) {
     console.error('tg webhook error:', e);
+    // Телеграм просит 200 даже при наших ошибках, чтобы не ретраить
     res.sendStatus(200);
   }
 });
 
+// корень для быстрой проверки
+app.get('/', (_req, res) => {
+  res.type('text/plain').send('Metaville API is running');
+});
 
-// корень для проверки
-app.get('/', (_, res) => res.type('text/plain').send('Metaville API is running'));
-
-/* ========= START (один раз) ========= */
-app.listen(PORT, '0.0.0.0', () => console.log('API on :', PORT));
-
-
-
+/* ========= START ========= */
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('API on :', PORT);
+});
