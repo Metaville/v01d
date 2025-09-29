@@ -7,24 +7,87 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
 <title>METAVILLE: V.01.D / Genesis Platform</title>
- <script>
-  // Домен API (БЕЗ завершающего /)
+<script>
+  // 1) домен API без завершающего слеша
   window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
 
-  // Обёртка fetch: любые относительные запросы вида "/api/..." переписываем на API_BASE
+  // 2) обёртка: любые относительные "/api/..." переписываем на API_BASE (на всякий случай)
   (function(){
-    const origFetch = window.fetch;
+    const nativeFetch = window.fetch;
     window.fetch = function(input, init){
-      try {
-        if (typeof input === 'string' && input.startsWith('/api/')) {
-          input = window.API_BASE + input;                // <-- ключевая строка
-        }
-      } catch(_) {}
-      return origFetch(input, init);
+      if (typeof input === 'string' && input.startsWith('/api/')) {
+        input = window.API_BASE + input;
+      }
+      return nativeFetch(input, init);
     };
   })();
-</script>
 
+  // 3) помощники
+  function getTgId(){
+    try { return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null; }
+    catch(_) { return null; }
+  }
+  function getAnonId(){
+    let a = localStorage.getItem('anonId');
+    if (!a) { a = crypto?.randomUUID?.() || Math.random().toString(36).slice(2); localStorage.setItem('anonId', a); }
+    return a;
+  }
+
+  // 4) собираем данные игрока из вашего стейта
+  function collectState(){
+    const gs = window.gameState || {};
+    const player = gs.player || {};
+    const telegramId = getTgId();
+    const solAddress = player.solAddress || (telegramId ? null : `anon:${getAnonId()}`);
+
+    return {
+      telegramId,
+      solAddress,
+      callsign:  player.callsign || 'Citizen',
+      level:     Number(player.level || 1),
+      exp:       Number(player.exp || 0),
+      resources: gs.resources || {},
+      progress:  gs.progress  || {},
+      stats:     player.stats  || {}
+    };
+  }
+
+  async function syncPlayer(reason){
+    try {
+      const payload = collectState();
+      console.log('[sync] reason=', reason, payload);   // видно в консоли
+
+      // ключевая проверка: должен быть хотя бы один идентификатор
+      if (!payload.telegramId && !payload.solAddress) {
+        console.warn('[sync] пропуск: нет telegramId и solAddress');
+        return;
+      }
+
+      const r = await fetch(`${window.API_BASE}/api/player/sync`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const txt = await r.text().catch(()=>'');
+
+      if (!r.ok) console.warn('[sync] fail', r.status, txt);
+      else       console.log('[sync] ok', txt);
+    } catch (e) {
+      console.error('[sync] error', e);
+    }
+  }
+
+  // экспорт — можно дергать из других скриптов
+  window.mvSyncPlayer = syncPlayer;
+
+  // Telegram WebApp ready (безопасно и вне Telegram)
+  try { Telegram?.WebApp?.ready?.(); Telegram?.WebApp?.expand?.(); } catch {}
+
+  // первый авто-вызов, чтобы увидеть POST в логах
+  document.addEventListener('DOMContentLoaded', () => syncPlayer('boot'));
+  // для отладки можно включить периодическую синхронизацию:
+  // setInterval(()=>syncPlayer('tick'), 10000);
+</script>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
