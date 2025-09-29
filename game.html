@@ -9,75 +9,109 @@
 <title>METAVILLE: V.01.D / Genesis Platform</title>
 <script>
   // Укажи базовый URL своего Railway-сервиса (если у тебя он уже задан — оставь как было)
-  window.API_BASE = window.API_BASE || "https://vibrant-upliftment-production-fc51.up.railway.app";
+<script>
+(function(){
+  // 0) База API (если игра открыта с другого домена — берём origin API)
+  const API_BASE = (window.API_BASE || location.origin).replace(/\/$/, '');
 
-  // 1) Достаём telegramId: приоритеть — Telegram WebApp, иначе ?tg=123
-  function getTelegramId() {
+  function parseFromInitData() {
     try {
-      const tgId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-      if (tgId) return Number(tgId);
-    } catch (_) {}
-    const urlTg = new URLSearchParams(location.search).get("tg");
-    return urlTg ? Number(urlTg) : null;
+      const tg = window.Telegram?.WebApp;
+      if (!tg?.initData) return null;
+      const p = new URLSearchParams(tg.initData);
+      const userStr = p.get('user');
+      if (!userStr) return null;
+      const user = JSON.parse(userStr);
+      return user?.id ? Number(user.id) : null;
+    } catch (_) { return null; }
   }
 
-  // 2) Собираем состояние игры
+  function getTelegramId() {
+    const u = new URL(location.href);
+    // 1) param ?tg=...
+    const q = u.searchParams.get('tg');
+    if (q && !Number.isNaN(Number(q))) return Number(q);
+
+    // 2) initDataUnsafe.user.id
+    const id2 = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (id2 && !Number.isNaN(Number(id2))) return Number(id2);
+
+    // 3) разбор initData-строки
+    const id3 = parseFromInitData();
+    if (id3 && !Number.isNaN(Number(id3))) return Number(id3);
+
+    return null;
+  }
+
   function collectState() {
     const gs = window.gameState || {};
     const player = gs.player || {};
     return {
-      telegramId: getTelegramId(),                 // <-- обязательно
-      callsign:   player.callsign || "Citizen",
+      solAddress: player.solAddress || null,
+      callsign:   player.callsign || 'Citizen',
       level:      Number(player.level || 1),
-      exp:        Number(player.exp   || 0),
+      exp:        Number(player.exp || 0),
       resources:  gs.resources || {},
       progress:   gs.progress  || {},
-      stats:      player.stats || {}
+      stats:      player.stats  || {}
     };
   }
 
-  // 3) Отправляем на API
-  async function syncPlayerToServer(reason) {
-    const payload = collectState();
-
-    if (!payload.telegramId) {
-      console.warn("[sync] пропуск — нет telegramId. Для теста открой с ?tg=70000000001");
-      // Можешь показать заметку на экран:
-      try {
-        const n = document.querySelector(".notification.error");
-        if (n) { n.classList.add("show"); n.querySelector("span")?.append("   Требуется Telegram ID"); }
-      } catch(_) {}
-      return;
-    }
-
+  async function syncPlayer(reason) {
     try {
-      const res = await fetch(`${window.API_BASE}/api/player/sync`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      // важно: в Telegram сначала даём инициализироваться WebApp
+      try { window.Telegram?.WebApp?.ready?.(); } catch(_){}
+      // небольшая задержка, чтобы initData успел появиться
+      await new Promise(r => setTimeout(r, 120));
+
+      const telegramId = getTelegramId();
+      const payload = { telegramId, ...collectState() };
+
+      // подстрахуемся: добавим tg и в query
+      const url = `${API_BASE}/api/player/sync${telegramId ? `?tg=${telegramId}` : ''}`;
+
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.ok) {
-        console.warn("[sync] fail", res.status, data);
-      } else {
-        // сохраним playerId, пригодится для /api/events
-        window.__playerId = data.player?.id;
-        console.log("[sync] ok", data.player);
+      const text = await r.text();
+      let data = {};
+      try { data = JSON.parse(text); } catch(_){}
+
+      if (!r.ok || !data.ok) {
+        console.warn('[sync] fail', r.status, data || text);
+        return;
       }
+      console.log('[sync] ok', data.player);
+      window.__playerId = data.player.id;
+
+      // Если хотите, сразу подтягивайте состояние из БД
+       Object.assign(window.gameState.player, {
+         callsign: data.player.callsign,
+         level: data.player.level,
+         exp: data.player.exp,
+         stats: data.player.stats || {}
+      });
+       Object.assign(window.gameState, {
+        resources: data.player.resources || {},
+         progress:  data.player.progress  || {}
+       });
+
     } catch (e) {
-      console.error("[sync] error", e);
+      console.error('sync error', e);
     }
   }
 
-  // 4) Автовызов после загрузки
-  document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => syncPlayerToServer("boot"), 800);
-  });
+  // экспорт на всякий случай
+  window.mvSyncPlayer = syncPlayer;
 
-  // Экспорт на всякий случай
-  window.mvSyncPlayer = syncPlayerToServer;
+  // первый вызов на старте
+  document.addEventListener('DOMContentLoaded', () => syncPlayer('boot'));
+})();
 </script>
+
 <script>
 (function () {
   // ---------------- helpers ----------------
