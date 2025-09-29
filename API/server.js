@@ -79,6 +79,67 @@ app.post("/api/player/sync", async (req, res) => {
     return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
+/* === LOAD PLAYER (GET) ======================================= */
+
+// Вариант 1: /api/player?tg=70000000001
+app.get('/api/player', async (req, res) => {
+  try {
+    const tg = req.query.tg ? Number(req.query.tg) : null;
+    const sol = (req.query.solAddress || '').trim() || null;
+
+    if (!tg && !sol) {
+      return res.status(400).json({ ok: false, error: 'need_tg_or_sol' });
+    }
+
+    const where = tg ? 'telegram_id = $1' : 'sol_address = $1';
+    const val   = tg ? tg : sol;
+
+    const q = await pool.query(
+      `SELECT id, telegram_id, sol_address, callsign, level, exp,
+              resources, progress, stats, created_at, last_login
+         FROM players
+        WHERE ${where}
+        LIMIT 1`,
+      [val]
+    );
+
+    if (q.rowCount === 0) {
+      return res.json({ ok: true, found: false, player: null });
+    }
+    return res.json({ ok: true, found: true, player: q.rows[0] });
+  } catch (e) {
+    console.error('get player error:', e);
+    return res.status(500).json({ ok: false, error: 'server_error' });
+  }
+});
+
+// Вариант 2: /api/player/by-tg/70000000001 (удобно с фронта)
+app.get('/api/player/by-tg/:tg', async (req, res) => {
+  try {
+    const tg = Number(req.params.tg);
+    if (!Number.isFinite(tg)) {
+      return res.status(400).json({ ok: false, error: 'bad_tg' });
+    }
+
+    const q = await pool.query(
+      `SELECT id, telegram_id, sol_address, callsign, level, exp,
+              resources, progress, stats, created_at, last_login
+         FROM players
+        WHERE telegram_id = $1
+        LIMIT 1`,
+      [tg]
+    );
+
+    if (q.rowCount === 0) {
+      return res.json({ ok: true, found: false, player: null });
+    }
+    return res.json({ ok: true, found: true, player: q.rows[0] });
+  } catch (e) {
+    console.error('get player by tg error:', e);
+    return res.status(500).json({ ok: false, error: 'server_error' });
+  }
+});
+/* ============================================================= */
 
 /**
  * Лёгкий лог событий (опционально; если таблица events есть).
@@ -99,3 +160,4 @@ app.post("/api/events", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log("API on:", PORT));
+
