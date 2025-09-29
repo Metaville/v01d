@@ -137,7 +137,7 @@ app.post('/api/player/sync', async (req, res) => {
         `
         INSERT INTO ${PLAYERS_TABLE}
           (telegram_id, sol_address, callsign, level, exp, resources, progress, stats)
-        VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb)
+        VALUES ($1,$2,$3,$4,$5,$6::json,$7::json,$8::json)
         ON CONFLICT (telegram_id) DO UPDATE SET
           sol_address = COALESCE(EXCLUDED.sol_address, ${PLAYERS_TABLE}.sol_address),
           callsign    = COALESCE(EXCLUDED.callsign,    ${PLAYERS_TABLE}.callsign),
@@ -155,7 +155,7 @@ app.post('/api/player/sync', async (req, res) => {
         `
         INSERT INTO ${PLAYERS_TABLE}
           (sol_address, callsign, level, exp, resources, progress, stats)
-        VALUES ($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7::jsonb)
+        VALUES ($1,$2,$3,$4,$5::json,$6::json,$7::json)
         ON CONFLICT (sol_address) DO UPDATE SET
           callsign    = COALESCE(EXCLUDED.callsign,    ${PLAYERS_TABLE}.callsign),
           level       = GREATEST(${PLAYERS_TABLE}.level, EXCLUDED.level),
@@ -184,7 +184,7 @@ app.post('/api/events', async (req, res) => {
 
     const q = await pool.query(
       `INSERT INTO ${EVENTS_TABLE} (player_id, type, payload)
-       VALUES ($1,$2,$3::jsonb)
+       VALUES ($1,$2,$3::json)
        RETURNING id, created_at`,
       [playerId, type, payload]
     );
@@ -251,3 +251,4 @@ app.get('/', (_req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log('API on :', PORT);
 });
+
