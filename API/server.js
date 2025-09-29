@@ -143,9 +143,9 @@ app.post('/api/player/sync', async (req, res) => {
           callsign    = COALESCE(EXCLUDED.callsign,    ${PLAYERS_TABLE}.callsign),
           level       = GREATEST(${PLAYERS_TABLE}.level, EXCLUDED.level),
           exp         = GREATEST(${PLAYERS_TABLE}.exp,   EXCLUDED.exp),
-          resources   = EXCLUDED.resources,
-          progress    = EXCLUDED.progress,
-          stats       = ${PLAYERS_TABLE}.stats || EXCLUDED.stats
+         stats       = COALESCE(EXCLUDED.stats, ${PLAYERS_TABLE}.stats),
+         resources   = COALESCE(EXCLUDED.resources, ${PLAYERS_TABLE}.resources),
+         progress    = COALESCE(EXCLUDED.progress, ${PLAYERS_TABLE}.progress)
         RETURNING id, telegram_id, sol_address, callsign, level, exp, resources, progress, stats;
         `,
         [telegramId, solAddress ?? null, callsign, level, exp, resources, progress, stats]
@@ -251,4 +251,5 @@ app.get('/', (_req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log('API on :', PORT);
 });
+
 
