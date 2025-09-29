@@ -1,200 +1,101 @@
-// API/server.js  (ESM, Node 18+)
+// API/server.js
 import express from "express";
 import cors from "cors";
-import pg from "pg";
+import bodyParser from "body-parser";
+import { Pool } from "pg";
 
-const { Pool } = pg;
-
-/* ========= ENV ========= */
-const PORT = process.env.PORT || 8080;
-const DB_URL = process.env.DATABASE_URL;
-
-// твоя таблица
-const PLAYERS_TABLE = "players";
-const EVENTS_TABLE  = "events"; // опционально, если есть
-
-// домены фронта (через запятую, без завершающего /)
-const FRONT_URL       = process.env.FRONT_URL || "https://v01d-production.up.railway.app";
-const FRONT_ORIGINENV = process.env.FRONT_ORIGIN || "";
-const ALLOWED_ORIGINS = [FRONT_URL, ...FRONT_ORIGINENV.split(",")]
-  .map(s => s.trim().replace(/\/$/, ""))
-  .filter(Boolean);
-
-// Telegram (не обязательно)
-const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN || "";
-const TG_SECRET    = process.env.TG_SECRET || "";
-
-/* ========= DB ========= */
-const pool = new Pool({
-  connectionString: DB_URL,
-  ssl: { rejectUnauthorized: false }
-});
-
-// Быстрая миграция — создаст таблицу и уникальный индекс при первом старте (если их нет)
-async function ensureSchema() {
-  const sql = `
-  CREATE TABLE IF NOT EXISTS ${PLAYERS_TABLE} (
-    id          BIGSERIAL PRIMARY KEY,
-    telegram_id BIGINT UNIQUE,
-    callsign    TEXT,
-    level       INTEGER NOT NULL DEFAULT 1,
-    exp         INTEGER NOT NULL DEFAULT 0,
-    resources   JSONB   NOT NULL DEFAULT '{}'::jsonb,
-    progress    JSONB   NOT NULL DEFAULT '{}'::jsonb,
-    stats       JSONB   NOT NULL DEFAULT '{}'::jsonb
-  );
-
-  -- на всякий случай
-  CREATE UNIQUE INDEX IF NOT EXISTS ${PLAYERS_TABLE}_telegram_id_uq ON ${PLAYERS_TABLE}(telegram_id);
-  `;
-  await pool.query(sql);
-}
-
-/* ========= APP ========= */
 const app = express();
+const PORT = process.env.PORT || 8080;
 
-// CORS
-const corsOptions = {
-  origin(origin, cb) {
-    if (!origin) return cb(null, true); // Telegram WebView / curl / health
-    const o = origin.replace(/\/$/, "");
-    if (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(o)) return cb(null, true);
-    return cb(new Error("CORS"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
-};
+// Разрешим фронту ходить к API
+app.use(cors({
+  origin: true, // можно сузить до нужных доменов
+  credentials: false
+}));
+app.use(bodyParser.json({ limit: "1mb" }));
 
-app.use((req, _res, next) => {
-  if (req.method === "OPTIONS") {
-    console.log("CORS preflight:", req.path, "origin=", req.headers.origin);
-  }
-  next();
+// Railway: Postgres → DATABASE_URL
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("railway") ? { rejectUnauthorized: false } : undefined
 });
 
-app.use(cors(corsOptions));
-app.options("/api/*", cors(corsOptions));
-app.use(express.json());
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
-// Красивая обработка cors-ошибки
-app.use((err, _req, res, next) => {
-  if (err && err.message === "CORS") return res.status(403).json({ ok: false, error: "CORS" });
-  return next(err);
-});
-
-/* ========= ROUTES ========= */
-
-// health
-app.get("/api/health", async (_req, res) => {
-  try { await pool.query("SELECT 1"); res.json({ ok: true }); }
-  catch (e) { console.error("health db:", e); res.status(500).json({ ok: false }); }
-});
-
-// синхрон игрока — ТЕПЕРЬ ТОЛЬКО ПО telegram_id
+/**
+ * Синхронизация игрока (UPsert по telegram_id).
+ * Требуется: telegramId (bigint).
+ * Остальные поля — опциональны.
+ */
 app.post("/api/player/sync", async (req, res) => {
   try {
-    const body = req.body || {};
-    const telegramId = body.telegramId ?? null;       // обязателен
-    const callsign   = body.callsign   ?? "Citizen";
-    const level      = Number(body.level ?? 1);
-    const exp        = Number(body.exp   ?? 0);
-    const resources  = body.resources   ?? {};
-    const progress   = body.progress    ?? {};
-    const stats      = body.stats       ?? {};
+    const {
+      telegramId,       // number | string (bigint)
+      callsign,         // string?
+      level,            // number?
+      exp,              // number?
+      resources,        // object?
+      progress,         // object?
+      stats             // object?
+    } = req.body || {};
 
+    // Жёстко требуем telegramId (ты этого и хотел).
     if (!telegramId) {
-      return res.status(400).json({ ok:false, error: "telegramId_required" });
+      return res.status(400).json({ ok: false, error: "telegramId_required" });
     }
 
-    // Вставляем или обновляем: level/exp берём максимум, jsonb подставляем/сливаем
-    const q = await pool.query(
-      `
-      INSERT INTO ${PLAYERS_TABLE}
-        (telegram_id, callsign, level, exp, resources, progress, stats)
-      VALUES ($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7::jsonb)
-      ON CONFLICT (telegram_id) DO UPDATE SET
-        callsign  = COALESCE(EXCLUDED.callsign, ${PLAYERS_TABLE}.callsign),
-        level     = GREATEST(${PLAYERS_TABLE}.level, EXCLUDED.level),
-        exp       = GREATEST(${PLAYERS_TABLE}.exp,   EXCLUDED.exp),
-        resources = COALESCE(EXCLUDED.resources, ${PLAYERS_TABLE}.resources),
-        progress  = COALESCE(EXCLUDED.progress,  ${PLAYERS_TABLE}.progress),
-        stats     = COALESCE(${PLAYERS_TABLE}.stats, '{}'::jsonb) || COALESCE(EXCLUDED.stats, '{}'::jsonb)
-      RETURNING id, telegram_id, callsign, level, exp, resources, progress, stats;
-      `,
-      [telegramId, callsign, level, exp, resources, progress, stats]
-    );
+    // Приводим типы и ставим дефолты
+    const tg = BigInt(String(telegramId));               // гарантируем bigint
+    const _callsign = callsign ?? "Citizen";
+    const _level    = Math.max(1, parseInt(level ?? 1, 10));
+    const _exp      = Math.max(0, parseInt(exp ?? 0, 10));
+    const _res      = resources ?? {};
+    const _prog     = progress  ?? {};
+    const _stats    = stats     ?? {};
 
-    return res.json({ ok: true, player: q.rows[0] });
-  } catch (e) {
-    console.error("sync error:", e);
-    return res.status(500).json({ ok:false, error:"server_error" });
+    // Важно: таблица players и upsert по telegram_id
+    const sql = `
+      INSERT INTO players
+        (telegram_id, callsign, level, exp, resources, progress, stats, last_login)
+      VALUES
+        ($1::bigint, $2::text,   $3::int, $4::int, $5::jsonb, $6::jsonb, $7::jsonb, now())
+      ON CONFLICT (telegram_id) DO UPDATE SET
+        callsign   = COALESCE(EXCLUDED.callsign, players.callsign),
+        level      = GREATEST(players.level, EXCLUDED.level),
+        exp        = GREATEST(players.exp,   EXCLUDED.exp),
+        resources  = COALESCE(EXCLUDED.resources, players.resources),
+        progress   = COALESCE(EXCLUDED.progress,  players.progress),
+        stats      = (COALESCE(players.stats,'{}'::jsonb) || COALESCE(EXCLUDED.stats,'{}'::jsonb)),
+        last_login = now()
+      RETURNING id, telegram_id, callsign, level, exp, resources, progress, stats, created_at, last_login;
+    `;
+
+    const params = [tg, _callsign, _level, _exp, _res, _prog, _stats];
+    const { rows } = await pool.query(sql, params);
+
+    return res.json({ ok: true, player: rows[0] });
+  } catch (err) {
+    console.error("sync error:", err);
+    return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
 
-// (опционально) события, если есть таблица events (id, player_id, type, payload jsonb, created_at timestamptz default now())
+/**
+ * Лёгкий лог событий (опционально; если таблица events есть).
+ * body: { playerId, type, payload }
+ */
 app.post("/api/events", async (req, res) => {
   try {
-    const { playerId, type, payload = {} } = req.body || {};
-    if (!playerId || !type) return res.status(400).json({ ok:false, error:"bad_request" });
+    const { playerId, type, payload } = req.body || {};
+    if (!playerId || !type) return res.status(400).json({ ok: false, error: "bad_body" });
 
-    const q = await pool.query(
-      `INSERT INTO ${EVENTS_TABLE} (player_id, type, payload) VALUES ($1,$2,$3::jsonb)
-       RETURNING id, created_at`,
-      [playerId, type, payload]
-    );
-    res.json({ ok:true, id: q.rows[0].id, created_at: q.rows[0].created_at });
+    const sql = `INSERT INTO events (player_id, type, payload) VALUES ($1,$2,$3::jsonb) RETURNING id`;
+    const { rows } = await pool.query(sql, [playerId, String(type), payload ?? {}]);
+    res.json({ ok: true, id: rows[0].id });
   } catch (e) {
-    console.error("events error:", e);
-    res.status(500).json({ ok:false, error:"server_error" });
+    console.error("event error:", e);
+    res.status(500).json({ ok: false, error: "server_error" });
   }
 });
 
-// Telegram webhook (один эндпоинт)
-app.post("/api/tg/webhook", async (req, res) => {
-  try {
-    // при желании можно включить проверку секрета
-    const hdr = req.get("X-Telegram-Bot-Api-Secret-Token");
-    if (TG_SECRET && hdr !== TG_SECRET) return res.sendStatus(401);
-
-    const u = req.body;
-    if (u?.message && TG_BOT_TOKEN) {
-      const chatId = u.message.chat.id;
-      const text = (u.message.text || "").trim();
-
-      if (text === "/start" || text.startsWith("/start")) {
-        const r = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: "Открыть игру 👇",
-            reply_markup: {
-              inline_keyboard: [[{ text: "Metaville", web_app: { url: FRONT_URL } }]]
-            }
-          })
-        });
-        const t = await r.text();
-        if (!r.ok) console.error("TG sendMessage failed:", r.status, t);
-        else       console.log("TG sendMessage ok");
-      }
-    }
-    res.sendStatus(200);
-  } catch (e) {
-    console.error("tg webhook error:", e);
-    res.sendStatus(200);
-  }
-});
-
-// корневой
-app.get("/", (_req, res) => res.type("text/plain").send("Metaville API is running"));
-
-/* ========= START ========= */
-ensureSchema()
-  .then(() => {
-    app.listen(PORT, "0.0.0.0", () => console.log("API on :", PORT));
-  })
-  .catch((e) => {
-    console.error("ensureSchema failed:", e);
-    process.exit(1);
-  });
+app.listen(PORT, () => console.log("API on:", PORT));
