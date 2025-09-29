@@ -78,6 +78,93 @@
   // Экспорт на всякий случай
   window.mvSyncPlayer = syncPlayerToServer;
 </script>
+<script>
+(function () {
+  // ---------------- helpers ----------------
+  function getTgId() {
+    try {
+      const viaTg = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
+      if (viaTg) return viaTg;
+    } catch (_) {}
+
+    // fallback: ?tg=123 в адресной строке (удобно для браузера)
+    try {
+      const u = new URL(window.location.href);
+      const p = u.searchParams.get('tg');
+      return p ? Number(p) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // API базовый URL. Если у тебя уже есть window.API_BASE — оставь его.
+  // Ниже — только пример. Не дублируй, если у тебя это уже объявлено.
+  window.API_BASE = window.API_BASE || 'https://vibrant-upliftment-production-fc51.up.railway.app';
+
+  // ---------------- загрузка профиля с API ----------------
+  async function loadPlayerIntoGame() {
+    const tg = getTgId();
+    if (!tg) {
+      console.warn('[load] нет telegramId — стартуем с дефолта');
+      return;
+    }
+
+    try {
+      const r = await fetch(`${window.API_BASE}/api/player/by-tg/${tg}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!r.ok) {
+        const txt = await r.text().catch(() => '');
+        console.warn('[load] fail', r.status, txt);
+        return;
+      }
+
+      const data = await r.json();
+      if (!data.ok || !data.found || !data.player) {
+        console.log('[load] профиль не найден — будет создан при sync');
+        return;
+      }
+
+      const dbp = data.player;
+
+      // твой глобальный стейт
+      const GS = (window.gameState = window.gameState || {});
+      const P  = (GS.player     = GS.player     || {});
+      GS.resources = dbp.resources ?? GS.resources ?? {};
+      GS.progress  = dbp.progress  ?? GS.progress  ?? {};
+      P.stats      = dbp.stats     ?? P.stats      ?? {};
+
+      // простые поля
+      P.callsign   = dbp.callsign ?? P.callsign ?? 'Citizen';
+      P.level      = Number(dbp.level ?? P.level ?? 1);
+      P.exp        = Number(dbp.exp   ?? P.exp   ?? 0);
+
+      // опционально, если используешь
+      P.solAddress = dbp.sol_address ?? P.solAddress ?? null;
+
+      console.log('[load] ok', {
+        id: dbp.id,
+        telegram_id: dbp.telegram_id,
+        callsign: P.callsign,
+        level: P.level,
+        exp: P.exp
+      });
+    } catch (e) {
+      console.error('[load] error', e);
+    }
+  }
+
+  // -------- точка входа: сначала LOAD, затем SYNC ------------
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadPlayerIntoGame();          // 1) подтянуть сохранённое из БД
+    if (window.mvSyncPlayer) {
+      await window.mvSyncPlayer('boot'); // 2) заодно обновить last_login и зафиксировать актуальное
+    }
+  });
+})();
+</script>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
