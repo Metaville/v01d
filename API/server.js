@@ -38,6 +38,45 @@ app.post("/api/player/sync", async (req, res) => {
       progress,         // object?
       stats             // object?
     } = req.body || {};
+ // 0) Хотим понимать, откуда пришёл запрос (для отладки)
+  console.log('sync: origin=', req.headers.origin, 'ua=', req.headers['user-agent']);
+
+  // 1) Достаём telegramId из разных источников
+  let telegramId = null;
+
+  // из тела
+  if (req.body && req.body.telegramId != null) {
+    const n = Number(req.body.telegramId);
+    if (!Number.isNaN(n)) telegramId = n;
+  }
+
+  // запасной путь — из query ?tg=...
+  if (!telegramId && req.query && req.query.tg) {
+    const n = Number(req.query.tg);
+    if (!Number.isNaN(n)) telegramId = n;
+  }
+
+  // ещё один запасной — если пришлёте initData в заголовке
+  if (!telegramId) {
+    const init = req.get('x-telegram-init-data');
+    if (init) {
+      try {
+        const p = new URLSearchParams(init);
+        const userStr = p.get('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          if (user && user.id) {
+            const n = Number(user.id);
+            if (!Number.isNaN(n)) telegramId = n;
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  if (!telegramId) {
+    return res.status(400).json({ ok:false, error:'telegramId_required' });
+  }
 
     // Жёстко требуем telegramId (ты этого и хотел).
     if (!telegramId) {
@@ -160,4 +199,5 @@ app.post("/api/events", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log("API on:", PORT));
+
 
