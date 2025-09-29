@@ -7,22 +7,24 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
 <title>METAVILLE: V.01.D / Genesis Platform</title>
-  <script>
-  // БЕЗ завершающего слеша
+ <script>
+  // Домен API (БЕЗ завершающего /)
   window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
+
+  // Обёртка fetch: любые относительные запросы вида "/api/..." переписываем на API_BASE
+  (function(){
+    const origFetch = window.fetch;
+    window.fetch = function(input, init){
+      try {
+        if (typeof input === 'string' && input.startsWith('/api/')) {
+          input = window.API_BASE + input;                // <-- ключевая строка
+        }
+      } catch(_) {}
+      return origFetch(input, init);
+    };
+  })();
 </script>
 
-//<script>
- // window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
-  // Автоподмена относительных /api/* на абсолютный URL API
- // const _fetch = window.fetch.bind(window);
- // window.fetch = (url, opts) => {
- //   if (typeof url === 'string' && url.startsWith('/api/')) {
- //     url = window.API_BASE + url;
- //   }
- //   return _fetch(url, opts);
- // };
-//</script>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
