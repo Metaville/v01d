@@ -12530,3 +12530,58 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
   }
 })();
 </script>
+<script>
+(function () {
+  // 1) базовый URL твоего API
+  window.API_BASE = window.API_BASE || 'https://vibrant-upliftment-production-fc51.up.railway.app';
+
+  // 2) Получаем Telegram ID
+  function getTgId() {
+    try {
+      const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      if (id) return Number(id);
+    } catch (_) {}
+    // поддержка ?tg=700000000001
+    const m = location.search.match(/[?&]tg=(\d{6,})/);
+    return m ? Number(m[1]) : null;
+  }
+
+  // 3) Собираем состояние игрока
+  function collectState() {
+    const gs = window.gameState || {};
+    const p  = gs.player || {};
+    return {
+      telegramId: getTgId(),
+      callsign:   p.callsign || 'Citizen',
+      level:      Number(p.level || 1),
+      exp:        Number(p.exp   || 0),
+      resources:  gs.resources || { energy:0, mvc:0, parts:0, oxygen:0, bio:0 },
+      progress:   gs.progress  || {},
+      stats:      p.stats      || {}
+    };
+  }
+
+  // 4) Отправка на сервер
+  async function sync(reason) {
+    const payload = collectState();
+    console.log('[sync] reason=', reason, payload);
+    if (!payload.telegramId) {
+      console.warn('Нет telegramId → сервер вернёт 400. Добавь ?tg=ID в URL или запускай из Telegram.');
+      return;
+    }
+    const r = await fetch(`${window.API_BASE}/api/player/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const text = await r.text();
+    if (!r.ok) console.warn('[sync] fail', r.status, text);
+    else       console.log('[sync] ok', text);
+  }
+
+  // 5) Первый вызов
+  document.addEventListener('DOMContentLoaded', () => sync('boot'));
+
+  // (по желанию) экспортни для ручного вызова из консоли: window.mvSyncPlayer = () => sync('manual');
+})();
+</script>
