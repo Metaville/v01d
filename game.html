@@ -12641,5 +12641,19 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
   }
 })();
 </script>
+<script>
+  // когда игрок получает ресурсы
+  function award(resource, amount) {
+    const GS = window.gameState || (window.gameState = {});
+    const res = GS.resources || (GS.resources = {});
+    res[resource] = (res[resource] || 0) + amount;
+    window.mvSyncPlayer && window.mvSyncPlayer('award:' + resource);
+  }
+
+  // на кнопку "Start the game" тоже можно отправить повторный sync
+  document.querySelector('#startButton')?.addEventListener('click', () => {
+    window.mvSyncPlayer && window.mvSyncPlayer('start');
+  });
+</script>
 
  
