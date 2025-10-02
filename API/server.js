@@ -14,6 +14,12 @@ app.use(cors());
 app.use(bodyParser.json());           // JSON body
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    res.set('Cache-Control', 'no-store'); // не кэшировать API
+  }
+  next();
+});
 // ---------- DB pool ----------
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -142,3 +148,4 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log("API on:", PORT);
 });
+
