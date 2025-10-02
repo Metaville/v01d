@@ -206,7 +206,24 @@
 </script>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+// [PATCH v01d] глобалы API и игрока
+const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // твой Railway API
+const DEFAULT_RES = { oxygen: 0, mvc: 0, parts: 0, energy: 0, bio: 0 };
 
+// Глобальное состояние игрока (вместо жёстких циферок в HUD)
+window.PLAYER = {
+  telegram_id: null,
+  callsign: 'Citizen',
+  level: 1,
+  exp: 0,
+  resources: { ...DEFAULT_RES },
+  progress: {},
+  stats: {}
+};
+</script>
+
+  
 <!-- Solana web3.js в виде IIFE (даёт глобальный solanaWeb3) -->
 <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 
@@ -12659,6 +12676,119 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
   document.querySelector('#startButton')?.addEventListener('click', () => {
     window.mvSyncPlayer && window.mvSyncPlayer('start');
   });
+</script>
+<script>
+// ===== utils =====
+const $ = (sel) => document.querySelector(sel);
+
+// ===== API: получить или создать игрока =====
+async function loadOrCreatePlayer(tgId) {
+  const r = await fetch(`${API_BASE}/api/player/by-tg/${tgId}`);
+  if (r.ok) {
+    const data = await r.json();
+    return data.player;
+  }
+  if (r.status === 404) {
+    // создаём запись
+    const payload = {
+      telegramId: tgId,
+      callsign: 'Citizen',
+      level: 1,
+      exp: 0,
+      resources: { ...DEFAULT_RES },
+      progress: {},
+      stats: {}
+    };
+    const s = await fetch(`${API_BASE}/api/player/sync?tg=${tgId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await s.json();
+    if (!data.ok) throw new Error(data.error || 'sync_failed');
+    return data.player;
+  }
+  throw new Error('load_failed');
+}
+
+// ===== применить игрока в state и кэш =====
+function applyPlayer(p) {
+  PLAYER.telegram_id = Number(p.telegram_id);
+  PLAYER.callsign    = p.callsign ?? 'Citizen';
+  PLAYER.level       = Number(p.level ?? 1);
+  PLAYER.exp         = Number(p.exp ?? 0);
+  PLAYER.resources   = { ...DEFAULT_RES, ...(p.resources || {}) };
+  PLAYER.progress    = p.progress || {};
+  PLAYER.stats       = p.stats || {};
+  localStorage.setItem('v01d_player', JSON.stringify(PLAYER));
+}
+
+// ===== перерисовать HUD (подставь свои селекторы) =====
+function renderHUD() {
+  const res = PLAYER.resources;
+  // !!! НУЖНО один раз обернуть цифры в шапке в <span>, чтобы было за что цепляться:
+  // пример HTML:  O₂: <span data-oxygen>0</span>  MVC: <span data-mvc>0</span>  ...
+  const set = (sel, val) => { const el = $(sel); if (el) el.textContent = String(val); };
+  set('[data-oxygen]', res.oxygen);
+  set('[data-mvc]',    res.mvc);
+  set('[data-parts]',  res.parts);
+  set('[data-energy]', res.energy);
+  set('[data-bio]',    res.bio);
+}
+
+// ===== синхронизировать после изменений =====
+async function syncPlayer() {
+  if (!PLAYER.telegram_id) return;
+  const payload = {
+    telegramId: PLAYER.telegram_id,
+    callsign:   PLAYER.callsign,
+    level:      PLAYER.level,
+    exp:        PLAYER.exp,
+    resources:  PLAYER.resources,
+    progress:   PLAYER.progress,
+    stats:      PLAYER.stats
+  };
+  const r = await fetch(`${API_BASE}/api/player/sync?tg=${PLAYER.telegram_id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await r.json();
+  if (data.ok && data.player) {
+    applyPlayer(data.player);
+    renderHUD();
+  } else {
+    console.warn('[sync] fail', data);
+  }
+}
+
+// ===== общий boot =====
+async function bootWithTelegramId(tgId) {
+  try {
+    // быстрый кэш (чтоб не мигали дефолты)
+    const cached = localStorage.getItem('v01d_player');
+    if (cached) {
+      try {
+        const p = JSON.parse(cached);
+        if (p && Number(p.telegram_id) === Number(tgId)) {
+          applyPlayer(p);
+          renderHUD();
+        }
+      } catch (_) {}
+    }
+
+    // достоверные данные с API
+    const player = await loadOrCreatePlayer(tgId);
+    console.log('[load] применён игрок:', player);
+    applyPlayer(player);
+    renderHUD();
+  } catch (e) {
+    console.warn('[load] профиль не найден — будет создан при sync / ошибка:', e);
+  }
+}
+
+// (опц.) синк на уход со страницы
+window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && syncPlayer(); } catch(_){} });
 </script>
 
  
