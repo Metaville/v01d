@@ -20,6 +20,44 @@ app.use((req, res, next) => {
   }
   next();
 });
+// после app.use(cors()); app.use(bodyParser.json()); и до app.listen(...)
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;   // добавь в Variables на Railway
+const TG_SECRET = process.env.TG_SECRET;            // опционально: секрет для проверки
+
+// Телеграм шлёт JSON POST на этот путь — он ДОЛЖЕН совпадать с setWebhook
+app.post('/api/tg/webhook', async (req, res) => {
+  try {
+    // (необязательно) проверяем секрет, если задан
+    if (TG_SECRET) {
+      const hdr = req.get('x-telegram-bot-api-secret-token');
+      if (hdr !== TG_SECRET) {
+        console.warn('TG webhook: wrong secret token');
+        return res.sendStatus(401);
+      }
+    }
+
+    const update = req.body; // апдейт от Telegram
+    console.log('TG update:', update?.update_id, update?.message?.text);
+
+    // Простейший ответ на /start (чтобы увидеть, что вебхук жив)
+    if (BOT_TOKEN && update?.message?.text === '/start') {
+      const chatId = update.message.chat.id;
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: 'Вебхук работает ✅' })
+      });
+    }
+
+    // Важное: всегда быстро отвечаем 200, иначе Telegram будет ретраить
+    res.sendStatus(200);
+  } catch (e) {
+    console.error('TG webhook error:', e);
+    // всё равно 200, чтобы Телеграм не засыпал повторными запросами
+    res.sendStatus(200);
+  }
+});
+
 // ---------- DB pool ----------
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -148,4 +186,5 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log("API on:", PORT);
 });
+
 
