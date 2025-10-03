@@ -29,15 +29,33 @@ function scheduleSync(reason='resources'){
   if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
   window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(); } catch(_) {} }, 800);
 }
-// глобальные флаги
+// --- глобальные флаги ---
+
 window.__SYNC_TIMER = null;
 window.__BOOT_LOADING = true;
 
-// новое: глушилка HUD на время "наших" перерисовок
+// глушим hud-мьютации, когда сами рисуем HUD (renderHUD/applyPlayer)
 window.__SILENT_UI = 0;
 
-// новое: отметка о последнем "явном" sync (не через hud-mutation)
-window.__LAST_EXPLICIT_SYNC_AT = 0;
+// ресурсы «грязные» с момента последнего удачного sync?
+window.__RES_DIRTY = false;
+
+// последний снимок ресурсов, который мы уже отправили на сервер
+window.__LAST_SYNC_RES = null;
+
+// последний успешный sync (для троттлинга)
+window.__LAST_SYNC_AT = 0;
+
+// последний поставленный sync из 'hud-mutation' (чтобы не чаще N секунд)
+window.__LAST_HUD_MUTATION_AT = 0;
+
+// хелпер: глубокое сравнение простого объекта ресурсов
+function sameRes(a,b){
+  if (!a || !b) return false;
+  const keys = ['oxygen','energy','mvc','ice','bio','parts'];
+  for (const k of keys) if (Number(a[k]||0) !== Number(b[k]||0)) return false;
+  return true;
+}
 
 // ДЕБАУНС СИНКА
 function scheduleSync(reason = 'resources') {
@@ -67,29 +85,53 @@ function scheduleSync(reason = 'resources') {
 <script>
   // Safety-net: если цифры в HUD поменялись хоть как-то, шлём sync (после boot)
   (function () {
+  // следим только за реальными цифрами ресурсов
   const selectors = [
-    '#oxygen-value','#energy-value','#mvc-value','#ice-value','#bio-value','#parts-value',
-    '#oxygen-resource','#energy-resource','#mvc-resource','#ice-resource','#bio-resource','#parts-resource',
-    '[data-oxygen]','[data-energy]','[data-mvc]','[data-ice]','[data-bio]','[data-parts]'
+    '#oxygen-value','#energy-value','#mvc-value',
+    '#ice-value','#bio-value','#parts-value',
+    '[data-oxygen]','[data-energy]','[data-mvc]',
+    '[data-ice]','[data-bio]','[data-parts]'
   ];
 
-  function startObserver() {
+  // читаем ресурсы с HUD
+  function readUiRes(){
+    const pick = (q) => {
+      const el = document.querySelector(q);
+      return el ? parseInt(String(el.textContent).replace(/\D/g,'')||'0',10) : 0;
+    };
+    return {
+      oxygen: pick('#oxygen-value') || pick('[data-oxygen]'),
+      energy: pick('#energy-value') || pick('[data-energy]'),
+      mvc:    pick('#mvc-value')    || pick('[data-mvc]'),
+      ice:    pick('#ice-value')    || pick('[data-ice]'),
+      bio:    pick('#bio-value')    || pick('[data-bio]'),
+      parts:  pick('#parts-value')  || pick('[data-parts]'),
+    };
+  }
+
+  function startObserver(){
     if (window.__BOOT_LOADING) { requestAnimationFrame(startObserver); return; }
 
-    const els = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
-    if (!els.length) { requestAnimationFrame(startObserver); return; }
+    const nodes = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
+    if (!nodes.length) { requestAnimationFrame(startObserver); return; }
 
     // не плодим наблюдателей
     if (window.__HUD_OBSERVER) try { window.__HUD_OBSERVER.disconnect(); } catch(_){}
 
     window.__HUD_OBSERVER = new MutationObserver(() => {
-      if (window.__BOOT_LOADING) return;      // на всякий случай
-      if (window.__SILENT_UI > 0) return;     // мы сами рисуем — не трогаем
+      if (window.__BOOT_LOADING || window.__SILENT_UI > 0) return;
+
+      const ui = readUiRes();
+      // если снимок совпадает с последним синкнутым — не считаем «грязным»
+      if (window.__LAST_SYNC_RES && sameRes(ui, window.__LAST_SYNC_RES)) return;
+
+      // помечаем «грязь» и пробуем синкнуть (пройдёт через троттлинг)
+      window.__RES_DIRTY = true;
       scheduleSync('hud-mutation');
     });
 
-    els.forEach(el => window.__HUD_OBSERVER.observe(el, { childList:true, characterData:true, subtree:true }));
-    console.log('[hud-observer] watching', els.length, 'nodes');
+    nodes.forEach(el => window.__HUD_OBSERVER.observe(el, { childList:true, characterData:true, subtree:true }));
+    console.log('[hud-observer] watching', nodes.length, 'nodes');
   }
 
   if (document.readyState === 'loading') {
@@ -98,6 +140,7 @@ function scheduleSync(reason = 'resources') {
     startObserver();
   }
 })();
+
 
 </script>
 
@@ -140,11 +183,35 @@ function scheduleSync(reason = 'resources') {
 
   // ===== 3) Обёртки API =====
   async function apiGetPlayerByTg(tg) {
-    const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
-    if (!r.ok) return null;
-    const j = await r.json();
-    return j.player;
+    // вместо const r = await fetch(...)" и "const data = await r.json();"
+let data;
+try {
+  const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!r.ok) {
+    // HTTP-ошибка (например 500/502/504) — считаем как сетевую, повторим позже
+    throw new Error(`HTTP ${r.status}`);
   }
+
+  data = await r.json();
+
+} catch (e) {
+  console.warn('[sync] network error, will retry', e);
+
+  // считаем состояние «грязным», чтобы разрешить автоматический повтор
+  try { window.__RES_DIRTY = true; } catch (_){}
+
+  // ставим повтор через наш дебаунсер (НЕ hud-mutation, чтобы не отфильтровалось)
+  try { scheduleSync('retry-after-error'); } catch (_){}
+
+  // ВАЖНО: ничего не «чистим» и не перерисовываем — просто выходим
+  return;
+}
+
 
   async function apiSyncPlayer(payload) {
     const r = await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId || payload.telegram_id}`, {
@@ -4658,6 +4725,9 @@ elements.o2GenerationValue.textContent = `${buf.toLocaleString()} O₂`;
                     element.classList.remove('changed');
                 }, 1000);
             }
+           try { window.__RES_DIRTY = true; } catch(_){}
+scheduleSync('updateResource:' + nameOrReason);
+
                 // 1) зеркалим в PLAYER и кэш
     try {
       if (window.PLAYER && PLAYER.resources) {
@@ -4737,6 +4807,7 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
   if (!updateResource('energy', -cost)) {
     return;
   }
+
 
   document.getElementById('scan-modal').classList.remove('active');
 
@@ -12980,18 +13051,24 @@ function setResource(name, val) {
 
   const data = await r.json();
   if (data.ok && data.player) {
-      // ТИХИЙ РЕНДЕР: не триггерим hud-mutation
-    window.__SILENT_UI++;
-    try {
-      applyPlayer(data.player);
-      renderHUD();
-    } finally {
-      setTimeout(() => { window.__SILENT_UI = Math.max(0, window.__SILENT_UI - 1); }, 350);
-    }
-  } else {
-    console.warn('[sync] fail', data);
-  }
+     // ТИХИЙ РЕНДЕР, чтобы observer не поставил ещё один sync
+window.__SILENT_UI++;
+try {
+  applyPlayer(data.player);
+  renderHUD();
+} else {
+  console.warn('[sync] fail', data);
 }
+  // после успешного применения БД = «чисто»
+  window.__LAST_SYNC_RES = (window.PLAYER && window.PLAYER.resources)
+    ? JSON.parse(JSON.stringify(window.PLAYER.resources))
+    : null;
+  window.__RES_DIRTY = false;
+  window.__LAST_SYNC_AT = Date.now();
+} finally {
+  setTimeout(()=>{ window.__SILENT_UI = Math.max(0, window.__SILENT_UI-1); }, 350);
+}
+
 
 
 // ===== общий boot =====
@@ -13005,7 +13082,7 @@ async function bootWithTelegramId(tgId) {
         if (p && Number(p.telegram_id) === Number(tgId)) {
           applyPlayer(p);
           renderHUD();
-          
+          window.__BOOT_LOADING = false;  // ← только тут!
         }
       } catch (_) {}
     }
@@ -13015,7 +13092,7 @@ async function bootWithTelegramId(tgId) {
     applyPlayer(player);
       renderHUD();
     
-    window.__BOOT_LOADING = false; // boot завершён
+   // window.__BOOT_LOADING = false; // boot завершён
  
   } catch (e) {
     console.warn('[load] профиль не найден — будет создан при sync / ошибка:', e);
