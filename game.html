@@ -8,6 +8,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
 <title>METAVILLE: V.01.D / Genesis Platform</title>
+  <script>
+  // Глобальный контейнер профиля игрока (создаём, если его нет)
+  window.PLAYER = window.PLAYER || {
+    telegram_id: null,
+    callsign: 'Citizen',
+    level: 1,
+    exp: 0,
+    resources: {},
+    progress: {},
+    stats: {}
+  };
+</script>
+
 <script>
   // --- debounce sync + boot-flag ---
   window.__SYNC_TIMER = null;
@@ -12869,16 +12882,6 @@ const DEF = { oxygen:250, energy:500, mvc:500, bio:100, parts:100, ice:120 }; //
 
   try { localStorage.setItem('v01d_player', JSON.stringify(window.PLAYER)); } catch(_) {}
 }
-// Глобальный контейнер профиля игрока (безопасный по умолчанию)
-window.PLAYER = window.PLAYER || {
-  telegram_id: null,
-  callsign: 'Citizen',
-  level: 1,
-  exp: 0,
-  resources: {},
-  progress: {},
-  stats: {}
-};
 
 // ===== перерисовать HUD (подставь свои селекторы) =====
 function renderHUD() {
