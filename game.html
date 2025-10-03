@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 
 <html lang="en">
@@ -12,6 +13,21 @@
   //  адресс  Railway:
 /* PATCH: unified API_BASE below */ //   window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
 </script>
+ <script>
+    // PATCH: sync debounce and boot flag
+    window.__SYNC_TIMER = null;
+    window.__BOOT_LOADING = true;
+
+    function scheduleSync(reason = 'resources') {
+      try {
+        if (window.__BOOT_LOADING) return;            // не синкаем во время первичной загрузки
+        if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
+        window.__SYNC_TIMER = setTimeout(() => {
+          try { syncPlayer(); } catch (_) {}
+        }, 800);                                      // дебаунс 0.8 c
+      } catch (_) {}
+    }
+  </script>
 <script>
   // ===== 1) Настройки API =====
   const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // <-- свой домен
@@ -90,8 +106,10 @@
       }
 
       console.log('[load] player:', player);
-      updateResourceBar(player.resources || {});
-    } catch (e) {
+      
+      \1
+      window.__BOOT_LOADING = false; // PATCH: boot finished
+} catch (e) {
       console.error('load_failed', e);
     }
   }
@@ -6833,11 +6851,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function setResource(name, val){
     const el = document.getElementById(name + '-value');
-    if(el) el.textContent = val;
-    if(window.gameState?.resources){
-      if(name === 'energy') window.gameState.resources.energy = val;
-      if(name === 'parts') window.gameState.resources.parts = val;
-    }
+    if (el) el.textContent = val;
+    // mirror to gameState, if present
+    try{
+      if (window.gameState && window.gameState.resources) {
+        window.gameState.resources[name] = val;
+      }
+    }catch(_){}
+    // mirror to PLAYER and cache
+    try{
+      if (typeof PLAYER !== 'undefined' && PLAYER && PLAYER.resources) {
+        PLAYER.resources[name] = val;
+        try { localStorage.setItem('v01d_player', JSON.stringify(PLAYER)); } catch(_){}
+      }
+    }catch(_){}
+    // schedule sync after user action
+    scheduleSync('setResource:'+name);
   }
   function hasResources(cost){
     return getResource('energy') >= cost.energy && getResource('parts') >= cost.parts;
@@ -12861,7 +12890,8 @@ async function bootWithTelegramId(tgId) {
     const player = await loadOrCreatePlayer(tgId);
     console.log('[load] применён игрок:', player);
     applyPlayer(player);
-    renderHUD();
+    window.__BOOT_LOADING = false; // PATCH: boot finished
+  renderHUD();
   } catch (e) {
     console.warn('[load] профиль не найден — будет создан при sync / ошибка:', e);
   }
