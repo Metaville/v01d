@@ -29,26 +29,76 @@ function scheduleSync(reason='resources'){
   if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
   window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(); } catch(_) {} }, 800);
 }
+// глобальные флаги
+window.__SYNC_TIMER = null;
+window.__BOOT_LOADING = true;
+
+// новое: глушилка HUD на время "наших" перерисовок
+window.__SILENT_UI = 0;
+
+// новое: отметка о последнем "явном" sync (не через hud-mutation)
+window.__LAST_EXPLICIT_SYNC_AT = 0;
+
+// ДЕБАУНС СИНКА
+function scheduleSync(reason = 'resources') {
+  try {
+    if (window.__BOOT_LOADING) return;
+
+    // не ставим синк на мутации, пока мы сами рисуем HUD
+    if (reason === 'hud-mutation' && window.__SILENT_UI > 0) return;
+
+    // если уже поставили явный sync, игнорим ближайшие мутации HUD (~200мс)
+    if (reason === 'hud-mutation' && Date.now() - (window.__LAST_EXPLICIT_SYNC_AT || 0) < 200) {
+      return;
+    }
+
+    if (reason !== 'hud-mutation') {
+      window.__LAST_EXPLICIT_SYNC_AT = Date.now();
+    }
+
+    if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
+    window.__SYNC_TIMER = setTimeout(() => {
+      try { syncPlayer(); } catch (_) {}
+    }, 800);
+  } catch (_) {}
+}
+
 </script>
 <script>
   // Safety-net: если цифры в HUD поменялись хоть как-то, шлём sync (после boot)
   (function () {
-    const ids = [
-      'oxygen-resource','energy-resource','mvc-resource',
-      'ice-resource','bio-resource','parts-resource'
-    ];
-    const tryObserve = () => {
-      if (window.__BOOT_LOADING) { requestAnimationFrame(tryObserve); return; }
-      const obs = new MutationObserver(() => {
-        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
-      });
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) obs.observe(el, { childList: true, subtree: true, characterData: true });
-      });
-    };
-    tryObserve();
-  })();
+  const selectors = [
+    '#oxygen-value','#energy-value','#mvc-value','#ice-value','#bio-value','#parts-value',
+    '#oxygen-resource','#energy-resource','#mvc-resource','#ice-resource','#bio-resource','#parts-resource',
+    '[data-oxygen]','[data-energy]','[data-mvc]','[data-ice]','[data-bio]','[data-parts]'
+  ];
+
+  function startObserver() {
+    if (window.__BOOT_LOADING) { requestAnimationFrame(startObserver); return; }
+
+    const els = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
+    if (!els.length) { requestAnimationFrame(startObserver); return; }
+
+    // не плодим наблюдателей
+    if (window.__HUD_OBSERVER) try { window.__HUD_OBSERVER.disconnect(); } catch(_){}
+
+    window.__HUD_OBSERVER = new MutationObserver(() => {
+      if (window.__BOOT_LOADING) return;      // на всякий случай
+      if (window.__SILENT_UI > 0) return;     // мы сами рисуем — не трогаем
+      scheduleSync('hud-mutation');
+    });
+
+    els.forEach(el => window.__HUD_OBSERVER.observe(el, { childList:true, characterData:true, subtree:true }));
+    console.log('[hud-observer] watching', els.length, 'nodes');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startObserver);
+  } else {
+    startObserver();
+  }
+})();
+
 </script>
 
 <script>
@@ -154,7 +204,7 @@ if (!window.PLAYER.telegram_id && tg != null) {
 
       console.log('[load] player:', player);
       
-      window.__BOOT_LOADING = false; // PATCH: boot finished
+      //window.__BOOT_LOADING = false; // PATCH: boot finished
 } catch (e) {
       console.error('load_failed', e);
     }
@@ -12858,7 +12908,7 @@ function renderHUD() {
   try {
     const res = (typeof PLAYER !== 'undefined' && PLAYER && PLAYER.resources) ? PLAYER.resources : {};
     if (typeof updateResourceBar === 'function') {
-        
+
       updateResourceBar(res);
     } else {
       // Fallback: update data-* selectors if legacy markup is used
@@ -12930,8 +12980,14 @@ function setResource(name, val) {
 
   const data = await r.json();
   if (data.ok && data.player) {
-    applyPlayer(data.player);  // подтягиваем серверную правду
-    renderHUD();
+      // ТИХИЙ РЕНДЕР: не триггерим hud-mutation
+    window.__SILENT_UI++;
+    try {
+      applyPlayer(data.player);
+      renderHUD();
+    } finally {
+      setTimeout(() => { window.__SILENT_UI = Math.max(0, window.__SILENT_UI - 1); }, 350);
+    }
   } else {
     console.warn('[sync] fail', data);
   }
@@ -12956,7 +13012,6 @@ async function bootWithTelegramId(tgId) {
 
     // достоверные данные с API
     const player = await loadOrCreatePlayer(tgId);
-    console.log('[load] применён игрок:', player);
     applyPlayer(player);
       renderHUD();
     
