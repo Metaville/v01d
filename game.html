@@ -12837,38 +12837,6 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
 // ===== utils =====
 const $ = (sel) => document.querySelector(sel);
 
-// ===== API: получить или создать игрока =====
-async /* PATCH_DISABLE duplicate loadOrCreatePlayer BEGIN
-function loadOrCreatePlayer(tgId) {
-  const r = await fetch(`${API_BASE}/api/player/by-tg/${tgId}`);
-  if (r.ok) {
-    const data = await r.json();
-    return data.player;
-  }
-  if (r.status === 404) {
-    // создаём запись
-    const payload = {
-      telegramId: tgId,
-      callsign: 'Citizen',
-      level: 1,
-      exp: 0,
-      resources: { ...DEFAULT_RES },
-      progress: {},
-      stats: {}
-    };
-    const s = await fetch(`${API_BASE}/api/player/sync?tg=${tgId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await s.json();
-    if (!data.ok) throw new Error(data.error || 'sync_failed');
-    return data.player;
-  }
-  throw new Error('load_failed');
-}
-duplicate loadOrCreatePlayer END PATCH_DISABLE */
-
 // ===== применить игрока в state и кэш =====
 function applyPlayer(p) {
 const DEF = { oxygen:250, energy:500, mvc:500, bio:100, parts:100, ice:120 }; // если у тебя уже есть DEFAULT_RES — используй его
