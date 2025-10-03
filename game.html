@@ -10,11 +10,13 @@
 
 <script>
   //  адресс  Railway:
-  window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
+/* PATCH: unified API_BASE below */ //   window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
 </script>
 <script>
   // ===== 1) Настройки API =====
   const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // <-- свой домен
+  // PATCH: expose for legacy
+  window.API_BASE = API_BASE;
 
   // ===== 2) Получаем telegramId из Telegram или из ?tg=... =====
   function resolveTelegramId() {
@@ -119,7 +121,7 @@
 
   // API базовый URL. Если у тебя уже есть window.API_BASE — оставь его.
   // Ниже — только пример. Не дублируй, если у тебя это уже объявлено.
-  window.API_BASE = window.API_BASE || 'https://vibrant-upliftment-production-fc51.up.railway.app';
+/* PATCH: duplicate default removed */ //   window.API_BASE = window.API_BASE || 'https://vibrant-upliftment-production-fc51.up.railway.app';
 
   // ---------------- загрузка профиля с API ----------------
   async function loadPlayerIntoGame() {
@@ -130,7 +132,7 @@
     }
 
     try {
-      const r = await fetch(`${window.API_BASE}/api/player/by-tg/${tg}`, {
+      const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
       });
@@ -177,8 +179,12 @@
   }
 
   // -------- точка входа: сначала LOAD, затем SYNC ------------
-  /* Removed: duplicate boot sync to prevent double-initialization */
-
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadPlayerIntoGame();          // 1) подтянуть сохранённое из БД
+    if (window.mvSyncPlayer) {
+      await window.mvSyncPlayer('boot'); // 2) заодно обновить last_login и зафиксировать актуальное
+    }
+  });
 })();
 </script>
 
@@ -12747,7 +12753,8 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
 const $ = (sel) => document.querySelector(sel);
 
 // ===== API: получить или создать игрока =====
-async function loadOrCreatePlayer(tgId) {
+async /* PATCH_DISABLE duplicate loadOrCreatePlayer BEGIN
+function loadOrCreatePlayer(tgId) {
   const r = await fetch(`${API_BASE}/api/player/by-tg/${tgId}`);
   if (r.ok) {
     const data = await r.json();
@@ -12775,6 +12782,7 @@ async function loadOrCreatePlayer(tgId) {
   }
   throw new Error('load_failed');
 }
+duplicate loadOrCreatePlayer END PATCH_DISABLE */
 
 // ===== применить игрока в state и кэш =====
 function applyPlayer(p) {
@@ -12790,15 +12798,22 @@ function applyPlayer(p) {
 
 // ===== перерисовать HUD (подставь свои селекторы) =====
 function renderHUD() {
-  const res = PLAYER.resources;
-  // !!! НУЖНО один раз обернуть цифры в шапке в <span>, чтобы было за что цепляться:
-  // пример HTML:  O₂: <span data-oxygen>0</span>  MVC: <span data-mvc>0</span>  ...
-  const set = (sel, val) => { const el = $(sel); if (el) el.textContent = String(val); };
-  set('[data-oxygen]', res.oxygen);
-  set('[data-mvc]',    res.mvc);
-  set('[data-parts]',  res.parts);
-  set('[data-energy]', res.energy);
-  set('[data-bio]',    res.bio);
+  try {
+    const res = (typeof PLAYER !== 'undefined' && PLAYER && PLAYER.resources) ? PLAYER.resources : {};
+    if (typeof updateResourceBar === 'function') {
+      updateResourceBar(res);
+    } else {
+      // Fallback: update data-* selectors if legacy markup is used
+      const qs = (sel) => document.querySelector(sel);
+      const setSel = (sel, val) => { const el = qs(sel); if (el) el.textContent = String(val ?? 0); };
+      setSel('[data-oxygen]', res.oxygen);
+      setSel('[data-energy]', res.energy);
+      setSel('[data-mvc]',    res.mvc);
+      setSel('[data-ice]',    res.ice);
+      setSel('[data-bio]',    res.bio);
+      setSel('[data-parts]',  res.parts);
+    }
+  } catch(e) { /* noop */ }
 }
 
 // ===== синхронизировать после изменений =====
