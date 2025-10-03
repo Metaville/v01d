@@ -8,6 +8,21 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
 <title>METAVILLE: V.01.D / Genesis Platform</title>
+<script>
+  // --- debounce sync + boot-flag ---
+  window.__SYNC_TIMER = null;
+  window.__BOOT_LOADING = true;
+
+  function scheduleSync(reason = 'resources') {
+    try {
+      if (window.__BOOT_LOADING) return;               // не синкаем во время первичной загрузки
+      if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
+      window.__SYNC_TIMER = setTimeout(() => {
+        try { syncPlayer(); } catch (_) {}
+      }, 800);                                         // 0.8 c дебаунс
+    } catch (_) {}
+  }
+</script>
 
 <script>
   //  адресс  Railway:
@@ -4561,7 +4576,17 @@ elements.o2GenerationValue.textContent = `${buf.toLocaleString()} O₂`;
                     element.classList.remove('changed');
                 }, 1000);
             }
-            
+                // 1) зеркалим в PLAYER и кэш
+    try {
+      if (window.PLAYER && PLAYER.resources) {
+        PLAYER.resources[resource] = gameState.resources[resource];
+        try { localStorage.setItem('v01d_player', JSON.stringify(PLAYER)); } catch(_){}
+      }
+    } catch (_){}
+
+    // 2) ставим отложенный sync (если не boot)
+    scheduleSync('updateResource:' + resource);
+
             return true;
         }
 
@@ -12881,6 +12906,7 @@ async function bootWithTelegramId(tgId) {
         if (p && Number(p.telegram_id) === Number(tgId)) {
           applyPlayer(p);
           renderHUD();
+          window.__BOOT_LOADING = false; // boot завершён
         }
       } catch (_) {}
     }
@@ -12891,6 +12917,8 @@ async function bootWithTelegramId(tgId) {
     applyPlayer(player);
     window.__BOOT_LOADING = false; // PATCH: boot finished
   renderHUD();
+   window.__BOOT_LOADING = false; // boot завершён
+ 
   } catch (e) {
     console.warn('[load] профиль не найден — будет создан при sync / ошибка:', e);
   }
