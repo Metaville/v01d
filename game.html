@@ -13,15 +13,14 @@
   window.__SYNC_TIMER = null;
   window.__BOOT_LOADING = true;
 
-  function scheduleSync(reason = 'resources') {
-    try {
-      if (window.__BOOT_LOADING) return;               // не синкаем во время первичной загрузки
-      if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
-      window.__SYNC_TIMER = setTimeout(() => {
-        try { syncPlayer(); } catch (_) {}
-      }, 800);                                         // 0.8 c дебаунс
-    } catch (_) {}
-  }
+ function scheduleSync(reason = 'resources') {
+  try {
+    if (window.__BOOT_LOADING) return;
+    if (!window.PLAYER || !window.PLAYER.telegram_id) return; // ← защита
+    if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
+    window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(); } catch(_){} }, 800);
+  } catch(_) {}
+}
 </script>
 <script>
   // Safety-net: если цифры в HUD поменялись хоть как-то, шлём sync (после boot)
@@ -12903,29 +12902,34 @@ function renderHUD() {
 
 // ===== синхронизировать после изменений =====
 async function syncPlayer() {
-  if (!PLAYER.telegram_id) return;
+  const P = window.PLAYER;                // ← читаем из глобального
+  if (!P || !P.telegram_id) return;       // нет id — не пытаемся синкать
+
   const payload = {
-    telegramId: PLAYER.telegram_id,
-    callsign:   PLAYER.callsign,
-    level:      PLAYER.level,
-    exp:        PLAYER.exp,
-    resources:  PLAYER.resources,
-    progress:   PLAYER.progress,
-    stats:      PLAYER.stats
+    telegramId: P.telegram_id,
+    callsign:   P.callsign,
+    level:      P.level,
+    exp:        P.exp,
+    resources:  P.resources,
+    progress:   P.progress,
+    stats:      P.stats,
   };
-  const r = await fetch(`${API_BASE}/api/player/sync?tg=${PLAYER.telegram_id}`, {
+
+  const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
+
   const data = await r.json();
   if (data.ok && data.player) {
-    applyPlayer(data.player);
+    applyPlayer(data.player);  // подтягиваем серверную правду
     renderHUD();
   } else {
     console.warn('[sync] fail', data);
   }
 }
+
 
 // ===== общий boot =====
 async function bootWithTelegramId(tgId) {
