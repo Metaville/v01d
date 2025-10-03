@@ -12859,15 +12859,27 @@ duplicate loadOrCreatePlayer END PATCH_DISABLE */
 
 // ===== применить игрока в state и кэш =====
 function applyPlayer(p) {
-  PLAYER.telegram_id = Number(p.telegram_id);
-  PLAYER.callsign    = p.callsign ?? 'Citizen';
-  PLAYER.level       = Number(p.level ?? 1);
-  PLAYER.exp         = Number(p.exp ?? 0);
-  PLAYER.resources   = { ...DEFAULT_RES, ...(p.resources || {}) };
-  PLAYER.progress    = p.progress || {};
-  PLAYER.stats       = p.stats || {};
-  localStorage.setItem('v01d_player', JSON.stringify(PLAYER));
+const DEF = { oxygen:250, energy:500, mvc:500, bio:100, parts:100, ice:120 }; // если у тебя уже есть DEFAULT_RES — используй его
+  window.PLAYER.telegram_id = Number(p.telegram_id || p.telegramId || window.PLAYER.telegram_id);
+  window.PLAYER.callsign    = p.callsign ?? window.PLAYER.callsign;
+  window.PLAYER.level       = Number(p.level ?? window.PLAYER.level);
+  window.PLAYER.exp         = Number(p.exp   ?? window.PLAYER.exp);
+  window.PLAYER.resources   = { ...DEF, ...(p.resources || {}) };
+  window.PLAYER.progress    = p.progress || {};
+  window.PLAYER.stats       = p.stats    || {};
+
+  try { localStorage.setItem('v01d_player', JSON.stringify(window.PLAYER)); } catch(_) {}
 }
+// Глобальный контейнер профиля игрока (безопасный по умолчанию)
+window.PLAYER = window.PLAYER || {
+  telegram_id: null,
+  callsign: 'Citizen',
+  level: 1,
+  exp: 0,
+  resources: {},
+  progress: {},
+  stats: {}
+};
 
 // ===== перерисовать HUD (подставь свои селекторы) =====
 function renderHUD() {
