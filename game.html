@@ -24,13 +24,10 @@
   window.__SYNC_TIMER = null;
   window.__BOOT_LOADING = true;
 
- function scheduleSync(reason = 'resources') {
-  try {
-    if (window.__BOOT_LOADING) return;
-    if (!window.PLAYER || !window.PLAYER.telegram_id) return; // ← защита
-    if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
-    window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(); } catch(_){} }, 800);
-  } catch(_) {}
+function scheduleSync(reason='resources'){
+  if (window.__BOOT_LOADING) return;
+  if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
+  window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(); } catch(_) {} }, 800);
 }
 </script>
 <script>
@@ -126,6 +123,11 @@
   // ===== 5) Загрузка или создание игрока =====
   async function loadOrCreatePlayer() {
     const tg = resolveTelegramId();
+    window.PLAYER = window.PLAYER || {};
+if (!window.PLAYER.telegram_id && tgId != null) {
+  window.PLAYER.telegram_id = Number(tgId);
+}
+
     if (!tg) {
       console.warn('[load] telegramId не найден. Для теста добавь ?tg=70000000023 к URL.');
       return;
@@ -12837,7 +12839,7 @@ const $ = (sel) => document.querySelector(sel);
 
 // ===== применить игрока в state и кэш =====
 function applyPlayer(p) {
-const DEF = { oxygen:250, energy:500, mvc:500, bio:100, parts:100, ice:120 }; // если у тебя уже есть DEFAULT_RES — используй его
+const DEF = { oxygen:50, energy:500, mvc:0, bio:0, parts:0, ice:20 }; // если у тебя уже есть DEFAULT_RES — используй его
   window.PLAYER.telegram_id = Number(p.telegram_id || p.telegramId || window.PLAYER.telegram_id);
   window.PLAYER.callsign    = p.callsign ?? window.PLAYER.callsign;
   window.PLAYER.level       = Number(p.level ?? window.PLAYER.level);
@@ -12845,7 +12847,9 @@ const DEF = { oxygen:250, energy:500, mvc:500, bio:100, parts:100, ice:120 }; //
   window.PLAYER.resources   = { ...DEF, ...(p.resources || {}) };
   window.PLAYER.progress    = p.progress || {};
   window.PLAYER.stats       = p.stats    || {};
-
+if (p && (p.telegram_id != null || p.telegramId != null)) {
+    window.PLAYER.telegram_id = Number(p.telegram_id ?? p.telegramId);
+  }
   try { localStorage.setItem('v01d_player', JSON.stringify(window.PLAYER)); } catch(_) {}
 }
 
@@ -12870,7 +12874,43 @@ function renderHUD() {
 }
 
 // ===== синхронизировать после изменений =====
-async function syncPlayer() {
+  async function syncPlayer() {
+  // восстановим id, если его нет
+  let tid = window.PLAYER?.telegram_id
+         || resolveTelegramId()
+         || new URL(location.href).searchParams.get('tg');
+
+  if (!tid) {
+    console.warn('[sync] no telegram_id – skip');
+    return;
+  }
+  window.PLAYER.telegram_id = Number(tid);
+
+  const P = window.PLAYER;
+  const payload = {
+    telegramId: P.telegram_id,
+    callsign:   P.callsign,
+    level:      P.level,
+    exp:        P.exp,
+    resources:  P.resources,
+    progress:   P.progress,
+    stats:      P.stats
+  };
+
+  const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await r.json();
+  if (data.ok && data.player) {
+    applyPlayer(data.player);
+    renderHUD();
+  } else {
+    console.warn('[sync] server replied not ok', data);
+  }
+}
+
   const P = window.PLAYER;                // ← читаем из глобального
   if (!P || !P.telegram_id) return;       // нет id — не пытаемся синкать
 
