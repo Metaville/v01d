@@ -1,6 +1,4 @@
-
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -12933,4 +12931,71 @@ async function bootWithTelegramId(tgId) {
 
 // (опц.) синк на уход со страницы
 window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && syncPlayer(); } catch(_){} });
+</script>
+<script>
+  // ===== DEBUG HOOKS (временно) =====
+  (function () {
+    if (typeof scheduleSync === 'function' && !window.__SCHEDULE_SYNC_WRAPPED) {
+      const __orig = scheduleSync;
+      window.scheduleSync = function (reason) {
+        console.log('[scheduleSync]', { reason, boot: window.__BOOT_LOADING, tg: window.PLAYER?.telegram_id });
+        return __orig.apply(this, arguments);
+      };
+      window.__SCHEDULE_SYNC_WRAPPED = true;
+    }
+    if (typeof syncPlayer === 'function' && !window.__SYNC_PLAYER_WRAPPED) {
+      const __origSync = syncPlayer;
+      window.syncPlayer = async function () {
+        console.log('[syncPlayer] start', window.PLAYER);
+        try {
+          const r = await __origSync.apply(this, arguments);
+          console.log('[syncPlayer] done');
+          return r;
+        } catch (e) {
+          console.error('[syncPlayer] error', e);
+          throw e;
+        }
+      };
+      window.__SYNC_PLAYER_WRAPPED = true;
+    }
+  })();
+</script>
+<script>
+  // ===== SAFETY-NET: синк при любом изменении HUD =====
+  (function () {
+    const selectors = [
+      '#oxygen-value', '#energy-value', '#mvc-value', '#ice-value', '#bio-value', '#parts-value',
+      '#oxygen-resource', '#energy-resource', '#mvc-resource', '#ice-resource', '#bio-resource', '#parts-resource',
+      '[data-oxygen]', '[data-energy]', '[data-mvc]', '[data-ice]', '[data-bio]', '[data-parts]'
+    ];
+    function startObserver() {
+      if (window.__BOOT_LOADING) { requestAnimationFrame(startObserver); return; }
+      const els = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
+      if (!els.length) { requestAnimationFrame(startObserver); return; }
+      const obs = new MutationObserver(() => {
+        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
+      });
+      els.forEach(el => obs.observe(el, { childList: true, characterData: true, subtree: true }));
+      console.log('[hud-observer] watching', els.length, 'nodes');
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startObserver);
+    } else {
+      startObserver();
+    }
+  })();
+</script>
+<script>
+  // ===== ACTION HOOKS =====
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const txt = (btn.textContent || '').trim().toLowerCase();
+
+    // подправь фразы при необходимости (локализация)
+    if (txt.startsWith('send harvester') || txt.startsWith('ремонт') || txt.startsWith('repair') || txt.startsWith('collect')) {
+      // даём UI обновиться и ставим синк
+      setTimeout(() => scheduleSync('action:' + txt), 50);
+    }
+  });
 </script>
