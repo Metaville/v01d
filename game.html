@@ -177,12 +177,8 @@
   }
 
   // -------- точка входа: сначала LOAD, затем SYNC ------------
-  document.addEventListener('DOMContentLoaded', async () => {
-    await loadPlayerIntoGame();          // 1) подтянуть сохранённое из БД
-    if (window.mvSyncPlayer) {
-      await window.mvSyncPlayer('boot'); // 2) заодно обновить last_login и зафиксировать актуальное
-    }
-  });
+  /* Removed: duplicate boot sync to prevent double-initialization */
+
 })();
 </script>
 
