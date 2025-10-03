@@ -12858,6 +12858,7 @@ function renderHUD() {
   try {
     const res = (typeof PLAYER !== 'undefined' && PLAYER && PLAYER.resources) ? PLAYER.resources : {};
     if (typeof updateResourceBar === 'function') {
+        
       updateResourceBar(res);
     } else {
       // Fallback: update data-* selectors if legacy markup is used
@@ -12871,6 +12872,28 @@ function renderHUD() {
       setSel('[data-parts]',  res.parts);
     }
   } catch(e) { /* noop */ }
+}
+// --- хук на точечное изменение одного ресурса ---
+function setResource(name, val) {
+  // 1) обновим DOM, если есть элемент вида #oxygen-value / data-oxygen
+  try {
+    const idEl = document.getElementById(name + '-value');
+    if (idEl) idEl.textContent = String(val ?? 0);
+    const dataEl = document.querySelector('[data-' + name + ']');
+    if (dataEl) dataEl.textContent = String(val ?? 0);
+  } catch(_){}
+
+  // 2) отзеркалим в модели
+  try {
+    if (window.gameState?.resources) window.gameState.resources[name] = val;
+    if (window.PLAYER?.resources) {
+      window.PLAYER.resources[name] = val;
+      try { localStorage.setItem('v01d_player', JSON.stringify(window.PLAYER)); } catch(_){}
+    }
+  } catch(_){}
+
+  // 3) и поставим отложенный sync (он сам не сработает во время BOOT)
+  if (typeof scheduleSync === 'function') scheduleSync('setResource:' + name);
 }
 
 // ===== синхронизировать после изменений =====
@@ -12926,7 +12949,7 @@ async function bootWithTelegramId(tgId) {
         if (p && Number(p.telegram_id) === Number(tgId)) {
           applyPlayer(p);
           renderHUD();
-          window.__BOOT_LOADING = false; // boot завершён
+          
         }
       } catch (_) {}
     }
@@ -12936,7 +12959,7 @@ async function bootWithTelegramId(tgId) {
     console.log('[load] применён игрок:', player);
     applyPlayer(player);
       renderHUD();
-    window.__BOOT_LOADING = false; // PATCH: boot finished
+    
     window.__BOOT_LOADING = false; // boot завершён
  
   } catch (e) {
@@ -12974,43 +12997,4 @@ window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && sy
       window.__SYNC_PLAYER_WRAPPED = true;
     }
   })();
-</script>
-<script>
-  // ===== SAFETY-NET: синк при любом изменении HUD =====
-  (function () {
-    const selectors = [
-      '#oxygen-value', '#energy-value', '#mvc-value', '#ice-value', '#bio-value', '#parts-value',
-      '#oxygen-resource', '#energy-resource', '#mvc-resource', '#ice-resource', '#bio-resource', '#parts-resource',
-      '[data-oxygen]', '[data-energy]', '[data-mvc]', '[data-ice]', '[data-bio]', '[data-parts]'
-    ];
-    function startObserver() {
-      if (window.__BOOT_LOADING) { requestAnimationFrame(startObserver); return; }
-      const els = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
-      if (!els.length) { requestAnimationFrame(startObserver); return; }
-      const obs = new MutationObserver(() => {
-        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
-      });
-      els.forEach(el => obs.observe(el, { childList: true, characterData: true, subtree: true }));
-      console.log('[hud-observer] watching', els.length, 'nodes');
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', startObserver);
-    } else {
-      startObserver();
-    }
-  })();
-</script>
-<script>
-  // ===== ACTION HOOKS =====
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const txt = (btn.textContent || '').trim().toLowerCase();
-
-    // подправь фразы при необходимости (локализация)
-    if (txt.startsWith('send harvester') || txt.startsWith('ремонт') || txt.startsWith('repair') || txt.startsWith('collect')) {
-      // даём UI обновиться и ставим синк
-      setTimeout(() => scheduleSync('action:' + txt), 50);
-    }
-  });
 </script>
