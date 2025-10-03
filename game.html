@@ -11,111 +11,91 @@
   // 👉 Укажи свой Railway-домен:
   window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
 
-  // Единый источник истины для Telegram ID
-  function getTgId() {
+<script>
+  // ===== 1) Настройки API =====
+  const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // <-- свой домен
+
+  // ===== 2) Получаем telegramId из Telegram или из ?tg=... =====
+  function resolveTelegramId() {
     try {
-      // 1) ?tg=... в URL (для браузерного теста)
-      const urlId = new URLSearchParams(location.search).get('tg');
-      if (urlId && !Number.isNaN(Number(urlId))) return String(Number(urlId));
-
-      // 2) Telegram WebApp initDataUnsafe
-      const id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-      if (id && !Number.isNaN(Number(id))) return String(Number(id));
+      const t = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      if (t) return Number(t);
     } catch (_) {}
-
-    return null; // не нашли
+    const u = new URL(window.location.href);
+    const q = u.searchParams.get('tg');
+    if (q && /^\d+$/.test(q)) return Number(q);
+    return null;
   }
 
-  // Преобразуем gameState -> payload для sync
-  function buildSyncPayload() {
-    const GS = window.gameState || {};
-    const player = GS.player || {};
-    return {
-      telegramId: getTgId(),                   // важно: тот же id
-      callsign:   player.callsign || 'Citizen',
-      level:      Number(player.level || 1),
-      exp:        Number(player.exp   || 0),
-      resources:  GS.resources || {},
-      progress:   GS.progress  || {},
-      stats:      player.stats  || {}
-    };
-  }
-
-  async function apiGetPlayer(tg) {
-    const url = `${window.API_BASE}/api/player/by-tg/${tg}`;
-    const r = await fetch(url, { cache: 'no-store' });
-    const text = await r.text();
-    let data = null;
-    try { data = text ? JSON.parse(text) : null; } catch (_) {}
-    return { ok: r.ok, status: r.status, data };
+  // ===== 3) Обёртки API =====
+  async function apiGetPlayerByTg(tg) {
+    const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.player;
   }
 
   async function apiSyncPlayer(payload) {
-    const r = await fetch(`${window.API_BASE}/api/player/sync`, {
+    const r = await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId || payload.telegram_id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
-    const data = await r.json().catch(()=>null);
-    return { ok: r.ok, status: r.status, data };
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'sync_failed');
+    return j.player;
   }
 
-  // Применяем полученного игрока в твою игру (адаптируй под свой state)
-  function applyPlayerToGame(p) {
-    window.gameState = window.gameState || {};
-    window.gameState.player = window.gameState.player || {};
-    window.gameState.resources = p.resources || {};
-    window.gameState.progress  = p.progress  || {};
-    Object.assign(window.gameState.player, {
-      callsign: p.callsign || 'Citizen',
-      level:    p.level    || 1,
-      exp:      p.exp      || 0,
-      stats:    p.stats    || {}
-    });
-    console.log('[load] применён игрок:', p);
+  // ===== 4) Проставляем ресурсы в верхнюю панель =====
+  function updateResourceBar(res = {}) {
+    const num = v => (typeof v === 'number' ? v : Number(v) || 0);
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = num(v); };
+
+    set('oxygen-value', res.oxygen);
+    set('energy-value',  res.energy);
+    set('mvc-value',     res.mvc);
+    set('ice-value',     res.ice);   // если поля ice нет в БД — будет 0
+    set('bio-value',     res.bio);
+    set('parts-value',   res.parts);
   }
 
-  // Главный загрузчик: GET → (404) → SYNC → GET
+  // ===== 5) Загрузка или создание игрока =====
   async function loadOrCreatePlayer() {
-    const tg = getTgId();
+    const tg = resolveTelegramId();
     if (!tg) {
-      console.warn('[load] tgId не найден — игра запустится без сервера');
+      console.warn('[load] telegramId не найден. Для теста добавь ?tg=70000000023 к URL.');
       return;
     }
 
-    // 1) пробуем получить
-    const first = await apiGetPlayer(tg);
-    if (first.ok && first.data?.player) {
-      applyPlayerToGame(first.data.player);
-      return;
+    window.__telegramId = tg;
+
+    try {
+      // 5.1. Пытаемся прочитать игрока
+      let player = await apiGetPlayerByTg(tg);
+
+      // 5.2. Если нет — создаём с дефолтами (можешь поменять под свои)
+      if (!player) {
+        player = await apiSyncPlayer({
+          telegramId: tg,
+          callsign: 'Citizen',
+          level: 1,
+          exp: 0,
+          resources: { oxygen: 250, energy: 500, mvc: 500, bio: 100, parts: 100, ice: 120 },
+          progress: {},
+          stats: {}
+        });
+      }
+
+      console.log('[load] player:', player);
+      updateResourceBar(player.resources || {});
+    } catch (e) {
+      console.error('load_failed', e);
     }
-
-    console.warn('[load] профиль не найден — будет создан при sync');
-    const payload = buildSyncPayload();
-
-    // 2) создаём/обновляем (UPSERT)
-    const syncRes = await apiSyncPlayer(payload);
-    if (!syncRes.ok) {
-      console.error('[sync] fail', syncRes.status, syncRes.data);
-      return;
-    }
-
-    // 3) повторяем получение
-    const second = await apiGetPlayer(tg);
-    if (second.ok && second.data?.player) {
-      applyPlayerToGame(second.data.player);
-      return;
-    }
-
-    console.error('[load] после sync игрок всё еще не найден', second.status, second.data);
   }
 
-  // Запускаем при загрузке
-  document.addEventListener('DOMContentLoaded', () => {
-    loadOrCreatePlayer().catch(console.error);
-  });
+  // ===== 6) Запускаем, когда всё отрисовалось =====
+  window.addEventListener('load', loadOrCreatePlayer);
 </script>
-
 
 <script>
 (function () {
