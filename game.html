@@ -124,8 +124,8 @@ function scheduleSync(reason='resources'){
   async function loadOrCreatePlayer() {
     const tg = resolveTelegramId();
     window.PLAYER = window.PLAYER || {};
-if (!window.PLAYER.telegram_id && tgId != null) {
-  window.PLAYER.telegram_id = Number(tgId);
+if (!window.PLAYER.telegram_id && tg != null) {
+  window.PLAYER.telegram_id = Number(tg);
 }
 
     if (!tg) {
@@ -12886,31 +12886,6 @@ function renderHUD() {
   }
   window.PLAYER.telegram_id = Number(tid);
 
-  const P = window.PLAYER;
-  const payload = {
-    telegramId: P.telegram_id,
-    callsign:   P.callsign,
-    level:      P.level,
-    exp:        P.exp,
-    resources:  P.resources,
-    progress:   P.progress,
-    stats:      P.stats
-  };
-
-  const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  const data = await r.json();
-  if (data.ok && data.player) {
-    applyPlayer(data.player);
-    renderHUD();
-  } else {
-    console.warn('[sync] server replied not ok', data);
-  }
-}
-
   const P = window.PLAYER;                // ← читаем из глобального
   if (!P || !P.telegram_id) return;       // нет id — не пытаемся синкать
 
@@ -12960,9 +12935,9 @@ async function bootWithTelegramId(tgId) {
     const player = await loadOrCreatePlayer(tgId);
     console.log('[load] применён игрок:', player);
     applyPlayer(player);
+      renderHUD();
     window.__BOOT_LOADING = false; // PATCH: boot finished
-  renderHUD();
-   window.__BOOT_LOADING = false; // boot завершён
+    window.__BOOT_LOADING = false; // boot завершён
  
   } catch (e) {
     console.warn('[load] профиль не найден — будет создан при sync / ошибка:', e);
