@@ -7,10 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
 <title>METAVILLE: V.01.D / Genesis Platform</title>
-<script>
-  // 👉 Укажи свой Railway-домен:
-  window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
 
+<script>
+  //  адресс  Railway:
+  window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
+</script>
 <script>
   // ===== 1) Настройки API =====
   const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // <-- свой домен
@@ -186,24 +187,7 @@
 </script>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-// [PATCH v01d] глобалы API и игрока
-const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // твой Railway API
-const DEFAULT_RES = { oxygen: 0, mvc: 0, parts: 0, energy: 0, bio: 0 };
 
-// Глобальное состояние игрока (вместо жёстких циферок в HUD)
-window.PLAYER = {
-  telegram_id: null,
-  callsign: 'Citizen',
-  level: 1,
-  exp: 0,
-  resources: { ...DEFAULT_RES },
-  progress: {},
-  stats: {}
-};
-</script>
-
-  
 <!-- Solana web3.js в виде IIFE (даёт глобальный solanaWeb3) -->
 <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 
@@ -2986,44 +2970,40 @@ html, body { overflow-x: hidden; }
   visibility: hidden !important;
 }
 </style>
-
-<style id="mv-modules-power-style">
-  .modules-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; }
-  .module-chip { display:flex; align-items:center; justify-content:space-between; gap:8px;
-    padding:10px 12px; border:1px solid rgba(255,255,255,.12); border-radius:12px; cursor:pointer;
-    background:rgba(255,255,255,.03); user-select:none; transition:.15s ease; }
-  .module-chip:hover { background:rgba(255,255,255,.06); }
-  .module-chip.active { outline: 1px solid rgba(122,243,214,.45); background: rgba(122,243,214,.10); }
-  .module-chip.disabled { opacity:.6; cursor:not-allowed; }
-  .module-chip .label { font:600 13px/1.2 system-ui; }
-  .module-chip .power-cost { font:600 12px/1 system-ui; opacity:.8 }
-</style>
 </head>
 <body>
 <div class="container" id="app">
 <!-- Верхняя панель ресурсов -->
-<!-- Верхняя панель ресурсов -->
 <div class="resource-bar">
-  <div class="resource-item" id="oxygen-resource">
-    <span>O₂: <span id="oxygen-value" data-r="oxygen">250</span></span>
-  </div>
-  <div class="resource-item" id="energy-resource">
-    <span>⚡ <span id="energy-value" data-r="energy">500</span></span>
-  </div>
-  <div class="resource-item" id="mvc-resource">
-    <span>MVC: <span id="mvc-value" data-r="mvc">500</span></span>
-  </div>
-  <div class="resource-item" id="ice-resource">
-    <span>❄️ <span id="ice-value" data-r="ice">120</span></span>
-    <button class="resource-toggle" id="resourceToggle" type="button">▼</button>
-  </div>
-  <div class="resource-item is-extra" id="bio-resource">
-    <span>🧪 <span id="bio-value" data-r="bio">100</span></span>
-  </div>
-  <div class="resource-item is-extra" id="parts-resource">
-    <span>🛠️ <span id="parts-value" data-r="parts">100</span></span>
-  </div>
+<div class="resource-item" id="oxygen-resource">
+<span>O₂: <span id="oxygen-value">250</span></span>
 </div>
+<div class="resource-item" id="energy-resource">
+<span>⚡ <span id="energy-value">500</span></span>
+</div>
+<div class="resource-item" id="mvc-resource">
+<span>MVC: <span id="mvc-value">500</span></span>
+</div>
+<div class="resource-item" id="ice-resource">
+<span>❄️ <span id="ice-value">120</span></span>
+<!-- Кнопка для раскрытия/сворачивания второго ряда ресурсов располагается рядом с ice-value -->
+<button class="resource-toggle" id="resourceToggle" type="button">▼</button>
+</div>
+<div class="resource-item is-extra" id="bio-resource">
+<span>🧪 <span id="bio-value">100</span></span>
+</div>
+<div class="resource-item is-extra" id="parts-resource">
+<span>🛠️ <span id="parts-value">100</span></span>
+</div>
+
+<!-- Отображение полимеров и редкоземов -->
+    <div class="resource-item is-extra" id="polymers-resource">
+        <span>🧬 <span id="polymers-value">0</span></span>
+    </div>
+     
+    <div class="resource-item is-extra" id="rare-resource">
+        <span>💎 <span id="rare-value">0</span></span>
+    </div>
 
     <!-- Кнопка перенесена внутрь блока ice-resource -->
 
@@ -3191,8 +3171,8 @@ html, body { overflow-x: hidden; }
                 <i class="fas fa-microchip"></i> Modules
                 <span class="click-indicator"><i class="fas fa-hand-pointer"></i></span>
             </div>
-            <div class="status-value"><span id="slots-value">3</span> slots</div>
-            <div>Working</div>
+            <div class="status-value"><span id="slots-value">2</span> слота</div>
+            <div>Free</div>
         </div>
 <div class="status-card clickable" id="rest-capsule-card">
 <div class="status-title">
@@ -4194,11 +4174,55 @@ html, body { overflow-x: hidden; }
         </div>
         <div class="modal-body">
           <div class="modules-legend" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-        
+            <span class="sr-badge good">Installed</span>
+            <span class="sr-badge info">Available</span>
+            <span class="sr-badge warn">Locked</span>
           </div>
           <!-- Ветка развития (простая вертикальная) -->
-        
-         
+          <div class="module-tree">
+            <div class="module-node installed" data-id="core">
+              <div class="node-head"><strong>Core</strong> <small>base system</small></div>
+              <div class="node-desc">Main control unit (pre‑installed)</div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="power">
+              <div class="node-head"><strong>Power Unit</strong></div>
+              <div class="node-desc">Provides basic power distribution</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="power">Connect</button>
+              </div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="o2">
+              <div class="node-head"><strong>O₂ Plant</strong></div>
+              <div class="node-desc">Requires: Power Unit</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="o2">Connect</button>
+              </div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="scanner">
+              <div class="node-head"><strong>Scanner Mk.I</strong></div>
+              <div class="node-desc">Requires: Power Unit</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="scanner">Connect</button>
+              </div>
+            </div>
+            <div class="module-branch"></div>
+            <div class="module-node" data-id="stealth">
+              <div class="node-head"><strong>Stealth Suite</strong></div>
+              <div class="node-desc">Requires: Scanner Mk.I</div>
+              <div class="node-actions">
+                <button class="btn connect-btn" data-module="stealth">Connect</button>
+              </div>
+            </div>
+          </div>
+          <div class="sr-sep"></div>
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;">
+            <div>Free slots: <strong id="modules-slots">-</strong></div>
+            <div class="hint" style="font-size:12px;color:#93a3b8;">Each module uses 1 slot</div>
+          </div>
+        </div>
         <div class="modal-actions">
           <button class="btn ghost" data-close="modules-modal">Close</button>
         </div>
@@ -7502,126 +7526,6 @@ if (typeof battAbsEl !== 'undefined' && battAbsEl) {
   }
 })();
 </script>
-<script id="mv-power-modules">
-// ===== POWER / MODULES (capacity reservation) =====
-(function () {
-  const GS = window.gameState = window.gameState || {};
-  GS.resources = GS.resources || { energy:0, mvc:0, parts:0, oxygen:0, bio:0 };
-  GS.solar     = GS.solar || {};
-  GS.power = GS.power || {
-    baseCap: null, // will be read from solar batteryCap on boot
-    modules: {
-      o2:      { label:'O₂ miner',   cost:150, connected:true,  essential:true  },
-      drones:  { label:'Drone hangar', cost:200, connected:true,  essential:true  },
-      rest:    { label:'Sleep pod',    cost:100, connected:true,  essential:false },
-      scanner: { label:'Scanner',      cost:150, connected:false, essential:false },
-      farm:    { label:'Farm',         cost:250, connected:false, essential:false }
-    }
-  };
-
-  function reserved() {
-    let sum = 0;
-    for (const m of Object.values(GS.power.modules)) if (m.connected) sum += (m.cost||0);
-    return sum;
-  }
-
-  // Update effective capacity on solar system
-  function applyEffectiveCap() {
-    const S = GS.solar;
-    if (!S) return;
-    if (!S._baseBatteryCap) S._baseBatteryCap = S.batteryCap || 900;
-    if (GS.power.baseCap == null) GS.power.baseCap = S._baseBatteryCap;
-    const base = GS.power.baseCap;
-    const eff  = Math.max(0, base - reserved());
-    S.batteryCap = eff;
-    S._effectiveCap = eff;
-  }
-
-  // Fallback UI updater if updateSolarUI doesn't exist
-  function updatePanelsUI(){
-    try { if (typeof window.updateSolarUI === 'function') return window.updateSolarUI(); } catch(_){}
-    try { if (typeof window.updateCard === 'function') window.updateCard(); } catch(_){}
-    try { 
-      const m = document.getElementById('solar-modal');
-      if (m && m.classList && m.classList.contains('active') && typeof window.updateModal === 'function') {
-        window.updateModal();
-      }
-    } catch(_){}
-  }
-
-  function updateModulesUI() {
-    document.querySelectorAll('.module-chip[data-module]').forEach(el=>{
-      const key = el.dataset.module;
-      const m = GS.power.modules[key];
-      if (!m) return;
-      el.classList.toggle('active', !!m.connected);
-      el.classList.toggle('disabled', !!m.essential);
-      const tag = el.querySelector('.power-cost');
-      if (tag) tag.textContent = `-${m.cost||0}⚡`;
-    });
-
-    const S = GS.solar || {};
-    const cap = S._effectiveCap || S.batteryCap;
-    const battAbsEl = document.getElementById('solar-modal-batt-abs');
-    if (battAbsEl && typeof cap === 'number') {
-      const shown = Math.round(Math.min(S.battery||0, cap));
-      battAbsEl.textContent = `${shown}/${cap} ⚡`;
-    }
-  }
-
-  function toggleModule(key) {
-    const M = GS.power.modules[key];
-    if (!M) return;
-    if (M.essential) {
-      if (window.showNotification) showNotification('Этот модуль обязателен и не может быть отключён', false);
-      return;
-    }
-    if (!M.connected) {
-      const base = GS.power.baseCap ?? (GS.solar? (GS.solar._baseBatteryCap || GS.solar.batteryCap || 900) : 900);
-      if (base - (reserved() + (M.cost||0)) < 0) {
-        if (window.showNotification) showNotification('Недостаточно ёмкости ⚡ для подключения', false);
-        return;
-      }
-    }
-    M.connected = !M.connected;
-    applyEffectiveCap();
-    updatePanelsUI();
-    if (window.persist) persist();
-    updateModulesUI();
-  }
-
-  // Delegate clicks on chips
-  document.addEventListener('click', (e) => {
-    const chip = e.target.closest('.module-chip[data-module]');
-    if (!chip) return;
-    toggleModule(chip.dataset.module);
-  });
-
-  function bootPower() {
-    applyEffectiveCap();
-    updateModulesUI();
-
-    // Wrap updateSolarUI if present to always re-apply capacity before UI refresh
-    if (typeof window.updateSolarUI === 'function' && !window.updateSolarUI.__mvWrapped) {
-      const orig = window.updateSolarUI;
-      window.updateSolarUI = function() {
-        applyEffectiveCap();
-        return orig.apply(this, arguments);
-      };
-      window.updateSolarUI.__mvWrapped = true;
-    }
-
-    setInterval(() => { applyEffectiveCap(); }, 1000);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootPower, { once:true });
-  } else {
-    bootPower();
-  }
-})();
-</script>
-
 <script>
 // === Enhanced dynamic market and event system integration ===
 (function() {
@@ -12488,16 +12392,30 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
 })();
 </script>
 
-<script id="mv-modules-panel-power">
+<script id="mv-modules-new-modal">
 (function(){
-  if (window.__mvModulesPanelPower) return; window.__mvModulesPanelPower = true;
+  if (window.__mvModulesNewModal) return; window.__mvModulesNewModal = true;
 
-  // Ensure styles exist (if user didn't include from previous patch)
-  if (!document.getElementById('mv-modules-power-style')) {
-    var st = document.createElement('style');
-    st.id = 'mv-modules-power-style';
-    st.textContent = ".modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.module-chip{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:pointer;background:rgba(255,255,255,.03);user-select:none;transition:.15s}.module-chip:hover{background:rgba(255,255,255,.06)}.module-chip.active{outline:1px solid rgba(122,243,214,.45);background:rgba(122,243,214,.10)}.module-chip.disabled{opacity:.6;cursor:not-allowed}.module-chip .label{font:600 13px/1.2 system-ui}.module-chip .power-cost{font:600 12px/1 system-ui;opacity:.8}.module-chip.locked{opacity:.45;filter:grayscale(0.3);cursor:not-allowed}";
-    document.head.appendChild(st);
+  function ensureNewModulesModal(){
+    var old = document.getElementById('modules-modal'); // legacy
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+
+    var modal = document.getElementById('modules-modal-new');
+    if (!modal){
+      modal = document.createElement('div');
+      modal.id = 'modules-modal-new';
+      modal.className = 'modal';
+      modal.innerHTML = ''
+        + '<div class="modal-content" style="max-width:720px">'
+        +   '<div class="modal-header">'
+        +     '<h3 class="modal-title"><i class="fas fa-bolt"></i> Modules power</h3>'
+        +     '<button class="close-modal" data-close="modules-modal-new">×</button>'
+        +   '</div>'
+        +   '<div class="modal-body" id="modules-modal-body"></div>'
+        + '</div>';
+      document.body.appendChild(modal);
+    }
+    return modal;
   }
 
   function buildPowerSection() {
@@ -12505,134 +12423,313 @@ document.getElementById('gh-plant-seed')?.addEventListener('click', () => {
     GS.power = GS.power || { modules:{} };
     var mods = GS.power.modules || {};
 
-    // Helper to mark locked by blueprint
-    function isUnlocked(key){
-      try{
-        // if blueprint system exists
-        if (typeof ALL_BLUEPRINTS !== "undefined") {
-          // simple rule: scanner requires blueprint & install
-          if (key === 'scanner') {
-            return (window.localStorage && JSON.parse(localStorage.getItem('installedModules:v1')||"[]")).includes('scanner');
-          }
-        }
-      }catch(_){}
-      // default: unlocked
-      return true;
-    }
-
     var cap = (GS.solar && (GS.solar._effectiveCap || GS.solar.batteryCap)) || 0;
-    var used = Object.values(mods).reduce((a,m)=>a + (m.connected?(m.cost||0):0), 0);
     var base = GS.power.baseCap || (GS.solar?(GS.solar._baseBatteryCap || GS.solar.batteryCap || 0):0);
+    var used = Object.values(mods).reduce((a,m)=>a + (m.connected?(m.cost||0):0), 0);
 
     var wrap = document.createElement('div');
-    wrap.className = "module-card";
-    wrap.style.marginBottom = "12px";
-    var h = document.createElement('h4');
-    h.textContent = "Питание модулей";
-    var p = document.createElement('p');
-    p.className = "hint";
-    p.textContent = "Подключай/отключай модули: ёмкость батареи резервируется под активные модули.";
-    var meta = document.createElement('div');
-    meta.style.cssText = "font-size:12px;color:#93a3b8;margin:-6px 0 8px 0";
-    meta.textContent = `Ёмкость: ${cap}/${base} ⚡ • Резерв: ${used}⚡`;
+    wrap.className = 'module-card';
+    wrap.style.marginBottom = '12px';
 
-    var grid = document.createElement('div');
-    grid.className = "modules-grid";
+    var h = document.createElement('h4'); h.textContent = 'Питание модулей';
+    var p = document.createElement('p'); p.className='hint'; p.textContent = 'Подключай/отключай модули: ёмкость батареи резервируется под активные модули.';
+    var meta = document.createElement('div'); meta.style.cssText='font-size:12px;color:#93a3b8;margin:-6px 0 8px 0';
+    meta.textContent = 'Ёмкость: ' + cap + '/' + base + ' ⚡ • Резерв: ' + used + '⚡';
+
+    var grid = document.createElement('div'); grid.className = 'modules-grid';
 
     function chip(key, label, cost, connected, essential){
       var el = document.createElement('div');
-      el.className = "module-chip" + (connected?" active":"") + (essential?" disabled":"");
+      el.className = 'module-chip' + (connected?' active':'') + (essential?' disabled':'');
       el.dataset.module = key;
-      var l = document.createElement('span'); l.className="label"; l.textContent = label;
-      var c = document.createElement('span'); c.className="power-cost"; c.textContent = "-" + (cost||0) + "⚡";
-      el.appendChild(l); el.appendChild(c);
-      // lock if blueprint not installed
-      if (!isUnlocked(key)) { el.classList.add('locked'); el.title = "Требуется установка модуля"; }
+      el.innerHTML = '<span class="label">'+label+'</span><span class="power-cost">-'+(cost||0)+'⚡</span>';
       return el;
     }
 
-    grid.appendChild(chip('o2', 'O₂ miner', mods.o2?.cost||150, !!mods.o2?.connected, true));
-    grid.appendChild(chip('drones','Drone hangar', mods.drones?.cost||200, !!mods.drones?.connected, true));
-    grid.appendChild(chip('rest','Sleep pod', mods.rest?.cost||100, !!mods.rest?.connected, false));
-    grid.appendChild(chip('scanner','Scanner', mods.scanner?.cost||150, !!mods.scanner?.connected, false));
-    grid.appendChild(chip('farm','Farm', mods.farm?.cost||250, !!mods.farm?.connected, false));
+    grid.appendChild(chip('o2','O₂ miner',   mods.o2?.cost||150,      !!mods.o2?.connected, true));
+    grid.appendChild(chip('drones','Drone hangar',mods.drones?.cost||200,!!mods.drones?.connected, true));
+    grid.appendChild(chip('rest','Sleep pod',mods.rest?.cost||100,    !!mods.rest?.connected, false));
+    grid.appendChild(chip('scanner','Scanner',mods.scanner?.cost||150,!!mods.scanner?.connected, false));
+    grid.appendChild(chip('farm','Farm',     mods.farm?.cost||250,    !!mods.farm?.connected, false));
 
     wrap.appendChild(h); wrap.appendChild(p); wrap.appendChild(meta); wrap.appendChild(grid);
     return wrap;
   }
 
-  function injectIntoModulesPanel(){
-    var panel = document.getElementById('modulesPanel');
-    if (!panel) return;
-    // Render original
-    if (typeof renderModulesPanel === 'function' && !injectIntoModulesPanel.__origWrapped){
-      // wrap original to always add power section on top
-      var _orig = renderModulesPanel;
-      window.renderModulesPanel = function(){
-        _orig();
-        try{
-          var panel = document.getElementById('modulesPanel');
-          if (!panel) return;
-          // avoid duplicates
-          if (panel.querySelector('#mv-power-top')) return;
-          var top = document.createElement('div');
-          top.id = 'mv-power-top';
-          top.style.marginBottom = '12px';
-          top.appendChild(buildPowerSection());
-          panel.prepend(top);
-        }catch(e){}
-      };
-      injectIntoModulesPanel.__origWrapped = true;
-    } else {
-      // if already rendered, just prepend once
-      if (!panel.querySelector('#mv-power-top')){
-        var top = document.createElement('div'); top.id='mv-power-top'; top.appendChild(buildPowerSection()); panel.prepend(top);
+  function renderNewModal(){
+    var modal = ensureNewModulesModal();
+    var body = modal.querySelector('#modules-modal-body');
+    if (!body) return;
+    body.innerHTML = '';
+    body.appendChild(buildPowerSection());
+  }
+
+  function bindToggleToModal(){
+    var btn = document.getElementById('modulesToggle');
+    if (!btn) return;
+    if (btn.__mvModalBound) return; btn.__mvModalBound = true;
+
+    // Remove old listeners by cloning
+    var clone = btn.cloneNode(true);
+    if (btn.parentNode) btn.parentNode.replaceChild(clone, btn);
+    btn = clone;
+
+    btn.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      renderNewModal();
+      var modal = ensureNewModulesModal();
+      modal.classList.add('active');
+      document.body.classList.add('modal-open');
+    }, true);
+  }
+
+  document.addEventListener('click', function(e){
+    var close = e.target.closest('.close-modal[data-close="modules-modal-new"]');
+    if (close){
+      var modal = document.getElementById('modules-modal-new');
+      if (modal) modal.classList.remove('active');
+      document.body.classList.remove('modal-open');
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var modal = document.getElementById('modules-modal-new');
+    if (!modal || !modal.classList.contains('active')) return;
+    var inside = e.target.closest('.modal-content');
+    if (!inside){
+      modal.classList.remove('active');
+      document.body.classList.remove('modal-open');
+    }
+  });
+
+  if (typeof window.updateSolarUI === 'function' && !window.updateSolarUI.__mvModalSync){
+    const orig = window.updateSolarUI;
+    window.updateSolarUI = function(){
+      const r = orig.apply(this, arguments);
+      try{
+        var modal = document.getElementById('modules-modal-new');
+        if (modal && modal.classList.contains('active')) renderNewModal();
+      }catch(_){}
+      return r;
+    };
+    window.updateSolarUI.__mvModalSync = true;
+  }
+
+  function ensureStyles(){
+    if (!document.getElementById('mv-modules-power-style')){
+      var st = document.createElement('style'); st.id='mv-modules-power-style';
+      st.textContent = ".modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.module-chip{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:pointer;background:rgba(255,255,255,.03);user-select:none;transition:.15s}.module-chip:hover{background:rgba(255,255,255,.06)}.module-chip.active{outline:1px solid rgba(122,243,214,.45);background:rgba(122,243,214,.10)}.module-chip.disabled{opacity:.6;cursor:not-allowed}.module-chip .label{font:600 13px/1.2 system-ui}.module-chip .power-cost{font:600 12px/1 system-ui;opacity:.8}";
+      document.head.appendChild(st);
+    }
+  }
+
+  function init(){
+    ensureStyles();
+    ensureNewModulesModal();
+    bindToggleToModal();
+  }
+
+  if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init, {once:true}); }
+  else { init(); }
+})();
+</script>
+
+<script id="mv-modules-new-modal-v2">
+(function(){
+  if (window.__mvModulesNewModalV2) return; window.__mvModulesNewModalV2 = true;
+
+  // ---- Fallback minimal modal styles (only if project has no .modal CSS) ----
+  (function ensureModalStyles(){
+    if (!document.getElementById('mv-modal-fallback-style')){
+      var st = document.createElement('style'); st.id = 'mv-modal-fallback-style';
+      st.textContent = [
+        '.modal{position:fixed;inset:0;display:none;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);}',
+        '.modal.active{display:block;}',
+        '.modal .modal-content{position:relative;margin:6vh auto;max-width:720px;background:#0f1220;border:1px solid rgba(255,255,255,.08);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)}',
+        '.modal .modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}',
+        '.modal .modal-title{margin:0;font:600 18px system-ui}',
+        '.modal .modal-body{padding:16px}',
+        '.modal .close-modal{appearance:none;border:0;background:transparent;color:#fff;font-size:20px;cursor:pointer}'
+      ].join('');
+      document.head.appendChild(st);
+    }
+  })();
+
+  // ---- Power chips styles (only if absent) ----
+  (function ensurePowerStyles(){
+    if (!document.getElementById('mv-modules-power-style')){
+      var st = document.createElement('style'); st.id='mv-modules-power-style';
+      st.textContent = ".modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.module-chip{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;cursor:pointer;background:rgba(255,255,255,.03);user-select:none;transition:.15s}.module-chip:hover{background:rgba(255,255,255,.06)}.module-chip.active{outline:1px solid rgba(122,243,214,.45);background:rgba(122,243,214,.10)}.module-chip.disabled{opacity:.6;cursor:not-allowed}.module-chip .label{font:600 13px/1.2 system-ui}.module-chip .power-cost{font:600 12px/1 system-ui;opacity:.8}";
+      document.head.appendChild(st);
+    }
+  })();
+
+  // ---- Legacy modal removal (if still present) ----
+  (function removeLegacy(){
+    var old = document.getElementById('modules-modal');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+  })();
+
+  function ensureNewModulesModal(){
+    var modal = document.getElementById('modules-modal-new');
+    if (!modal){
+      modal = document.createElement('div');
+      modal.id = 'modules-modal-new';
+      modal.className = 'modal';
+      modal.innerHTML = ''
+        + '<div class="modal-content">'
+        +   '<div class="modal-header">'
+        +     '<h3 class="modal-title"><i class="fas fa-bolt"></i> Modules power</h3>'
+        +     '<button class="close-modal" data-close="modules-modal-new">×</button>'
+        +   '</div>'
+        +   '<div class="modal-body" id="modules-modal-body"></div>'
+        + '</div>';
+      document.body.appendChild(modal);
+    }
+    return modal;
+  }
+
+  // ---- Power model fallbacks ----
+  function getGS(){ return window.gameState || (window.gameState = {}); }
+  function ensurePowerModel(){
+    var GS = getGS();
+    GS.solar = GS.solar || {};
+    GS.power = GS.power || { baseCap:null, modules:{
+      o2:{label:'O₂ miner', cost:150, connected:true, essential:true},
+      drones:{label:'Drone hangar', cost:200, connected:true, essential:true},
+      rest:{label:'Sleep pod', cost:100, connected:true, essential:false},
+      scanner:{label:'Scanner', cost:150, connected:false, essential:false},
+      farm:{label:'Farm', cost:250, connected:false, essential:false}
+    }};
+    if (!GS.solar._baseBatteryCap) GS.solar._baseBatteryCap = GS.solar.batteryCap || 900;
+    if (GS.power.baseCap == null) GS.power.baseCap = GS.solar._baseBatteryCap;
+  }
+  function reserved(){
+    var GS = getGS();
+    var sum = 0; for (const k in (GS.power.modules||{})){ var m = GS.power.modules[k]; if (m && m.connected) sum += (m.cost||0); }
+    return sum;
+  }
+  function applyEffectiveCapFallback(){
+    var GS = getGS();
+    var S = GS.solar||{};
+    var base = GS.power.baseCap || S._baseBatteryCap || S.batteryCap || 900;
+    var eff = Math.max(0, base - reserved());
+    S.batteryCap = eff; S._effectiveCap = eff;
+    GS.solar = S;
+  }
+  function applyEffectiveCapSafe(){
+    try{ if (typeof window.applyEffectiveCap === 'function') return window.applyEffectiveCap(); }catch(_){}
+    return applyEffectiveCapFallback();
+  }
+
+  // ---- Build power section ----
+  function buildPowerSection(){
+    ensurePowerModel(); applyEffectiveCapSafe();
+    var GS = getGS();
+    var mods = GS.power.modules || {};
+    var cap  = (GS.solar && (GS.solar._effectiveCap || GS.solar.batteryCap)) || 0;
+    var base = GS.power.baseCap || (GS.solar?(GS.solar._baseBatteryCap || GS.solar.batteryCap || 0):0);
+    var used = Object.values(mods).reduce((a,m)=>a + (m.connected?(m.cost||0):0), 0);
+
+    var wrap = document.createElement('div');
+    wrap.className = 'module-card'; wrap.style.marginBottom = '12px';
+    var h = document.createElement('h4'); h.textContent = 'Питание модулей';
+    var p = document.createElement('p'); p.className='hint'; p.textContent = 'Подключай/отключай модули: ёмкость батареи резервируется под активные модули.';
+    var meta = document.createElement('div'); meta.style.cssText='font-size:12px;color:#93a3b8;margin:-6px 0 8px 0'; meta.textContent = 'Ёмкость: ' + cap + '/' + base + ' ⚡ • Резерв: ' + used + '⚡';
+    var grid = document.createElement('div'); grid.className='modules-grid';
+
+    function chip(key, label, cost, connected, essential){
+      var el = document.createElement('div');
+      el.className = 'module-chip' + (connected?' active':'') + (essential?' disabled':'');
+      el.dataset.module = key;
+      el.innerHTML = '<span class="label">'+label+'</span><span class="power-cost">-'+(cost||0)+'⚡</span>';
+      return el;
+    }
+    grid.appendChild(chip('o2','O₂ miner',mods.o2?.cost||150,!!mods.o2?.connected,true));
+    grid.appendChild(chip('drones','Drone hangar',mods.drones?.cost||200,!!mods.drones?.connected,true));
+    grid.appendChild(chip('rest','Sleep pod',mods.rest?.cost||100,!!mods.rest?.connected,false));
+    grid.appendChild(chip('scanner','Scanner',mods.scanner?.cost||150,!!mods.scanner?.connected,false));
+    grid.appendChild(chip('farm','Farm',mods.farm?.cost||250,!!mods.farm?.connected,false));
+
+    wrap.appendChild(h); wrap.appendChild(p); wrap.appendChild(meta); wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function renderNewModal(){
+    var modal = ensureNewModulesModal();
+    var body = modal.querySelector('#modules-modal-body');
+    if (!body) return;
+    body.innerHTML = ''; body.appendChild(buildPowerSection());
+  }
+
+  // ---- Open modal (robust) ----
+  function openNewModulesModal(ev){
+    if (ev){ ev.preventDefault(); ev.stopPropagation(); }
+    renderNewModal();
+    var modal = ensureNewModulesModal();
+    modal.classList.add('active'); document.body.classList.add('modal-open');
+  }
+
+  // ---- Global click delegation for ANY trigger to open Modules ----
+  document.addEventListener('click', function(e){
+    var trigger = e.target.closest('#modulesToggle, .modules-btn, .highlight-modules, [data-open=\"modules\"], [data-modal=\"modules\"], [data-target=\"modules\"]');
+    if (!trigger) return;
+    openNewModulesModal(e);
+  }, true); // capture: to override older handlers
+
+  // ---- Chip toggling (works even without earlier power script) ----
+  document.addEventListener('click', function(e){
+    var chip = e.target.closest('.module-chip[data-module]');
+    if (!chip) return;
+    var key = chip.dataset.module;
+    // Use existing toggleModule if provided, else local logic
+    if (typeof window.toggleModule === 'function'){ window.toggleModule(key); renderNewModal(); return; }
+
+    ensurePowerModel();
+    var GS = getGS();
+    var M = GS.power.modules[key];
+    if (!M) return;
+    if (M.essential){
+      if (window.showNotification) try{ showNotification('Этот модуль обязателен и не может быть отключён', false); }catch(_){}
+      return;
+    }
+    if (!M.connected){
+      var base = GS.power.baseCap || (GS.solar?(GS.solar._baseBatteryCap || GS.solar.batteryCap || 900):900);
+      if (base - (reserved() + (M.cost||0)) < 0){
+        if (window.showNotification) try{ showNotification('Недостаточно ёмкости ⚡ для подключения', false); }catch(_){}
+        return;
       }
     }
-  }
+    M.connected = !M.connected;
+    applyEffectiveCapSafe();
+    try{ if (typeof window.updateSolarUI === 'function') window.updateSolarUI(); }catch(_){}
+    try{ if (typeof window.persist === 'function') window.persist(); }catch(_){}
+    renderNewModal();
+  });
 
-  // Also replace body of legacy #modules-modal with power UI (for consistency)
-  function hijackModulesModal(){
-    var modal = document.getElementById('modules-modal');
-    if (!modal) return;
-    var body = modal.querySelector('.modal-body');
-    if (!body) return;
-    if (body.__mvHijacked) return;
-    // Keep legend small, then insert our power section, then keep tree below (optional)
-    var powerWrap = document.createElement('div');
-    powerWrap.id = 'mv-power-modal';
-    powerWrap.appendChild(buildPowerSection());
-    body.insertBefore(powerWrap, body.firstElementChild);
-    body.__mvHijacked = true;
-  }
-
-  function onReady(){
-    try{ injectIntoModulesPanel(); }catch(e){}
-    try{ hijackModulesModal(); }catch(e){}
-    // re-render when solar UI updates
-    if (typeof window.updateSolarUI === 'function' && !window.updateSolarUI.__mvModsSync){
-      const orig = window.updateSolarUI;
-      window.updateSolarUI = function(){
-        const r = orig.apply(this, arguments);
-        try {
-          // refresh meta line numbers
-          document.querySelectorAll('#mv-power-top, #mv-power-modal').forEach(node=>{
-            const parent = node.parentNode;
-            node.remove();
-            parent.prepend(buildPowerSection());
-          });
-        } catch(_){}
-        return r;
-      };
-      window.updateSolarUI.__mvModsSync = true;
+  // ---- Close actions ----
+  document.addEventListener('click', function(e){
+    var close = e.target.closest('.close-modal[data-close=\"modules-modal-new\"]');
+    if (close){
+      var modal = document.getElementById('modules-modal-new');
+      if (modal) modal.classList.remove('active');
+      document.body.classList.remove('modal-open');
     }
-  }
+  });
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', onReady, { once:true });
-  } else {
-    onReady();
-  }
+  document.addEventListener('click', function(e){
+    var modal = document.getElementById('modules-modal-new');
+    if (!modal || !modal.classList.contains('active')) return;
+    if (!e.target.closest('.modal-content')){
+      modal.classList.remove('active');
+      document.body.classList.remove('modal-open');
+    }
+  });
+
+  // ---- Also expose a manual opener for debugging ----
+  window.openModulesPower = openNewModulesModal;
+
+  // If page already ready and user clicks quickly, delegation above will handle it.
 })();
 </script>
 <script>
@@ -12762,122 +12859,3 @@ async function bootWithTelegramId(tgId) {
 // (опц.) синк на уход со страницы
 window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && syncPlayer(); } catch(_){} });
 </script>
-<script>
-/** ==== API ENDPOINT вашего Railway ==== */
-const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
-
-/** Надёжно берём telegramId: Telegram WebApp -> ?tg= -> localStorage */
-async function getTelegramId() {
-  try {
-    const fromTg = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    if (fromTg) return Number(fromTg);
-  } catch (_) {}
-
-  const q = new URLSearchParams(location.search);
-  const fromQuery = q.get('tg');
-  if (fromQuery) return Number(fromQuery);
-
-  const fromLS = localStorage.getItem('tg_id');
-  if (fromLS) return Number(fromLS);
-
-  return null;
-}
-
-/** Загрузка или создание игрока */
-async function loadOrCreatePlayer() {
-  const tg = await getTelegramId();
-  if (!tg) throw new Error('no-telegram-id');
-  localStorage.setItem('tg_id', String(tg));
-
-  // 1) пробуем загрузить
-  let r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`, { credentials: 'omit' });
-  if (r.ok) {
-    const data = await r.json();
-    return data.player;
-  }
-  // 404 — создаём запись
-  if (r.status !== 404) {
-    const txt = await r.text().catch(()=> '');
-    throw new Error(`load_failed ${r.status} ${txt}`);
-  }
-
-  const payload = {
-    telegramId: tg,
-    callsign: 'Citizen',
-    level: 1,
-    exp: 0,
-    resources: { oxygen: 0, mvc: 0, parts: 0, energy: 0, bio: 0 },
-    progress: {},
-    stats: {}
-  };
-  r = await fetch(`${API_BASE}/api/player/sync?tg=${tg}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  const data = await r.json().catch(()=> ({}));
-  if (!r.ok || !data.ok) throw new Error(`create_failed ${data?.error || r.status}`);
-  return data.player;
-}
-
-/** Присваиваем ресурсы в UI */
-function applyPlayerToUI(player) {
-  // Сохраним глобально — может пригодиться игре
-  window.PLAYER = player;
-
-  const res = player?.resources || {};
-  // ВАРИАНТ А: если добавим data-атрибуты — самый простой.
-  setText('[data-r="oxygen"]', res.oxygen);
-  setText('[data-r="mvc"]',    res.mvc);
-  setText('[data-r="parts"]',  res.parts);
-  setText('[data-r="energy"]', res.energy);
-
-  // Резервный вариант (если не добавили атрибуты) — попробуем обновить по id
-  setText('#res-oxygen', res.oxygen);
-  setText('#res-mvc',    res.mvc);
-  setText('#res-parts',  res.parts);
-  setText('#res-energy', res.energy);
-
-  function setText(sel, v) {
-    const el = document.querySelector(sel);
-    if (el) el.textContent = String(v ?? 0);
-  }
-}
-
-/** При выходе — синхронизируем (по желанию) */
-async function safeSync() {
-  try {
-    const p = window.PLAYER;
-    if (!p) return;
-    const payload = {
-      telegramId: p.telegram_id || p.telegramId,
-      callsign: p.callsign,
-      level: p.level,
-      exp: p.exp,
-      resources: p.resources,
-      progress: p.progress || {},
-      stats: p.stats || {}
-    };
-    await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId}`, {
-      method:'POST',
-      headers:{ 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  } catch(_) {}
-}
-
-window.addEventListener('beforeunload', safeSync);
-
-/** Инициализация — СТРОГО после загрузки DOM */
-(async () => {
-  try {
-    const player = await loadOrCreatePlayer();
-    console.log('[load] player:', player);
-    applyPlayerToUI(player);
-  } catch (e) {
-    console.warn('[load] профиль не найден — будет создан при sync', e?.message || e);
-  }
-})();
-</script>
-
- 
