@@ -3022,36 +3022,28 @@ html, body { overflow-x: hidden; }
 <body>
 <div class="container" id="app">
 <!-- Верхняя панель ресурсов -->
+<!-- Верхняя панель ресурсов -->
 <div class="resource-bar">
-<div class="resource-item" id="oxygen-resource">
-<span>O₂: <span id="oxygen-value">250</span></span>
+  <div class="resource-item" id="oxygen-resource">
+    <span>O₂: <span id="oxygen-value" data-r="oxygen">250</span></span>
+  </div>
+  <div class="resource-item" id="energy-resource">
+    <span>⚡ <span id="energy-value" data-r="energy">500</span></span>
+  </div>
+  <div class="resource-item" id="mvc-resource">
+    <span>MVC: <span id="mvc-value" data-r="mvc">500</span></span>
+  </div>
+  <div class="resource-item" id="ice-resource">
+    <span>❄️ <span id="ice-value" data-r="ice">120</span></span>
+    <button class="resource-toggle" id="resourceToggle" type="button">▼</button>
+  </div>
+  <div class="resource-item is-extra" id="bio-resource">
+    <span>🧪 <span id="bio-value" data-r="bio">100</span></span>
+  </div>
+  <div class="resource-item is-extra" id="parts-resource">
+    <span>🛠️ <span id="parts-value" data-r="parts">100</span></span>
+  </div>
 </div>
-<div class="resource-item" id="energy-resource">
-<span>⚡ <span id="energy-value">500</span></span>
-</div>
-<div class="resource-item" id="mvc-resource">
-<span>MVC: <span id="mvc-value">500</span></span>
-</div>
-<div class="resource-item" id="ice-resource">
-<span>❄️ <span id="ice-value">120</span></span>
-<!-- Кнопка для раскрытия/сворачивания второго ряда ресурсов располагается рядом с ice-value -->
-<button class="resource-toggle" id="resourceToggle" type="button">▼</button>
-</div>
-<div class="resource-item is-extra" id="bio-resource">
-<span>🧪 <span id="bio-value">100</span></span>
-</div>
-<div class="resource-item is-extra" id="parts-resource">
-<span>🛠️ <span id="parts-value">100</span></span>
-</div>
-
-<!-- Отображение полимеров и редкоземов -->
-    <div class="resource-item is-extra" id="polymers-resource">
-        <span>🧬 <span id="polymers-value">0</span></span>
-    </div>
-     
-    <div class="resource-item is-extra" id="rare-resource">
-        <span>💎 <span id="rare-value">0</span></span>
-    </div>
 
     <!-- Кнопка перенесена внутрь блока ice-resource -->
 
