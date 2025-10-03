@@ -23,6 +23,26 @@
     } catch (_) {}
   }
 </script>
+<script>
+  // Safety-net: если цифры в HUD поменялись хоть как-то, шлём sync (после boot)
+  (function () {
+    const ids = [
+      'oxygen-resource','energy-resource','mvc-resource',
+      'ice-resource','bio-resource','parts-resource'
+    ];
+    const tryObserve = () => {
+      if (window.__BOOT_LOADING) { requestAnimationFrame(tryObserve); return; }
+      const obs = new MutationObserver(() => {
+        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
+      });
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) obs.observe(el, { childList: true, subtree: true, characterData: true });
+      });
+    };
+    tryObserve();
+  })();
+</script>
 
 <script>
   //  адресс  Railway:
