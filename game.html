@@ -12790,5 +12790,122 @@ async function bootWithTelegramId(tgId) {
 // (опц.) синк на уход со страницы
 window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && syncPlayer(); } catch(_){} });
 </script>
+<script>
+/** ==== API ENDPOINT вашего Railway ==== */
+const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
+
+/** Надёжно берём telegramId: Telegram WebApp -> ?tg= -> localStorage */
+async function getTelegramId() {
+  try {
+    const fromTg = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (fromTg) return Number(fromTg);
+  } catch (_) {}
+
+  const q = new URLSearchParams(location.search);
+  const fromQuery = q.get('tg');
+  if (fromQuery) return Number(fromQuery);
+
+  const fromLS = localStorage.getItem('tg_id');
+  if (fromLS) return Number(fromLS);
+
+  return null;
+}
+
+/** Загрузка или создание игрока */
+async function loadOrCreatePlayer() {
+  const tg = await getTelegramId();
+  if (!tg) throw new Error('no-telegram-id');
+  localStorage.setItem('tg_id', String(tg));
+
+  // 1) пробуем загрузить
+  let r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`, { credentials: 'omit' });
+  if (r.ok) {
+    const data = await r.json();
+    return data.player;
+  }
+  // 404 — создаём запись
+  if (r.status !== 404) {
+    const txt = await r.text().catch(()=> '');
+    throw new Error(`load_failed ${r.status} ${txt}`);
+  }
+
+  const payload = {
+    telegramId: tg,
+    callsign: 'Citizen',
+    level: 1,
+    exp: 0,
+    resources: { oxygen: 0, mvc: 0, parts: 0, energy: 0, bio: 0 },
+    progress: {},
+    stats: {}
+  };
+  r = await fetch(`${API_BASE}/api/player/sync?tg=${tg}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await r.json().catch(()=> ({}));
+  if (!r.ok || !data.ok) throw new Error(`create_failed ${data?.error || r.status}`);
+  return data.player;
+}
+
+/** Присваиваем ресурсы в UI */
+function applyPlayerToUI(player) {
+  // Сохраним глобально — может пригодиться игре
+  window.PLAYER = player;
+
+  const res = player?.resources || {};
+  // ВАРИАНТ А: если добавим data-атрибуты — самый простой.
+  setText('[data-r="oxygen"]', res.oxygen);
+  setText('[data-r="mvc"]',    res.mvc);
+  setText('[data-r="parts"]',  res.parts);
+  setText('[data-r="energy"]', res.energy);
+
+  // Резервный вариант (если не добавили атрибуты) — попробуем обновить по id
+  setText('#res-oxygen', res.oxygen);
+  setText('#res-mvc',    res.mvc);
+  setText('#res-parts',  res.parts);
+  setText('#res-energy', res.energy);
+
+  function setText(sel, v) {
+    const el = document.querySelector(sel);
+    if (el) el.textContent = String(v ?? 0);
+  }
+}
+
+/** При выходе — синхронизируем (по желанию) */
+async function safeSync() {
+  try {
+    const p = window.PLAYER;
+    if (!p) return;
+    const payload = {
+      telegramId: p.telegram_id || p.telegramId,
+      callsign: p.callsign,
+      level: p.level,
+      exp: p.exp,
+      resources: p.resources,
+      progress: p.progress || {},
+      stats: p.stats || {}
+    };
+    await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId}`, {
+      method:'POST',
+      headers:{ 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(_) {}
+}
+
+window.addEventListener('beforeunload', safeSync);
+
+/** Инициализация — СТРОГО после загрузки DOM */
+(async () => {
+  try {
+    const player = await loadOrCreatePlayer();
+    console.log('[load] player:', player);
+    applyPlayerToUI(player);
+  } catch (e) {
+    console.warn('[load] профиль не найден — будет создан при sync', e?.message || e);
+  }
+})();
+</script>
 
  
