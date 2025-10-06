@@ -182,34 +182,11 @@ function scheduleSync(reason = 'resources') {
   }
 
   // ===== 3) Обёртки API =====
-  async function apiGetPlayerByTg(tg) {
-    // вместо const r = await fetch(...)" и "const data = await r.json();"
-let data;
-try {
-  const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  if (!r.ok) {
-    // HTTP-ошибка (например 500/502/504) — считаем как сетевую, повторим позже
-    throw new Error(`HTTP ${r.status}`);
-  }
-
-  data = await r.json();
-
-} catch (e) {
-  console.warn('[sync] network error, will retry', e);
-
-  // считаем состояние «грязным», чтобы разрешить автоматический повтор
-  try { window.__RES_DIRTY = true; } catch (_){}
-
-  // ставим повтор через наш дебаунсер (НЕ hud-mutation, чтобы не отфильтровалось)
-  try { scheduleSync('retry-after-error'); } catch (_){}
-
-  // ВАЖНО: ничего не «чистим» и не перерисовываем — просто выходим
-  return;
+ async function apiGetPlayerByTg(tg) {
+  const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
+  if (!r.ok) return null;
+  const j = await r.json();
+  return j.player;
 }
 
 
@@ -263,7 +240,7 @@ if (!window.PLAYER.telegram_id && tg != null) {
           callsign: 'Citizen',
           level: 1,
           exp: 0,
-          resources: { oxygen: 250, energy: 500, mvc: 500, bio: 100, parts: 100, ice: 120 },
+          resources: { oxygen: 250, energy: 500, mvc: 0, bio: 0, parts: 0, ice: 10 },
           progress: {},
           stats: {}
         });
@@ -4708,7 +4685,7 @@ elements.o2GenerationValue.textContent = `${buf.toLocaleString()} O₂`;
         }
 
         // Изменить ресурсы
-        function updateResource(resource, amount) {
+        function updateResource(resource, delta, reason = 'hud') {
             if (gameState.resources[resource] + amount < 0) {
                 showNotification(`Недостаточно ${getResourceName(resource)}!`, false);
                 return false;
@@ -4726,7 +4703,7 @@ elements.o2GenerationValue.textContent = `${buf.toLocaleString()} O₂`;
                 }, 1000);
             }
            try { window.__RES_DIRTY = true; } catch(_){}
-scheduleSync('updateResource:' + name);
+scheduleSync('updateResource:' + reason);
 
 
                 // 1) зеркалим в PLAYER и кэш
@@ -13020,53 +12997,48 @@ function setResource(name, val) {
 
 // ===== синхронизировать после изменений =====
   async function syncPlayer() {
-  // восстановим id, если его нет
-  let tid = window.PLAYER?.telegram_id
-         || resolveTelegramId()
-         || new URL(location.href).searchParams.get('tg');
-
-  if (!tid) {
-    console.warn('[sync] no telegram_id – skip');
-    return;
-  }
-  window.PLAYER.telegram_id = Number(tid);
-
-  const P = window.PLAYER;                // ← читаем из глобального
-  if (!P || !P.telegram_id) return;       // нет id — не пытаемся синкать
+  const P = window.PLAYER || {};
+  if (!P || !P.telegram_id) return;
 
   const payload = {
-    telegramId: P.telegram_id,
-    callsign:   P.callsign,
-    level:      P.level,
-    exp:        P.exp,
-    resources:  P.resources,
-    progress:   P.progress,
-    stats:      P.stats,
+    telegramId:  P.telegram_id,
+    callsign:    P.callsign,
+    level:       P.level,
+    exp:         P.exp,
+    resources:   P.resources,
+    progress:    P.progress,
+    stats:       P.stats
   };
 
-  const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  let data;
+  try {
+    const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    data = await r.json();
+  } catch (e) {
+    console.warn('[sync] network error, will retry', e);
+    // ничего не делаем: __RES_DIRTY оставляем истинным, дебаунсер запустит повтор
+    return;
+  }
 
-  const data = await r.json();
-  if (data.ok && data.player) {
-     // ТИХИЙ РЕНДЕР, чтобы observer не поставил ещё один sync
-window.__SILENT_UI++;
-try {
-  applyPlayer(data.player);
-  renderHUD();
-} else {
-  console.warn('[sync] fail', data);
+  if (data?.ok && data.player) {
+    applyPlayer(data.player); // стянули "правду" с сервера
+    renderHUD?.();
+  } else {
+    console.warn('[sync] fail', data);
+  }
 }
+
   // после успешного применения БД = «чисто»
   window.__LAST_SYNC_RES = (window.PLAYER && window.PLAYER.resources)
     ? JSON.parse(JSON.stringify(window.PLAYER.resources))
     : null;
   window.__RES_DIRTY = false;
   window.__LAST_SYNC_AT = Date.now();
-} finally {
+ finally {
   setTimeout(()=>{ window.__SILENT_UI = Math.max(0, window.__SILENT_UI-1); }, 350);
 }
 
