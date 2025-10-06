@@ -102,9 +102,11 @@ app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 // ---------- UPSERT PLAYER ----------
 app.post("/api/player/sync", async (req, res) => {
+  const client = await pool.connect();
   try {
     const telegramId = pickTelegramId(req);
     if (!telegramId) {
+      client.release();
       return res.status(400).json({ ok: false, error: "telegramId_required" });
     }
 
@@ -117,74 +119,109 @@ app.post("/api/player/sync", async (req, res) => {
       stats     = DEFAULT_STATS,
     } = req.body || {};
 
-    const q = await pool.query(
+    await client.query('BEGIN');
+
+    // 1) сначала пробуем UPDATE — sequence не трогаем
+    const upd = await client.query(
       `
-      INSERT INTO players
-        (telegram_id, callsign, level, exp, resources, progress, stats, last_login)
-      VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7::jsonb, now())
-      ON CONFLICT (telegram_id) DO UPDATE SET
-        callsign   = COALESCE(EXCLUDED.callsign, players.callsign),
-        level      = GREATEST(players.level, EXCLUDED.level),
-        exp        = GREATEST(players.exp,   EXCLUDED.exp),
-        resources  = EXCLUDED.resources,
-        progress   = EXCLUDED.progress,
-        stats      = players.stats || EXCLUDED.stats,
-        last_login = now()
-      RETURNING id, telegram_id, callsign, level, exp, resources, progress, stats, last_login;
+      UPDATE players
+         SET callsign   = COALESCE($2, callsign),
+             level      = GREATEST(level, $3),
+             exp        = GREATEST(exp,   $4),
+             resources  = $5::jsonb,
+             progress   = $6::jsonb,
+             stats      = stats || $7::jsonb,
+             last_login = now()
+       WHERE telegram_id = $1
+       RETURNING id, telegram_id, callsign, level, exp, resources, progress, stats, last_login
       `,
       [telegramId, callsign, level, exp, resources, progress, stats]
     );
 
-    res.json({ ok: true, player: q.rows[0] });
+    let row = upd.rows[0];
+
+    // 2) если не нашли — тогда реальный INSERT (sequence дернётся только здесь)
+    if (upd.rowCount === 0) {
+      const ins = await client.query(
+        `
+        INSERT INTO players
+          (telegram_id, callsign, level, exp, resources, progress, stats, last_login)
+        VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7::jsonb, now())
+        RETURNING id, telegram_id, callsign, level, exp, resources, progress, stats, last_login
+        `,
+        [telegramId, callsign, level, exp, resources, progress, stats]
+      );
+      row = ins.rows[0];
+    }
+
+    await client.query('COMMIT');
+    client.release();
+    res.json({ ok: true, player: row });
   } catch (err) {
+    try { await client.query('ROLLBACK'); } catch {}
+    client.release();
     console.error("sync error:", err);
     res.status(500).json({ ok: false, error: "server_error" });
   }
 });
 
+
 // ---------- GET/CREATE BY TELEGRAM ID ----------
 app.get("/api/player/by-tg/:telegramId", async (req, res) => {
+  const client = await pool.connect();
   try {
     const tg = Number(req.params.telegramId);
-    if (!tg) return res.status(400).json({ ok: false, error: "invalid_telegram_id" });
-
-    // Попробуем найти
-    const sel = await pool.query(
-      `SELECT id, telegram_id, callsign, level, exp, resources, progress, stats, last_login
-         FROM players
-        WHERE telegram_id = $1`,
-      [tg]
-    );
-
-    if (sel.rowCount > 0) {
-      // Обновим last_login и вернём игрока
-      await pool.query(`UPDATE players SET last_login = now() WHERE telegram_id = $1`, [tg]);
-      return res.json({ ok: true, player: sel.rows[0] });
+    if (!tg) {
+      client.release();
+      return res.status(400).json({ ok: false, error: "invalid_telegram_id" });
     }
 
-    // Если не нашли — создаём запись с дефолтами
-    const ins = await pool.query(
+    await client.query('BEGIN');
+
+    // Пытаемся вставить (для новых) — без конфликта просто получим строку
+    const ins = await client.query(
       `
-      INSERT INTO players
-        (telegram_id, callsign, level, exp, resources, progress, stats, last_login)
+      INSERT INTO players (telegram_id, callsign, level, exp, resources, progress, stats, last_login)
       VALUES ($1, 'Citizen', 1, 0, $2::jsonb, $3::jsonb, $4::jsonb, now())
-      ON CONFLICT (telegram_id) DO UPDATE SET last_login = now()
-      RETURNING id, telegram_id, callsign, level, exp, resources, progress, stats, last_login;
+      ON CONFLICT (telegram_id) DO NOTHING
+      RETURNING id, telegram_id, callsign, level, exp, resources, progress, stats, last_login
       `,
       [tg, DEFAULT_RESOURCES, DEFAULT_PROGRESS, DEFAULT_STATS]
     );
 
-    res.json({ ok: true, player: ins.rows[0] });
+    let row = ins.rows[0];
+
+    if (!row) {
+      // Уже существует — обновим last_login и вернём
+      const sel = await client.query(
+        `
+        UPDATE players
+           SET last_login = now()
+         WHERE telegram_id = $1
+         RETURNING id, telegram_id, callsign, level, exp, resources, progress, stats, last_login
+        `,
+        [tg]
+      );
+      row = sel.rows[0];
+    }
+
+    await client.query('COMMIT');
+    client.release();
+    res.json({ ok: true, player: row });
   } catch (err) {
+    try { await client.query('ROLLBACK'); } catch {}
+    client.release();
     console.error("get player error:", err);
     res.status(500).json({ ok: false, error: "server_error" });
   }
 });
+
 
 // ---------- Start ----------
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log("API on:", PORT);
 });
+
 
 
