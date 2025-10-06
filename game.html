@@ -99,11 +99,12 @@ function scheduleSync(reason='resources'){
 
   // ===== 3) Обёртки API =====
   async function apiGetPlayerByTg(tg) {
-    const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
-    if (!r.ok) return null;
-    const j = await r.json();
-    return j.player;
-  }
+  const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`, { method: 'GET' });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || 'not_found');
+  return j.player;               // либо null, если бэкенд так возвращает
+}
+
 
   async function apiSyncPlayer(payload) {
     const r = await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId || payload.telegram_id}`, {
@@ -13100,13 +13101,25 @@ function renderHUD() {
   });
 
   const data = await r.json();
-  if (data.ok && data.player) {
-    applyPlayer(data.player);  // подтягиваем серверную правду
+if (data.ok && data.player) {
+  // ТИХИЙ РЕНДЕР, чтобы observer не поставил ещё один sync
+  window.__SILENT_UI++;
+  try {
+    applyPlayer(data.player);
     renderHUD();
-  } else {
-    console.warn('[sync] fail', data);
+    // после успешного применения БД = «чисто»
+    window.__LAST_SYNC_RES = (window.PLAYER && window.PLAYER.resources)
+      ? JSON.parse(JSON.stringify(window.PLAYER.resources))
+      : null;
+    window.__RES_DIRTY = false;
+    window.__LAST_SYNC_AT = Date.now();
+  } finally {
+    setTimeout(() => { window.__SILENT_UI = Math.max(0, window.__SILENT_UI - 1); }, 350);
   }
+} else {
+  console.warn('[sync] fail', data);
 }
+
 
 
 // ===== общий boot =====
@@ -13228,4 +13241,69 @@ window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && sy
   }
 });
 
+</script>
+<script>
+  // 1) API уже объявлен выше: const API_BASE = 'https://…';
+
+  // 2) Надёжное извлечение tg:
+  function resolveTelegramId() {
+    try {
+      const t = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      if (t) return Number(t);
+    } catch (_) {}
+    const q = new URL(location.href).searchParams.get('tg');
+    return q && /^\d+$/.test(q) ? Number(q) : null;
+  }
+
+  // 3) Аккуратный boot:
+  async function bootWithTelegramId(tgId) {
+    try {
+      // быстрый кэш
+      const cached = localStorage.getItem('v01d_player');
+      if (cached) {
+        try {
+          const p = JSON.parse(cached);
+          if (p && Number(p.telegram_id) === Number(tgId)) {
+            applyPlayer(p);
+            renderHUD();
+          }
+        } catch(_) {}
+      }
+
+      // авторитетные данные с API (или пустой объект, если игрок новый)
+      const player = await loadOrCreatePlayer(tgId);
+      applyPlayer(player);
+      renderHUD();
+    } finally {
+      window.__BOOT_LOADING = false;
+    }
+  }
+
+  async function loadOrCreatePlayer(tgId){
+    try {
+      const p = await apiGetPlayerByTg(tgId); // из п.2
+      if (p) return p;
+    } catch (_) {}
+    // нет игрока — создастся при первом sync
+    return {
+      telegram_id: Number(tgId),
+      callsign: 'Citizen',
+      level: 1, exp: 0,
+      resources: { oxygen:0, energy:0, mvc:0, ice:0, bio:0, parts:0 },
+      progress: {}, stats: {}
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const tg = resolveTelegramId();
+    if (!tg) {
+      console.warn('No tg id'); 
+      return;
+    }
+    window.PLAYER = window.PLAYER || {};
+    window.PLAYER.telegram_id = tg;
+
+    // стартуем
+    bootWithTelegramId(tg);
+  });
 </script>
