@@ -33,10 +33,11 @@ function scheduleSync(reason='resources'){
 <script>
   // Safety-net: если цифры в HUD поменялись хоть как-то, шлём sync (после boot)
   (function () {
-    const ids = [
-      'oxygen-resource','energy-resource','mvc-resource',
-      'ice-resource','bio-resource','parts-resource'
-    ];
+   const ids = [
+  'oxygen-value','energy-value','mvc-value',
+  'ice-value','bio-value','parts-value'
+];
+
     const tryObserve = () => {
       if (window.__BOOT_LOADING) { requestAnimationFrame(tryObserve); return; }
       const obs = new MutationObserver(() => {
@@ -106,6 +107,108 @@ function scheduleSync(reason='resources'){
     if (!r.ok) throw new Error(j.error || 'sync_failed');
     return j.player;
   }
+// ---- надёжный синк с мьютексом, грязным флагом и ретраями ----
+window.__SYNC_INFLIGHT = false;
+window.__RES_DIRTY     = false;
+window.__LAST_SENT     = null;
+
+function readHudResources() {
+  const val = id => Number((document.getElementById(id)?.textContent || '0').replace(/[^\d.-]/g,'')) || 0;
+  return {
+    oxygen: val('oxygen-value'),
+    energy: val('energy-value'),
+    mvc:    val('mvc-value'),
+    ice:    val('ice-value'),
+    bio:    val('bio-value'),
+    parts:  val('parts-value')
+  };
+}
+
+function shallowEqual(a,b){ 
+  if (!a || !b) return false;
+  const k = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const key of k) if ((a[key]||0)!==(b[key]||0)) return false;
+  return true;
+}
+
+async function syncPlayer(reason='unknown'){
+  if (window.__BOOT_LOADING) return;
+
+  // Не пускать параллельные синки
+  if (window.__SYNC_INFLIGHT) { 
+    window.__RES_DIRTY = true; 
+    return; 
+  }
+
+  // Собираем payload
+  const tg = window.PLAYER?.telegram_id || window.__telegramId || resolveTelegramId();
+  if (!tg) return;
+
+  const res = readHudResources();
+  const payload = {
+    telegramId: tg,
+    callsign:   window.PLAYER?.callsign || 'Citizen',
+    level:      Number(window.PLAYER?.level || 1),
+    exp:        Number(window.PLAYER?.exp   || 0),
+    resources:  res,
+    progress:   window.PLAYER?.progress || {},
+    stats:      window.PLAYER?.stats    || {},
+    reason
+  };
+
+  // Не слать дубликаты подряд
+  if (shallowEqual(payload.resources, window.__LAST_SENT)) {
+    return;
+  }
+
+  window.__SYNC_INFLIGHT = true;
+  let serverPlayer = null;
+
+  try {
+    serverPlayer = await apiSyncPlayer(payload);
+  } catch (e) {
+    console.warn('[sync] network error, will retry', e);
+    window.__SYNC_INFLIGHT = false;
+    window.__RES_DIRTY = true;       // оставляем «грязным», дебаунсер повторит
+    setTimeout(() => scheduleSync('retry'), 1500);  // мягкий бэкофф
+    return;
+  }
+
+  // Успешно: запоминаем, что отправляли
+  window.__LAST_SENT = { ...payload.resources };
+
+  // Берём авторитетные значения с бэка и рисуем HUD
+  if (serverPlayer?.resources) {
+    updateResourceBar(serverPlayer.resources);
+    window.PLAYER = {
+      telegram_id: serverPlayer.telegram_id,
+      callsign: serverPlayer.callsign,
+      level: serverPlayer.level,
+      exp: serverPlayer.exp,
+      resources: { ...serverPlayer.resources },
+      progress: serverPlayer.progress || {},
+      stats: serverPlayer.stats || {}
+    };
+  }
+
+  window.__SYNC_INFLIGHT = false;
+
+
+  // Если за время синка что-то снова поменяли — запускаем ещё один проход
+  if (window.__RES_DIRTY) {
+    window.__RES_DIRTY = false;
+    scheduleSync('dirty-loop');
+  }
+
+  console.log('[syncPlayer] done');
+}
+
+// Переиспользуем дебаунсер:
+window.scheduleSync = function(reason='resources'){
+  if (window.__BOOT_LOADING) return;
+  if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
+  window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(reason); } catch(_){} }, 800);
+};
 
   // ===== 4) Проставляем ресурсы в верхнюю панель =====
   function updateResourceBar(res = {}) {
@@ -135,30 +238,45 @@ if (!window.PLAYER.telegram_id && tg != null) {
 
     window.__telegramId = tg;
 
-    try {
-      // 5.1. Пытаемся прочитать игрока
-      let player = await apiGetPlayerByTg(tg);
+   try {
+  let player = await apiGetPlayerByTg(tg);
 
-      // 5.2. Если нет — создаём с дефолтами (можешь поменять под свои)
-      if (!player) {
-        player = await apiSyncPlayer({
-          telegramId: tg,
-          callsign: 'Citizen',
-          level: 1,
-          exp: 0,
-          resources: { oxygen: 250, energy: 500, mvc: 500, bio: 100, parts: 100, ice: 120 },
-          progress: {},
-          stats: {}
-        });
-      }
-
-      console.log('[load] player:', player);
-      
-      window.__BOOT_LOADING = false; // PATCH: boot finished
-} catch (e) {
-      console.error('load_failed', e);
-    }
+  if (!player) {
+    player = await apiSyncPlayer({
+      telegramId: tg,
+      callsign: 'Citizen',
+      level: 1,
+      exp: 0,
+      resources: { oxygen: 250, energy: 500, mvc: 500, bio: 100, parts: 100, ice: 120 },
+      progress: {},
+      stats: {}
+    });
   }
+
+  // 1) Запоминаем профиль в глобале
+  window.PLAYER = {
+    telegram_id: player.telegram_id,
+    callsign: player.callsign,
+    level: player.level,
+    exp: player.exp,
+    resources: { ...player.resources },
+    progress: player.progress || {},
+    stats: player.stats || {}
+  };
+
+  // 2) Рисуем HUD из БД
+  updateResourceBar(player.resources);
+
+  console.log('[load] player:', player);
+
+  // 3) Снимаем boot-флаг и делаем начальный синк (обновить last_login и т.п.)
+  window.__BOOT_LOADING = false;
+  scheduleSync('boot');
+} catch (e) {
+  console.error('load_failed', e);
+  window.__BOOT_LOADING = false; // чтобы игра не «зависла» в boot
+}
+
 
   // ===== 6) Запускаем, когда всё отрисовалось =====
   window.addEventListener('load', loadOrCreatePlayer);
@@ -13013,4 +13131,25 @@ window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && sy
       setTimeout(() => scheduleSync('action:' + txt), 50);
     }
   });
+  document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    try {
+      const tg  = window.PLAYER?.telegram_id || resolveTelegramId();
+      const res = readHudResources();
+      const payload = JSON.stringify({ telegramId: tg, resources: res, reason: 'hide' });
+
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(`${API_BASE}/api/player/sync?tg=${tg}`, payload);
+      } else {
+        fetch(`${API_BASE}/api/player/sync?tg=${tg}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true
+        }).catch(()=>{});
+      }
+    } catch(_) {}
+  }
+});
+
 </script>
