@@ -29,119 +29,26 @@ function scheduleSync(reason='resources'){
   if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
   window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(); } catch(_) {} }, 800);
 }
-// --- глобальные флаги ---
-
-window.__SYNC_TIMER = null;
-window.__BOOT_LOADING = true;
-
-// глушим hud-мьютации, когда сами рисуем HUD (renderHUD/applyPlayer)
-window.__SILENT_UI = 0;
-
-// ресурсы «грязные» с момента последнего удачного sync?
-window.__RES_DIRTY = false;
-
-// последний снимок ресурсов, который мы уже отправили на сервер
-window.__LAST_SYNC_RES = null;
-
-// последний успешный sync (для троттлинга)
-window.__LAST_SYNC_AT = 0;
-
-// последний поставленный sync из 'hud-mutation' (чтобы не чаще N секунд)
-window.__LAST_HUD_MUTATION_AT = 0;
-
-// хелпер: глубокое сравнение простого объекта ресурсов
-function sameRes(a,b){
-  if (!a || !b) return false;
-  const keys = ['oxygen','energy','mvc','ice','bio','parts'];
-  for (const k of keys) if (Number(a[k]||0) !== Number(b[k]||0)) return false;
-  return true;
-}
-
-// ДЕБАУНС СИНКА
-function scheduleSync(reason = 'resources') {
-  try {
-    if (window.__BOOT_LOADING) return;
-
-    // не ставим синк на мутации, пока мы сами рисуем HUD
-    if (reason === 'hud-mutation' && window.__SILENT_UI > 0) return;
-
-    // если уже поставили явный sync, игнорим ближайшие мутации HUD (~200мс)
-    if (reason === 'hud-mutation' && Date.now() - (window.__LAST_EXPLICIT_SYNC_AT || 0) < 200) {
-      return;
-    }
-
-    if (reason !== 'hud-mutation') {
-      window.__LAST_EXPLICIT_SYNC_AT = Date.now();
-    }
-
-    if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
-    window.__SYNC_TIMER = setTimeout(() => {
-      try { syncPlayer(); } catch (_) {}
-    }, 800);
-  } catch (_) {}
-}
-
 </script>
 <script>
   // Safety-net: если цифры в HUD поменялись хоть как-то, шлём sync (после boot)
   (function () {
-  // следим только за реальными цифрами ресурсов
-  const selectors = [
-    '#oxygen-value','#energy-value','#mvc-value',
-    '#ice-value','#bio-value','#parts-value',
-    '[data-oxygen]','[data-energy]','[data-mvc]',
-    '[data-ice]','[data-bio]','[data-parts]'
-  ];
-
-  // читаем ресурсы с HUD
-  function readUiRes(){
-    const pick = (q) => {
-      const el = document.querySelector(q);
-      return el ? parseInt(String(el.textContent).replace(/\D/g,'')||'0',10) : 0;
+    const ids = [
+      'oxygen-resource','energy-resource','mvc-resource',
+      'ice-resource','bio-resource','parts-resource'
+    ];
+    const tryObserve = () => {
+      if (window.__BOOT_LOADING) { requestAnimationFrame(tryObserve); return; }
+      const obs = new MutationObserver(() => {
+        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
+      });
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) obs.observe(el, { childList: true, subtree: true, characterData: true });
+      });
     };
-    return {
-      oxygen: pick('#oxygen-value') || pick('[data-oxygen]'),
-      energy: pick('#energy-value') || pick('[data-energy]'),
-      mvc:    pick('#mvc-value')    || pick('[data-mvc]'),
-      ice:    pick('#ice-value')    || pick('[data-ice]'),
-      bio:    pick('#bio-value')    || pick('[data-bio]'),
-      parts:  pick('#parts-value')  || pick('[data-parts]'),
-    };
-  }
-
-  function startObserver(){
-    if (window.__BOOT_LOADING) { requestAnimationFrame(startObserver); return; }
-
-    const nodes = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
-    if (!nodes.length) { requestAnimationFrame(startObserver); return; }
-
-    // не плодим наблюдателей
-    if (window.__HUD_OBSERVER) try { window.__HUD_OBSERVER.disconnect(); } catch(_){}
-
-    window.__HUD_OBSERVER = new MutationObserver(() => {
-      if (window.__BOOT_LOADING || window.__SILENT_UI > 0) return;
-
-      const ui = readUiRes();
-      // если снимок совпадает с последним синкнутым — не считаем «грязным»
-      if (window.__LAST_SYNC_RES && sameRes(ui, window.__LAST_SYNC_RES)) return;
-
-      // помечаем «грязь» и пробуем синкнуть (пройдёт через троттлинг)
-      window.__RES_DIRTY = true;
-      scheduleSync('hud-mutation');
-    });
-
-    nodes.forEach(el => window.__HUD_OBSERVER.observe(el, { childList:true, characterData:true, subtree:true }));
-    console.log('[hud-observer] watching', nodes.length, 'nodes');
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startObserver);
-  } else {
-    startObserver();
-  }
-})();
-
-
+    tryObserve();
+  })();
 </script>
 
 <script>
@@ -182,13 +89,12 @@ function scheduleSync(reason = 'resources') {
   }
 
   // ===== 3) Обёртки API =====
- async function apiGetPlayerByTg(tg) {
-  const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
-  if (!r.ok) return null;
-  const j = await r.json();
-  return j.player;
-}
-
+  async function apiGetPlayerByTg(tg) {
+    const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.player;
+  }
 
   async function apiSyncPlayer(payload) {
     const r = await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId || payload.telegram_id}`, {
@@ -240,7 +146,7 @@ if (!window.PLAYER.telegram_id && tg != null) {
           callsign: 'Citizen',
           level: 1,
           exp: 0,
-          resources: { oxygen: 250, energy: 500, mvc: 0, bio: 0, parts: 0, ice: 10 },
+          resources: { oxygen: 250, energy: 500, mvc: 500, bio: 100, parts: 100, ice: 120 },
           progress: {},
           stats: {}
         });
@@ -248,7 +154,7 @@ if (!window.PLAYER.telegram_id && tg != null) {
 
       console.log('[load] player:', player);
       
-      //window.__BOOT_LOADING = false; // PATCH: boot finished
+      window.__BOOT_LOADING = false; // PATCH: boot finished
 } catch (e) {
       console.error('load_failed', e);
     }
@@ -4685,7 +4591,7 @@ elements.o2GenerationValue.textContent = `${buf.toLocaleString()} O₂`;
         }
 
         // Изменить ресурсы
-        function updateResource(resource, delta, reason = 'hud') {
+        function updateResource(resource, amount) {
             if (gameState.resources[resource] + amount < 0) {
                 showNotification(`Недостаточно ${getResourceName(resource)}!`, false);
                 return false;
@@ -4702,10 +4608,6 @@ elements.o2GenerationValue.textContent = `${buf.toLocaleString()} O₂`;
                     element.classList.remove('changed');
                 }, 1000);
             }
-           try { window.__RES_DIRTY = true; } catch(_){}
-scheduleSync('updateResource:' + reason);
-
-
                 // 1) зеркалим в PLAYER и кэш
     try {
       if (window.PLAYER && PLAYER.resources) {
@@ -4785,7 +4687,6 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
   if (!updateResource('energy', -cost)) {
     return;
   }
-
 
   document.getElementById('scan-modal').classList.remove('active');
 
@@ -12957,7 +12858,6 @@ function renderHUD() {
   try {
     const res = (typeof PLAYER !== 'undefined' && PLAYER && PLAYER.resources) ? PLAYER.resources : {};
     if (typeof updateResourceBar === 'function') {
-
       updateResourceBar(res);
     } else {
       // Fallback: update data-* selectors if legacy markup is used
@@ -12972,76 +12872,47 @@ function renderHUD() {
     }
   } catch(e) { /* noop */ }
 }
-// --- хук на точечное изменение одного ресурса ---
-function setResource(name, val) {
-  // 1) обновим DOM, если есть элемент вида #oxygen-value / data-oxygen
-  try {
-    const idEl = document.getElementById(name + '-value');
-    if (idEl) idEl.textContent = String(val ?? 0);
-    const dataEl = document.querySelector('[data-' + name + ']');
-    if (dataEl) dataEl.textContent = String(val ?? 0);
-  } catch(_){}
-
-  // 2) отзеркалим в модели
-  try {
-    if (window.gameState?.resources) window.gameState.resources[name] = val;
-    if (window.PLAYER?.resources) {
-      window.PLAYER.resources[name] = val;
-      try { localStorage.setItem('v01d_player', JSON.stringify(window.PLAYER)); } catch(_){}
-    }
-  } catch(_){}
-
-  // 3) и поставим отложенный sync (он сам не сработает во время BOOT)
-  if (typeof scheduleSync === 'function') scheduleSync('setResource:' + name);
-}
 
 // ===== синхронизировать после изменений =====
   async function syncPlayer() {
-  const P = window.PLAYER || {};
-  if (!P || !P.telegram_id) return;
+  // восстановим id, если его нет
+  let tid = window.PLAYER?.telegram_id
+         || resolveTelegramId()
+         || new URL(location.href).searchParams.get('tg');
 
-  const payload = {
-    telegramId:  P.telegram_id,
-    callsign:    P.callsign,
-    level:       P.level,
-    exp:         P.exp,
-    resources:   P.resources,
-    progress:    P.progress,
-    stats:       P.stats
-  };
-
-  let data;
-  try {
-    const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    data = await r.json();
-  } catch (e) {
-    console.warn('[sync] network error, will retry', e);
-    // ничего не делаем: __RES_DIRTY оставляем истинным, дебаунсер запустит повтор
+  if (!tid) {
+    console.warn('[sync] no telegram_id – skip');
     return;
   }
+  window.PLAYER.telegram_id = Number(tid);
 
-  if (data?.ok && data.player) {
-    applyPlayer(data.player); // стянули "правду" с сервера
-    renderHUD?.();
+  const P = window.PLAYER;                // ← читаем из глобального
+  if (!P || !P.telegram_id) return;       // нет id — не пытаемся синкать
+
+  const payload = {
+    telegramId: P.telegram_id,
+    callsign:   P.callsign,
+    level:      P.level,
+    exp:        P.exp,
+    resources:  P.resources,
+    progress:   P.progress,
+    stats:      P.stats,
+  };
+
+  const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await r.json();
+  if (data.ok && data.player) {
+    applyPlayer(data.player);  // подтягиваем серверную правду
+    renderHUD();
   } else {
     console.warn('[sync] fail', data);
   }
 }
-
-  // после успешного применения БД = «чисто»
-  window.__LAST_SYNC_RES = (window.PLAYER && window.PLAYER.resources)
-    ? JSON.parse(JSON.stringify(window.PLAYER.resources))
-    : null;
-  window.__RES_DIRTY = false;
-  window.__LAST_SYNC_AT = Date.now();
- finally {
-  setTimeout(()=>{ window.__SILENT_UI = Math.max(0, window.__SILENT_UI-1); }, 350);
-}
-
 
 
 // ===== общий boot =====
@@ -13055,17 +12926,18 @@ async function bootWithTelegramId(tgId) {
         if (p && Number(p.telegram_id) === Number(tgId)) {
           applyPlayer(p);
           renderHUD();
-          window.__BOOT_LOADING = false;  // ← только тут!
+          
         }
       } catch (_) {}
     }
 
     // достоверные данные с API
     const player = await loadOrCreatePlayer(tgId);
+    console.log('[load] применён игрок:', player);
     applyPlayer(player);
       renderHUD();
     
-   // window.__BOOT_LOADING = false; // boot завершён
+    window.__BOOT_LOADING = false; // boot завершён
  
   } catch (e) {
     console.warn('[load] профиль не найден — будет создан при sync / ошибка:', e);
@@ -13102,4 +12974,43 @@ window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && sy
       window.__SYNC_PLAYER_WRAPPED = true;
     }
   })();
+</script>
+<script>
+  // ===== SAFETY-NET: синк при любом изменении HUD =====
+  (function () {
+    const selectors = [
+      '#oxygen-value', '#energy-value', '#mvc-value', '#ice-value', '#bio-value', '#parts-value',
+      '#oxygen-resource', '#energy-resource', '#mvc-resource', '#ice-resource', '#bio-resource', '#parts-resource',
+      '[data-oxygen]', '[data-energy]', '[data-mvc]', '[data-ice]', '[data-bio]', '[data-parts]'
+    ];
+    function startObserver() {
+      if (window.__BOOT_LOADING) { requestAnimationFrame(startObserver); return; }
+      const els = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
+      if (!els.length) { requestAnimationFrame(startObserver); return; }
+      const obs = new MutationObserver(() => {
+        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
+      });
+      els.forEach(el => obs.observe(el, { childList: true, characterData: true, subtree: true }));
+      console.log('[hud-observer] watching', els.length, 'nodes');
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startObserver);
+    } else {
+      startObserver();
+    }
+  })();
+</script>
+<script>
+  // ===== ACTION HOOKS =====
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const txt = (btn.textContent || '').trim().toLowerCase();
+
+    // подправь фразы при необходимости (локализация)
+    if (txt.startsWith('send harvester') || txt.startsWith('ремонт') || txt.startsWith('repair') || txt.startsWith('collect')) {
+      // даём UI обновиться и ставим синк
+      setTimeout(() => scheduleSync('action:' + txt), 50);
+    }
+  });
 </script>
