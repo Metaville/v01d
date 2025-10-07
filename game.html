@@ -163,6 +163,10 @@ function scheduleSync(reason = 'resources') {
       } catch (_) {}
     }
   </script>
+  <script>
+  window.updateResourceBar ||= function(){};
+</script>
+
 <script>
   // ===== 1) Настройки API =====
   const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // <-- свой домен
