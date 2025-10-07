@@ -7310,10 +7310,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Export Blueprints API for console access
   window.Blueprints = {
-    list: () => ({ known:[...blueprints], installed:[...installed], all: ALL_BLUEPRINTS }),
-    install: installModule,
-    study: (id) => { blueprints.add(id); saveBlueprints(); }
-  };
+  list: () => ({ known:[...(blueprints||[])], installed:[...(installed||[])], all: ALL_BLUEPRINTS }),
+  ...
+};
 })();
 </script>
 
@@ -10117,7 +10116,8 @@ const Timers = (() => {
     set(name, fn, ms) { this.clear(name); const id = setInterval(fn, ms); map.set(name, {type:'int', id}); return id; },
     raf(name, fn) { this.clear(name); let id; const loop=()=>{ try { fn(); } finally { id = requestAnimationFrame(loop); } }; id = requestAnimationFrame(loop); map.set(name, {type:'raf', id}); return id; },
     clear(name){ const t=map.get(name); if(!t) return; if (t.type==='raf') cancelAnimationFrame(t.id); else clearInterval(t.id); map.delete(name); },
-    clearAll(){ for (const k of [...map.keys()]) this.clear(k); }
+    clearAll(){ for (const k of map.keys()) this.clear(k); }
+
   };
 })();
 
@@ -13321,9 +13321,9 @@ MV.RES_DIRTY = false;
     if (typeof window.updateResource === 'function' && !window.updateResource.__wrapped) {
       const _orig = window.updateResource;
       window.updateResource = function(...args){
-        try { return _orig.apply(this, args); }
-        finally { MV.scheduleSync('updateResource'); }
-      };
+  try { return _orig.apply(this, args); }
+  finally { MV.scheduleSync('updateResource'); }
+};
       window.updateResource.__wrapped = true;
     }
     const ids = ['oxygen-value','energy-value','mvc-value','ice-value','bio-value','parts-value'];
@@ -13341,7 +13341,15 @@ MV.RES_DIRTY = false;
     try {
       const tg  = window.PLAYER?.telegram_id || MV.resolveTelegramId();
       if (!tg) return;
-      const res = MV.readUiRes();
+      // читать из STATE, чтобы не терять energy/polymers/rare и не гоняться за DOM
+let resources = { ...(window.PLAYER?.resources || {}) };
+for (const k in resources) resources[k] = Number(resources[k]) || 0;
+
+// редкий фолбэк: если state ещё пуст — прочитаем из DOM
+if (!Object.keys(resources).length) {
+  resources = MV.readUiRes();
+}
+
       const payload = JSON.stringify({ telegramId: tg, resources: res, reason: 'hide' });
       if (navigator.sendBeacon) {
         navigator.sendBeacon(`${window.API_BASE}/api/player/sync?tg=${tg}`, payload);
