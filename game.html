@@ -7,12 +7,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">        
 <title>METAVILLE: V.01.D / Genesis Platform</title>
   <script>
-     // ===== 1) Настройки API =====
-  const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // <-- свой домен
-  // PATCH: expose for legacy
-  window.API_BASE = API_BASE;
-  </script>
-  <script>
   // Глобальный контейнер профиля игрока (создаём, если его нет)
   window.PLAYER = window.PLAYER || {
     telegram_id: null,
@@ -31,36 +25,123 @@
   window.__BOOT_LOADING = true;
 
 function scheduleSync(reason='resources'){
+  if (window.__BOOT_LOADING) return;
+  if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
+  window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(); } catch(_) {} }, 800);
+}
+// --- глобальные флаги ---
+
+window.__SYNC_TIMER = null;
+window.__BOOT_LOADING = true;
+
+// глушим hud-мьютации, когда сами рисуем HUD (renderHUD/applyPlayer)
+window.__SILENT_UI = 0;
+
+// ресурсы «грязные» с момента последнего удачного sync?
+window.__RES_DIRTY = false;
+
+// последний снимок ресурсов, который мы уже отправили на сервер
+window.__LAST_SYNC_RES = null;
+
+// последний успешный sync (для троттлинга)
+window.__LAST_SYNC_AT = 0;
+
+// последний поставленный sync из 'hud-mutation' (чтобы не чаще N секунд)
+window.__LAST_HUD_MUTATION_AT = 0;
+
+// хелпер: глубокое сравнение простого объекта ресурсов
+function sameRes(a,b){
+  if (!a || !b) return false;
+  const keys = ['oxygen','energy','mvc','ice','bio','parts'];
+  for (const k of keys) if (Number(a[k]||0) !== Number(b[k]||0)) return false;
+  return true;
+}
+
+// ДЕБАУНС СИНКА
+function scheduleSync(reason = 'resources') {
   try {
-    // console.debug('[scheduleSync]', {reason, boot: window.__BOOT_LOADING, tg: window.__TG_ID});
     if (window.__BOOT_LOADING) return;
+
+    // не ставим синк на мутации, пока мы сами рисуем HUD
+    if (reason === 'hud-mutation' && window.__SILENT_UI > 0) return;
+
+    // если уже поставили явный sync, игнорим ближайшие мутации HUD (~200мс)
+    if (reason === 'hud-mutation' && Date.now() - (window.__LAST_EXPLICIT_SYNC_AT || 0) < 200) {
+      return;
+    }
+
+    if (reason !== 'hud-mutation') {
+      window.__LAST_EXPLICIT_SYNC_AT = Date.now();
+    }
+
     if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
     window.__SYNC_TIMER = setTimeout(() => {
-      try { syncPlayer(); } catch(_) {}
+      try { syncPlayer(); } catch (_) {}
     }, 800);
-  } catch(_) {}
+  } catch (_) {}
 }
+
 </script>
 <script>
   // Safety-net: если цифры в HUD поменялись хоть как-то, шлём sync (после boot)
   (function () {
-   const ids = [
-  'oxygen-value','energy-value','mvc-value',
-  'ice-value','bio-value','parts-value'
-];
+  // следим только за реальными цифрами ресурсов
+  const selectors = [
+    '#oxygen-value','#energy-value','#mvc-value',
+    '#ice-value','#bio-value','#parts-value',
+    '[data-oxygen]','[data-energy]','[data-mvc]',
+    '[data-ice]','[data-bio]','[data-parts]'
+  ];
 
-    const tryObserve = () => {
-      if (window.__BOOT_LOADING) { requestAnimationFrame(tryObserve); return; }
-      const obs = new MutationObserver(() => {
-        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
-      });
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) obs.observe(el, { childList: true, subtree: true, characterData: true });
-      });
+  // читаем ресурсы с HUD
+  function readUiRes(){
+    const pick = (q) => {
+      const el = document.querySelector(q);
+      return el ? parseInt(String(el.textContent).replace(/\D/g,'')||'0',10) : 0;
     };
-    tryObserve();
-  })();
+    return {
+      oxygen: pick('#oxygen-value') || pick('[data-oxygen]'),
+      energy: pick('#energy-value') || pick('[data-energy]'),
+      mvc:    pick('#mvc-value')    || pick('[data-mvc]'),
+      ice:    pick('#ice-value')    || pick('[data-ice]'),
+      bio:    pick('#bio-value')    || pick('[data-bio]'),
+      parts:  pick('#parts-value')  || pick('[data-parts]'),
+    };
+  }
+
+  function startObserver(){
+    if (window.__BOOT_LOADING) { requestAnimationFrame(startObserver); return; }
+
+    const nodes = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
+    if (!nodes.length) { requestAnimationFrame(startObserver); return; }
+
+    // не плодим наблюдателей
+    if (window.__HUD_OBSERVER) try { window.__HUD_OBSERVER.disconnect(); } catch(_){}
+
+    window.__HUD_OBSERVER = new MutationObserver(() => {
+      if (window.__BOOT_LOADING || window.__SILENT_UI > 0) return;
+
+      const ui = readUiRes();
+      // если снимок совпадает с последним синкнутым — не считаем «грязным»
+      if (window.__LAST_SYNC_RES && sameRes(ui, window.__LAST_SYNC_RES)) return;
+
+      // помечаем «грязь» и пробуем синкнуть (пройдёт через троттлинг)
+      window.__RES_DIRTY = true;
+      scheduleSync('hud-mutation');
+    });
+
+    nodes.forEach(el => window.__HUD_OBSERVER.observe(el, { childList:true, characterData:true, subtree:true }));
+    console.log('[hud-observer] watching', nodes.length, 'nodes');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startObserver);
+  } else {
+    startObserver();
+  }
+})();
+
+
 </script>
 
 <script>
@@ -83,7 +164,10 @@ function scheduleSync(reason='resources'){
     }
   </script>
 <script>
- 
+  // ===== 1) Настройки API =====
+  const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // <-- свой домен
+  // PATCH: expose for legacy
+  window.API_BASE = API_BASE;
 
   // ===== 2) Получаем telegramId из Telegram или из ?tg=... =====
   function resolveTelegramId() {
@@ -98,11 +182,11 @@ function scheduleSync(reason='resources'){
   }
 
   // ===== 3) Обёртки API =====
-  async function apiGetPlayerByTg(tg) {
-  const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`, { method: 'GET' });
+ async function apiGetPlayerByTg(tg) {
+  const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
+  if (!r.ok) return null;
   const j = await r.json();
-  if (!r.ok) throw new Error(j.error || 'not_found');
-  return j.player;               // либо null, если бэкенд так возвращает
+  return j.player;
 }
 
 
@@ -116,108 +200,6 @@ function scheduleSync(reason='resources'){
     if (!r.ok) throw new Error(j.error || 'sync_failed');
     return j.player;
   }
-// ---- надёжный синк с мьютексом, грязным флагом и ретраями ----
-window.__SYNC_INFLIGHT = false;
-window.__RES_DIRTY     = false;
-window.__LAST_SENT     = null;
-
-function readHudResources() {
-  const val = id => Number((document.getElementById(id)?.textContent || '0').replace(/[^\d.-]/g,'')) || 0;
-  return {
-    oxygen: val('oxygen-value'),
-    energy: val('energy-value'),
-    mvc:    val('mvc-value'),
-    ice:    val('ice-value'),
-    bio:    val('bio-value'),
-    parts:  val('parts-value')
-  };
-}
-
-function shallowEqual(a,b){ 
-  if (!a || !b) return false;
-  const k = new Set([...Object.keys(a), ...Object.keys(b)]);
-  for (const key of k) if ((a[key]||0)!==(b[key]||0)) return false;
-  return true;
-}
-
-async function syncPlayer(reason='unknown'){
-  if (window.__BOOT_LOADING) return;
-
-  // Не пускать параллельные синки
-  if (window.__SYNC_INFLIGHT) { 
-    window.__RES_DIRTY = true; 
-    return; 
-  }
-
-  // Собираем payload
-  const tg = window.PLAYER?.telegram_id || window.__telegramId || resolveTelegramId();
-  if (!tg) return;
-
-  const res = readHudResources();
-  const payload = {
-    telegramId: tg,
-    callsign:   window.PLAYER?.callsign || 'Citizen',
-    level:      Number(window.PLAYER?.level || 1),
-    exp:        Number(window.PLAYER?.exp   || 0),
-    resources:  res,
-    progress:   window.PLAYER?.progress || {},
-    stats:      window.PLAYER?.stats    || {},
-    reason
-  };
-
-  // Не слать дубликаты подряд
-  if (shallowEqual(payload.resources, window.__LAST_SENT)) {
-    return;
-  }
-
-  window.__SYNC_INFLIGHT = true;
-  let serverPlayer = null;
-
-  try {
-    serverPlayer = await apiSyncPlayer(payload);
-  } catch (e) {
-    console.warn('[sync] network error, will retry', e);
-    window.__SYNC_INFLIGHT = false;
-    window.__RES_DIRTY = true;       // оставляем «грязным», дебаунсер повторит
-    setTimeout(() => scheduleSync('retry'), 1500);  // мягкий бэкофф
-    return;
-  }
-
-  // Успешно: запоминаем, что отправляли
-  window.__LAST_SENT = { ...payload.resources };
-
-  // Берём авторитетные значения с бэка и рисуем HUD
-  if (serverPlayer?.resources) {
-    updateResourceBar(serverPlayer.resources);
-    window.PLAYER = {
-      telegram_id: serverPlayer.telegram_id,
-      callsign: serverPlayer.callsign,
-      level: serverPlayer.level,
-      exp: serverPlayer.exp,
-      resources: { ...serverPlayer.resources },
-      progress: serverPlayer.progress || {},
-      stats: serverPlayer.stats || {}
-    };
-  }
-
-  window.__SYNC_INFLIGHT = false;
-
-
-  // Если за время синка что-то снова поменяли — запускаем ещё один проход
-  if (window.__RES_DIRTY) {
-    window.__RES_DIRTY = false;
-    scheduleSync('dirty-loop');
-  }
-
-  console.log('[syncPlayer] done');
-}
-
-// Переиспользуем дебаунсер:
-window.scheduleSync = function(reason='resources'){
-  if (window.__BOOT_LOADING) return;
-  if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
-  window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(reason); } catch(_){} }, 800);
-};
 
   // ===== 4) Проставляем ресурсы в верхнюю панель =====
   function updateResourceBar(res = {}) {
@@ -247,45 +229,30 @@ if (!window.PLAYER.telegram_id && tg != null) {
 
     window.__telegramId = tg;
 
-   try {
-  let player = await apiGetPlayerByTg(tg);
+    try {
+      // 5.1. Пытаемся прочитать игрока
+      let player = await apiGetPlayerByTg(tg);
 
-  if (!player) {
-    player = await apiSyncPlayer({
-      telegramId: tg,
-      callsign: 'Citizen',
-      level: 1,
-      exp: 0,
-      resources: { oxygen: 250, energy: 500, mvc: 0, bio: 0, parts: 0, ice: 0 },
-      progress: {},
-      stats: {}
-    });
-  }
+      // 5.2. Если нет — создаём с дефолтами (можешь поменять под свои)
+      if (!player) {
+        player = await apiSyncPlayer({
+          telegramId: tg,
+          callsign: 'Citizen',
+          level: 1,
+          exp: 0,
+          resources: { oxygen: 250, energy: 500, mvc: 500, bio: 100, parts: 100, ice: 120 },
+          progress: {},
+          stats: {}
+        });
+      }
 
-  // 1) Запоминаем профиль в глобале
-  window.PLAYER = {
-    telegram_id: player.telegram_id,
-    callsign: player.callsign,
-    level: player.level,
-    exp: player.exp,
-    resources: { ...player.resources },
-    progress: player.progress || {},
-    stats: player.stats || {}
-  };
-
-  // 2) Рисуем HUD из БД
-  updateResourceBar(player.resources);
-
-  console.log('[load] player:', player);
-
-  // 3) Снимаем boot-флаг и делаем начальный синк (обновить last_login и т.п.)
-  window.__BOOT_LOADING = false;
-  scheduleSync('boot');
+      console.log('[load] player:', player);
+      
+      //window.__BOOT_LOADING = false; // PATCH: boot finished
 } catch (e) {
-  console.error('load_failed', e);
-  window.__BOOT_LOADING = false; // чтобы игра не «зависла» в boot
-}
-
+      console.error('load_failed', e);
+    }
+  }
 
   // ===== 6) Запускаем, когда всё отрисовалось =====
   window.addEventListener('load', loadOrCreatePlayer);
@@ -377,74 +344,6 @@ if (!window.PLAYER.telegram_id && tg != null) {
     }
   });
 })();
-</script>
-<script>
-// ==== 1) Получаем telegramId ====
-function resolveTelegramId(){
-  // a) из Telegram WebApp (если открыто внутри Telegram)
-  try {
-    const t = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    if (t) return String(t);
-  } catch(_){}
-
-  // b) из query ?tg=...
-  try {
-    const p = new URL(window.location.href).searchParams.get('tg');
-    if (p) return String(p);
-  } catch(_){}
-
-  return null;
-}
-
-// ==== 2) Стартовый загрузчик игрока ====
-async function loadPlayerIntoGame(){
-  const tg = resolveTelegramId();
-  window.__TG_ID = tg;
-
-  if (!tg) {
-    console.warn('[load] нет telegram_id: открой через бот или добавь ?tg=...');
-    return;
-  }
-
-  // Пытаемся прочитать профиль
-  try {
-    const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
-    if (r.ok) {
-      const player = await r.json();
-      window.PLAYER = player;
-    } else if (r.status === 404) {
-      // Нет профиля — создадим локальный «заглушку» и дадим синку его записать
-      window.PLAYER = {
-        telegram_id: tg,
-        callsign: 'Citizen',
-        level: 1,
-        exp: 0,
-        resources: { oxygen:0, energy:0, mvc:0, parts:0, bio:0 },
-        progress: {}
-      };
-      // Создание произойдёт через обычный sync
-    } else {
-      console.warn('[load] ошибка ответа by-tg', r.status);
-    }
-  } catch(e) {
-    console.warn('[load] network error by-tg', e);
-    // офлайн режим — пусть дальше HUD построится, а sync потом дожмёт
-  }
-
-  // Рендерим HUD из window.PLAYER (минимум — ресурсную панель)
-  updateResourceBar(window.PLAYER?.resources || {});
-
-  // Очень важно: разрешить синк после первичного рендера
-  window.__BOOT_LOADING = false;
-
-  // Инициируем первый sync — он создаст запись, если её не было
-  scheduleSync('boot');
-}
-
-// вызывать после построения DOM
-document.addEventListener('DOMContentLoaded', () => {
-  try { loadPlayerIntoGame(); } catch(e){ console.error(e); }
-});
 </script>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -4803,6 +4702,10 @@ elements.o2GenerationValue.textContent = `${buf.toLocaleString()} O₂`;
                     element.classList.remove('changed');
                 }, 1000);
             }
+           try { window.__RES_DIRTY = true; } catch(_){}
+scheduleSync('updateResource:' + name);
+
+
                 // 1) зеркалим в PLAYER и кэш
     try {
       if (window.PLAYER && PLAYER.resources) {
@@ -4882,6 +4785,7 @@ document.getElementById('confirm-scan')?.addEventListener('click', function() {
   if (!updateResource('energy', -cost)) {
     return;
   }
+
 
   document.getElementById('scan-modal').classList.remove('active');
 
@@ -13053,6 +12957,7 @@ function renderHUD() {
   try {
     const res = (typeof PLAYER !== 'undefined' && PLAYER && PLAYER.resources) ? PLAYER.resources : {};
     if (typeof updateResourceBar === 'function') {
+
       updateResourceBar(res);
     } else {
       // Fallback: update data-* selectors if legacy markup is used
@@ -13066,6 +12971,28 @@ function renderHUD() {
       setSel('[data-parts]',  res.parts);
     }
   } catch(e) { /* noop */ }
+}
+// --- хук на точечное изменение одного ресурса ---
+function setResource(name, val) {
+  // 1) обновим DOM, если есть элемент вида #oxygen-value / data-oxygen
+  try {
+    const idEl = document.getElementById(name + '-value');
+    if (idEl) idEl.textContent = String(val ?? 0);
+    const dataEl = document.querySelector('[data-' + name + ']');
+    if (dataEl) dataEl.textContent = String(val ?? 0);
+  } catch(_){}
+
+  // 2) отзеркалим в модели
+  try {
+    if (window.gameState?.resources) window.gameState.resources[name] = val;
+    if (window.PLAYER?.resources) {
+      window.PLAYER.resources[name] = val;
+      try { localStorage.setItem('v01d_player', JSON.stringify(window.PLAYER)); } catch(_){}
+    }
+  } catch(_){}
+
+  // 3) и поставим отложенный sync (он сам не сработает во время BOOT)
+  if (typeof scheduleSync === 'function') scheduleSync('setResource:' + name);
 }
 
 // ===== синхронизировать после изменений =====
@@ -13101,23 +13028,23 @@ function renderHUD() {
   });
 
   const data = await r.json();
-if (data.ok && data.player) {
-  // ТИХИЙ РЕНДЕР, чтобы observer не поставил ещё один sync
-  window.__SILENT_UI++;
-  try {
-    applyPlayer(data.player);
-    renderHUD();
-    // после успешного применения БД = «чисто»
-    window.__LAST_SYNC_RES = (window.PLAYER && window.PLAYER.resources)
-      ? JSON.parse(JSON.stringify(window.PLAYER.resources))
-      : null;
-    window.__RES_DIRTY = false;
-    window.__LAST_SYNC_AT = Date.now();
-  } finally {
-    setTimeout(() => { window.__SILENT_UI = Math.max(0, window.__SILENT_UI - 1); }, 350);
-  }
+  if (data.ok && data.player) {
+     // ТИХИЙ РЕНДЕР, чтобы observer не поставил ещё один sync
+window.__SILENT_UI++;
+try {
+  applyPlayer(data.player);
+  renderHUD();
 } else {
   console.warn('[sync] fail', data);
+}
+  // после успешного применения БД = «чисто»
+  window.__LAST_SYNC_RES = (window.PLAYER && window.PLAYER.resources)
+    ? JSON.parse(JSON.stringify(window.PLAYER.resources))
+    : null;
+  window.__RES_DIRTY = false;
+  window.__LAST_SYNC_AT = Date.now();
+} finally {
+  setTimeout(()=>{ window.__SILENT_UI = Math.max(0, window.__SILENT_UI-1); }, 350);
 }
 
 
@@ -13133,18 +13060,17 @@ async function bootWithTelegramId(tgId) {
         if (p && Number(p.telegram_id) === Number(tgId)) {
           applyPlayer(p);
           renderHUD();
-          
+          window.__BOOT_LOADING = false;  // ← только тут!
         }
       } catch (_) {}
     }
 
     // достоверные данные с API
     const player = await loadOrCreatePlayer(tgId);
-    console.log('[load] применён игрок:', player);
     applyPlayer(player);
       renderHUD();
     
-    window.__BOOT_LOADING = false; // boot завершён
+   // window.__BOOT_LOADING = false; // boot завершён
  
   } catch (e) {
     console.warn('[load] профиль не найден — будет создан при sync / ошибка:', e);
@@ -13182,128 +13108,229 @@ window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && sy
     }
   })();
 </script>
+
+<!-- ==== MV SYNC PATCH: begin (do not remove) ==== -->
 <script>
-  // ===== SAFETY-NET: синк при любом изменении HUD =====
-  (function () {
-    const selectors = [
-      '#oxygen-value', '#energy-value', '#mvc-value', '#ice-value', '#bio-value', '#parts-value',
-      '#oxygen-resource', '#energy-resource', '#mvc-resource', '#ice-resource', '#bio-resource', '#parts-resource',
-      '[data-oxygen]', '[data-energy]', '[data-mvc]', '[data-ice]', '[data-bio]', '[data-parts]'
-    ];
-    function startObserver() {
-      if (window.__BOOT_LOADING) { requestAnimationFrame(startObserver); return; }
-      const els = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
-      if (!els.length) { requestAnimationFrame(startObserver); return; }
-      const obs = new MutationObserver(() => {
-        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
-      });
-      els.forEach(el => obs.observe(el, { childList: true, characterData: true, subtree: true }));
-      console.log('[hud-observer] watching', els.length, 'nodes');
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', startObserver);
-    } else {
-      startObserver();
-    }
-  })();
-</script>
-<script>
-  // ===== ACTION HOOKS =====
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const txt = (btn.textContent || '').trim().toLowerCase();
-
-    // подправь фразы при необходимости (локализация)
-    if (txt.startsWith('send harvester') || txt.startsWith('ремонт') || txt.startsWith('repair') || txt.startsWith('collect')) {
-      // даём UI обновиться и ставим синк
-      setTimeout(() => scheduleSync('action:' + txt), 50);
-    }
-  });
-  document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    try {
-      const tg  = window.PLAYER?.telegram_id || resolveTelegramId();
-      const res = readHudResources();
-      const payload = JSON.stringify({ telegramId: tg, resources: res, reason: 'hide' });
-
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(`${API_BASE}/api/player/sync?tg=${tg}`, payload);
-      } else {
-        fetch(`${API_BASE}/api/player/sync?tg=${tg}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-          keepalive: true
-        }).catch(()=>{});
-      }
-    } catch(_) {}
-  }
-});
-
-</script>
-<script>
-  // 1) API уже объявлен выше: const API_BASE = 'https://…';
-
-  // 2) Надёжное извлечение tg:
-  function resolveTelegramId() {
-    try {
-      const t = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-      if (t) return Number(t);
-    } catch (_) {}
-    const q = new URL(location.href).searchParams.get('tg');
-    return q && /^\d+$/.test(q) ? Number(q) : null;
+(function(){
+  // 0) API base (do not duplicate const)
+  if (!window.API_BASE) {
+    window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
   }
 
-  // 3) Аккуратный boot:
-  async function bootWithTelegramId(tgId) {
-    try {
-      // быстрый кэш
-      const cached = localStorage.getItem('v01d_player');
-      if (cached) {
-        try {
-          const p = JSON.parse(cached);
-          if (p && Number(p.telegram_id) === Number(tgId)) {
-            applyPlayer(p);
-            renderHUD();
-          }
-        } catch(_) {}
-      }
+  // 1) Namespace & flags
+  window.MV = window.MV || {};
+  const MV = window.MV;
+  MV.BOOT_LOADING  = true;
+  MV.SYNC_TIMER    = null;
+  MV.SYNC_INFLIGHT = false;
+  MV.RES_DIRTY     = true;
+  MV.LAST_SENT     = null;
 
-      // авторитетные данные с API (или пустой объект, если игрок новый)
-      const player = await loadOrCreatePlayer(tgId);
-      applyPlayer(player);
-      renderHUD();
-    } finally {
-      window.__BOOT_LOADING = false;
+  // 2) TG resolver
+  MV.resolveTelegramId = function(){
+    try {
+      const qs = new URLSearchParams(location.search);
+      const qtg = Number(qs.get('tg'));
+      if (!Number.isNaN(qtg) && qtg > 0) return qtg;
+    } catch(_){}
+    try {
+      const u = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+      if (u) return Number(u);
+    } catch(_){}
+    return null;
+  };
+
+  // 3) API wrappers (always available via window)
+  window.apiGetPlayerByTg = async function(tg){
+    const r = await fetch(`${window.API_BASE}/api/player/by-tg/${tg}`);
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.player;
+  };
+  window.apiSyncPlayer = async function(payload){
+    const tg = payload.telegramId || payload.telegram_id;
+    const r = await fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const j = await r.json().catch(()=>null);
+    if (!r.ok) throw new Error(j?.error || 'sync_failed');
+    return j.player;
+  };
+
+  // 4) HUD helpers
+  MV.updateResourceBar = function(res){
+    // Prefer existing updateResourceBar if present
+    if (typeof window.updateResourceBar === 'function') {
+      try { return window.updateResourceBar(res); } catch(_){}
     }
-  }
-
-  async function loadOrCreatePlayer(tgId){
-    try {
-      const p = await apiGetPlayerByTg(tgId); // из п.2
-      if (p) return p;
-    } catch (_) {}
-    // нет игрока — создастся при первом sync
-    return {
-      telegram_id: Number(tgId),
-      callsign: 'Citizen',
-      level: 1, exp: 0,
-      resources: { oxygen:0, energy:0, mvc:0, ice:0, bio:0, parts:0 },
-      progress: {}, stats: {}
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = String(v ?? 0); };
+    set('oxygen-value', res?.oxygen || 0);
+    set('energy-value', res?.energy || 0);
+    set('mvc-value',    res?.mvc    || 0);
+    set('ice-value',    res?.ice    || 0);
+    set('bio-value',    res?.bio    || 0);
+    set('parts-value',  res?.parts  || 0);
+  };
+  MV.readUiRes = function(){
+    const num = id => {
+      const el = document.getElementById(id);
+      const s = (el?.textContent || el?.innerText || '0').replace(/[^\d.-]/g,'');
+      return Number(s) || 0;
     };
-  }
+    return {
+      oxygen: num('oxygen-value'),
+      energy: num('energy-value'),
+      mvc:    num('mvc-value'),
+      ice:    num('ice-value'),
+      bio:    num('bio-value'),
+      parts:  num('parts-value'),
+    };
+  };
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const tg = resolveTelegramId();
-    if (!tg) {
-      console.warn('No tg id'); 
+  MV.setResource = function(name, val){
+    const el = document.getElementById(name + '-value');
+    if (el) el.textContent = String(Number(val)||0);
+    try {
+      window.PLAYER ??= { resources: {} };
+      window.PLAYER.resources ??= {};
+      window.PLAYER.resources[name] = Number(val) || 0;
+      localStorage.setItem('v01d_player', JSON.stringify(window.PLAYER));
+    } catch(_){}
+    MV.scheduleSync('setResource:'+name);
+  };
+
+  // 5) schedule + sync
+  MV.scheduleSync = function(reason='hud'){
+    if (MV.BOOT_LOADING) return;
+    MV.RES_DIRTY = true;
+    if (MV.SYNC_TIMER) clearTimeout(MV.SYNC_TIMER);
+    MV.SYNC_TIMER = setTimeout(()=>{ try { MV.syncPlayer(reason); } catch(_){ } }, 800);
+  };
+
+  MV.shallowEqual = function(a,b){
+    if (!a || !b) return false;
+    const ka = Object.keys(a), kb = Object.keys(b);
+    if (ka.length !== kb.length) return false;
+    for (const k of ka) if (a[k] !== b[k]) return false;
+    return true;
+  };
+
+  MV.syncPlayer = async function(reason='manual'){
+    if (MV.SYNC_INFLIGHT) return;
+    if (!MV.RES_DIRTY) return;
+
+    const tg = window.PLAYER?.telegram_id || MV.resolveTelegramId();
+    if (!tg) return;
+
+    const resources = MV.readUiRes();
+    if (MV.LAST_SENT && MV.shallowEqual(resources, MV.LAST_SENT)) {
+      MV.RES_DIRTY = false;
       return;
     }
-    window.PLAYER = window.PLAYER || {};
-    window.PLAYER.telegram_id = tg;
 
-    // стартуем
-    bootWithTelegramId(tg);
+    MV.SYNC_INFLIGHT = true;
+    try {
+      const payload = {
+        telegramId: tg,
+        callsign:   window.PLAYER?.callsign || 'Citizen',
+        level:      Number(window.PLAYER?.level || 1),
+        exp:        Number(window.PLAYER?.exp   || 0),
+        resources,
+        progress:   window.PLAYER?.progress || {},
+        stats:      window.PLAYER?.stats    || {},
+        reason
+      };
+
+      const r = await fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const j = await r.json().catch(()=>null);
+      if (!r.ok) throw new Error(j?.error || `HTTP_${r.status}`);
+
+      if (j?.player?.resources) {
+        window.PLAYER = j.player;
+        MV.updateResourceBar(j.player.resources);
+        try { localStorage.setItem('v01d_player', JSON.stringify(window.PLAYER)); } catch(_){}
+      }
+      MV.LAST_SENT = resources;
+      MV.RES_DIRTY = false;
+    } catch(e) {
+      console.warn('[MV sync] error, will retry', e);
+      setTimeout(()=>MV.scheduleSync('retry'), 1500);
+    } finally {
+      MV.SYNC_INFLIGHT = false;
+    }
+  };
+
+  // 6) Boot loader
+  MV.loadOrCreatePlayer = async function(){
+    const tg = MV.resolveTelegramId();
+    if (!tg) { MV.BOOT_LOADING = false; return; }
+    window.__telegramId = tg;
+    try {
+      const player = await window.apiGetPlayerByTg(tg);
+      if (player) {
+        window.PLAYER = {
+          telegram_id: player.telegram_id,
+          callsign:    player.callsign,
+          level:       Number(player.level || 1),
+          exp:         Number(player.exp   || 0),
+          resources:   { ...(player.resources||{}) },
+          progress:    player.progress || {},
+          stats:       player.stats    || {}
+        };
+        MV.updateResourceBar(window.PLAYER.resources || {});
+        try { localStorage.setItem('v01d_player', JSON.stringify(window.PLAYER)); } catch(_){}
+      }
+    } catch(e) {
+      console.warn('[MV load] fail', e);
+    }
+    MV.BOOT_LOADING = false;
+    MV.scheduleSync('boot');
+  };
+
+  window.addEventListener('load', MV.loadOrCreatePlayer);
+
+  // 7) Observe HUD & wrap updateResource
+  (function(){
+    if (typeof window.updateResource === 'function' && !window.updateResource.__wrapped) {
+      const _orig = window.updateResource;
+      window.updateResource = function(...args){
+        try { return _orig.apply(this, args); }
+        finally { MV.scheduleSync('updateResource'); }
+      };
+      window.updateResource.__wrapped = true;
+    }
+    const ids = ['oxygen-value','energy-value','mvc-value','ice-value','bio-value','parts-value'];
+    ids.forEach(id=>{
+      const el = document.getElementById(id);
+      if (!el) return;
+      const mo = new MutationObserver(()=> MV.scheduleSync('hud-mutation'));
+      mo.observe(el, { characterData:true, childList:true, subtree:true });
+    });
+  })();
+
+  // 8) Hidden sync
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'hidden') return;
+    try {
+      const tg  = window.PLAYER?.telegram_id || MV.resolveTelegramId();
+      if (!tg) return;
+      const res = MV.readUiRes();
+      const payload = JSON.stringify({ telegramId: tg, resources: res, reason: 'hide' });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(`${window.API_BASE}/api/player/sync?tg=${tg}`, payload);
+      } else {
+        fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
+          method: 'POST', headers: { 'Content-Type':'application/json' },
+          body: payload, keepalive: true
+        }).catch(()=>{});
+      }
+    } catch(_){}
   });
-</script>
+
+})();</script>
