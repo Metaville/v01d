@@ -19,20 +19,23 @@ const pool = new Pool({
   ssl: process.env.PGSSL === 'disable' ? false : { rejectUnauthorized: false },
 });
 
+// Создаём таблицу при первом запуске и догоняем недостающие колонки
 async function ensureSchema() {
+  // базовая таблица (если совсем нет)
   await pool.query(`
     CREATE TABLE IF NOT EXISTS players (
       id BIGSERIAL PRIMARY KEY,
-      telegram_id BIGINT UNIQUE NOT NULL,
-      callsign TEXT,
-      level INTEGER DEFAULT 1,
-      exp INTEGER DEFAULT 0,
-      resources JSONB DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      telegram_id BIGINT UNIQUE NOT NULL
     );
-    CREATE INDEX IF NOT EXISTS idx_players_telegram_id ON players(telegram_id);
   `);
+
+  // догоним недостающие колонки (не упадёт, если уже есть)
+  await pool.query(`ALTER TABLE players ADD COLUMN IF NOT EXISTS callsign  TEXT`);
+  await pool.query(`ALTER TABLE players ADD COLUMN IF NOT EXISTS level    INTEGER DEFAULT 1`);
+  await pool.query(`ALTER TABLE players ADD COLUMN IF NOT EXISTS exp      INTEGER DEFAULT 0`);
+  await pool.query(`ALTER TABLE players ADD COLUMN IF NOT EXISTS resources JSONB   DEFAULT '{}'::jsonb`);
+  await pool.query(`ALTER TABLE players ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now()`);
+  await pool.query(`ALTER TABLE players ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now()`);
 }
 ensureSchema().catch((e) => {
   console.error('DB schema init error:', e);
@@ -45,10 +48,13 @@ const allowlist = [
   'https://web.telegram.org',
   'https://telegram.org',
   'https://metaville.github.io',
+  'https://raw.githack.com',
+  'https://rawcdn.githack.com',
+  'https://preview.githack.com',
 ];
 
 function isAllowedOrigin(origin = '') {
-  if (!origin) return true;
+  if (!origin) return true; // curl/сервер-сервер
   if (allowlist.includes(origin)) return true;
   if (/^https:\/\/[a-z0-9-]+\.github\.io$/i.test(origin)) return true;
   return false;
@@ -65,11 +71,10 @@ app.use(
       cb(null, isAllowedOrigin(origin));
     },
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Telegram-Init'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Telegram-Init', 'Accept'],
     optionsSuccessStatus: 204,
   })
 );
-
 app.options('*', (req, res) => res.sendStatus(204));
 
 // ---- BODY PARSER ----
@@ -151,6 +156,7 @@ app.post('/api/player/sync', async (req, res) => {
   const origin = req.get('Origin') || '';
   const initData = req.get('X-Telegram-Init') || '';
 
+  // если пришло прямо из Telegram WebApp или прилетел initData — проверим подпись
   if ((/t\.me|telegram\.org/i.test(origin) || initData) && !verifyTelegramInitData(initData)) {
     return res.status(401).json({ error: 'bad_telegram_signature' });
   }
@@ -166,10 +172,11 @@ app.post('/api/player/sync', async (req, res) => {
     const incomingRes = body.resources && typeof body.resources === 'object' ? body.resources : {};
     const resources = { ...defaultResources(), ...incomingRes };
 
+    // Вставляем без updated_at (берём дефолт). В UPDATE проставляем updated_at = now()
     const { rows } = await pool.query(
       `
-      INSERT INTO players (telegram_id, callsign, level, exp, resources, updated_at)
-      VALUES ($1, $2, $3, $4, $5::jsonb, now())
+      INSERT INTO players (telegram_id, callsign, level, exp, resources)
+      VALUES ($1, $2, $3, $4, $5::jsonb)
       ON CONFLICT (telegram_id) DO UPDATE
       SET
         callsign  = COALESCE(EXCLUDED.callsign, players.callsign),
