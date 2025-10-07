@@ -13335,6 +13335,10 @@ MV.RES_DIRTY = false;
     });
   })();
 
+  // мост: все глобальные вызовы идут в MV
+  window.scheduleSync = window.MV.scheduleSync;
+  window.syncPlayer   = window.MV.syncPlayer;
+
   // 8) Hidden sync
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'hidden') return;
@@ -13363,8 +13367,3 @@ if (!Object.keys(resources).length) {
   });
 
 })();</script>
-<script>
-  // мост: все глобальные вызовы идут в MV
-  window.scheduleSync = window.MV.scheduleSync;
-  window.syncPlayer   = window.MV.syncPlayer;
-</script>
