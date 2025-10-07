@@ -142,27 +142,7 @@ function scheduleSync(reason = 'resources') {
 })();
 
 
-</script>
-
-<script>
-  //  адресс  Railway:
-/* PATCH: unified API_BASE below */ //   window.API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app';
-</script>
- <script>
-    // PATCH: sync debounce and boot flag
-    window.__SYNC_TIMER = null;
-    window.__BOOT_LOADING = true;
-
-    function scheduleSync(reason = 'resources') {
-      try {
-        if (window.__BOOT_LOADING) return;            // не синкаем во время первичной загрузки
-        if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
-        window.__SYNC_TIMER = setTimeout(() => {
-          try { syncPlayer(); } catch (_) {}
-        }, 800);                                      // дебаунс 0.8 c
-      } catch (_) {}
-    }
-  </script>
+</script>          
   <script>
   window.updateResourceBar ||= function(){};
 </script>
@@ -13065,6 +13045,7 @@ async function bootWithTelegramId(tgId) {
           applyPlayer(p);
           renderHUD();
           window.__BOOT_LOADING = false;  // ← только тут!
+          scheduleSync('boot');
         }
       } catch (_) {}
     }
@@ -13082,7 +13063,33 @@ async function bootWithTelegramId(tgId) {
 }
 
 // (опц.) синк на уход со страницы
-window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && syncPlayer(); } catch(_){} });
+window.addEventListener('beforeunload', function(){
+  try {
+    const tg = window.PLAYER?.telegram_id || (window.MV && window.MV.resolveTelegramId && window.MV.resolveTelegramId());
+    if (!tg) return;
+
+    const resources = (window.MV && window.MV.readUiRes) ? window.MV.readUiRes()
+                    : (window.PLAYER && window.PLAYER.resources) || {};
+    const payload = {
+      telegramId: tg,
+      callsign:   window.PLAYER?.callsign || 'Citizen',
+      level:      Number(window.PLAYER?.level || 1),
+      exp:        Number(window.PLAYER?.exp   || 0),
+      resources,
+      progress:   window.PLAYER?.progress || {},
+      stats:      window.PLAYER?.stats    || {},
+      reason:     'unload'
+    };
+
+    const url  = `${window.API_BASE}/api/player/sync?tg=${tg}`;
+    const data = new Blob([JSON.stringify(payload)], { type:'application/json' });
+
+    if (!navigator.sendBeacon || !navigator.sendBeacon(url, data)) {
+      fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), keepalive:true });
+    }
+  } catch(_){}
+});
+
 </script>
 <script>
   // ===== DEBUG HOOKS (временно) =====
@@ -13338,3 +13345,8 @@ window.addEventListener('beforeunload', () => { try { navigator.sendBeacon && sy
   });
 
 })();</script>
+<script>
+  // мост: все глобальные вызовы идут в MV
+  window.scheduleSync = window.MV.scheduleSync;
+  window.syncPlayer   = window.MV.syncPlayer;
+</script>
