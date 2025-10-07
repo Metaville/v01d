@@ -322,6 +322,10 @@ if (!window.PLAYER.telegram_id && tg != null) {
     }
   }
 
+  // API базовый URL. Если у тебя уже есть window.API_BASE — оставь его.
+  // Ниже — только пример. Не дублируй, если у тебя это уже объявлено.
+/* PATCH: duplicate default removed */ //   window.API_BASE = window.API_BASE || 'https://vibrant-upliftment-production-fc51.up.railway.app';
+
   // ---------------- загрузка профиля с API ----------------
   async function loadPlayerIntoGame() {
     const tg = getTgId();
@@ -13031,27 +13035,23 @@ function setResource(name, val) {
 }
 
 // ===== синхронизировать после изменений =====
-async function syncPlayer() {
+  async function syncPlayer() {
   // восстановим id, если его нет
-  const tid =
-    window.PLAYER?.telegram_id ||
-    resolveTelegramId() ||
-    new URL(location.href).searchParams.get('tg');
+  let tid = window.PLAYER?.telegram_id
+         || resolveTelegramId()
+         || new URL(location.href).searchParams.get('tg');
 
   if (!tid) {
     console.warn('[sync] no telegram_id – skip');
     return;
   }
-
-  // гарантируем объект
-  window.PLAYER = window.PLAYER || {};
   window.PLAYER.telegram_id = Number(tid);
 
-  const P = window.PLAYER;
-  if (!P || !P.telegram_id) return;
+  const P = window.PLAYER;                // ← читаем из глобального
+  if (!P || !P.telegram_id) return;       // нет id — не пытаемся синкать
 
   const payload = {
-    telegram_id: P.telegram_id,     // можно telegram_id, сервер понимает ?tg= тоже
+    telegramId: P.telegram_id,
     callsign:   P.callsign,
     level:      P.level,
     exp:        P.exp,
@@ -13093,18 +13093,7 @@ async function syncPlayer() {
   } else {
     console.warn('[sync] fail', data);
   }
-}
-
-
-  // после успешного применения БД = «чисто»
-  window.__LAST_SYNC_RES = (window.PLAYER && window.PLAYER.resources)
-    ? JSON.parse(JSON.stringify(window.PLAYER.resources))
-    : null;
-  window.__RES_DIRTY = false;
-  window.__LAST_SYNC_AT = Date.now();
-} finally {
-  setTimeout(()=>{ window.__SILENT_UI = Math.max(0, window.__SILENT_UI-1); }, 350);
-}            
+}         
 // ===== общий boot =====
 async function bootWithTelegramId(tgId) {
   try {
