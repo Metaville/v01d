@@ -18,6 +18,66 @@
     stats: {}
   };
 </script>
+<script>
+window.Telegram?.WebApp?.ready?.();
+
+const API_BASE = window.API_BASE || 'https://vibrant-upliftment-production-fc51.up.railway.app'; // твой
+function getTgId(){
+  try {
+    const t = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (t) return Number(t);
+  } catch(_) {}
+  const p = new URL(location.href).searchParams.get('tg');
+  return p && /^\d+$/.test(p) ? Number(p) : null;
+}
+
+async function boot(){
+  const tg = getTgId();
+  if (!tg) {
+    console.warn('Нет telegramId. В браузере можно тестить ?tg=123');
+    window.__BOOT_LOADING = false;
+    return;
+  }
+
+  try {
+    // 1) читаем
+    let r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`, { headers:{'Accept':'application/json'} });
+    let data = r.ok ? await r.json() : null;
+    let player = data?.player;
+
+    // 2) создаём если надо
+    if (!player) {
+      const payload = {
+        telegram_id: tg, // серверу удобнее snake_case
+        callsign: 'Citizen', level: 1, exp: 0,
+        resources: { oxygen: 200, energy: 600, mvc: 100, bio: 0, parts: 0, ice: 20 }
+      };
+      r = await fetch(`${API_BASE}/api/player/sync?tg=${tg}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'sync_failed');
+      player = j.player;
+    }
+
+    // 3) применяем игрока и рисуем HUD (твои функции)
+    window.__SILENT_UI = (window.__SILENT_UI||0)+1;
+    if (window.applyPlayer) applyPlayer(player);
+    if (window.renderHUD) renderHUD();
+    window.__SILENT_UI--;
+    window.__LAST_SYNC_RES = { ...(player?.resources||{}) };
+    window.__RES_DIRTY = false;
+  } catch(e){
+    console.error('boot_failed', e);
+  } finally {
+    window.__BOOT_LOADING = false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
 
 <script>
   // --- debounce sync + boot-flag ---
@@ -87,12 +147,11 @@ function scheduleSync(reason = 'resources') {
   (function () {
   // следим только за реальными цифрами ресурсов
   const selectors = [
-    '#oxygen-value','#energy-value','#mvc-value',
-    '#ice-value','#bio-value','#parts-value''#polymers-value','#rare-value',,
-    '[data-oxygen]','[data-energy]','[data-mvc]',
-    '[data-ice]','[data-bio]','[data-parts]'
-  ];
-
+  '#oxygen-value','#energy-value','#mvc-value',
+  '#ice-value','#bio-value','#parts-value','#polymers-value','#rare-value',
+  '[data-oxygen]','[data-energy]','[data-mvc]',
+  '[data-ice]','[data-bio]','[data-parts]','[data-polymers]','[data-rare]'
+];
   // читаем ресурсы с HUD
   function readUiRes(){
     const pick = (q) => {
@@ -13025,10 +13084,7 @@ try {
   window.__LAST_SYNC_AT = Date.now();
 } finally {
   setTimeout(()=>{ window.__SILENT_UI = Math.max(0, window.__SILENT_UI-1); }, 350);
-}
-
-
-
+}            
 // ===== общий boot =====
 async function bootWithTelegramId(tgId) {
   try {
