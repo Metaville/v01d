@@ -322,10 +322,6 @@ if (!window.PLAYER.telegram_id && tg != null) {
     }
   }
 
-  // API базовый URL. Если у тебя уже есть window.API_BASE — оставь его.
-  // Ниже — только пример. Не дублируй, если у тебя это уже объявлено.
-/* PATCH: duplicate default removed */ //   window.API_BASE = window.API_BASE || 'https://vibrant-upliftment-production-fc51.up.railway.app';
-
   // ---------------- загрузка профиля с API ----------------
   async function loadPlayerIntoGame() {
     const tg = getTgId();
@@ -13061,21 +13057,40 @@ function setResource(name, val) {
   };
 
   const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+  body: JSON.stringify(payload),
+});
+if (!r.ok) throw new Error(`sync_http_${r.status}`);
 
-  const data = await r.json();
-  if (data.ok && data.player) {
-     // ТИХИЙ РЕНДЕР, чтобы observer не поставил ещё один sync
-window.__SILENT_UI++;
+const data = await r.json();
+
+window.__SILENT_UI = (window.__SILENT_UI || 0) + 1;
 try {
-  applyPlayer(data.player);
-  renderHUD();
-} else {
-  console.warn('[sync] fail', data);
+  if (data && data.player) {
+    // ТИХИЙ РЕНДЕР, чтобы observer не поставил ещё один sync
+    applyPlayer(data.player);
+    renderHUD();
+
+    // после успешного применения БД = «чисто»
+    const res = window.PLAYER && window.PLAYER.resources
+      ? JSON.parse(JSON.stringify(window.PLAYER.resources))
+      : null;
+    window.__LAST_SYNC_RES = res;
+    window.__RES_DIRTY = false;
+    window.__LAST_SYNC_AT = Date.now();
+  } else {
+    console.warn('[sync] fail', data);
+  }
+} catch (e) {
+  console.warn('[sync] exception', e);
+} finally {
+  setTimeout(() => {
+    window.__SILENT_UI = Math.max(0, (window.__SILENT_UI || 0) - 1);
+  }, 350);
 }
+
+
   // после успешного применения БД = «чисто»
   window.__LAST_SYNC_RES = (window.PLAYER && window.PLAYER.resources)
     ? JSON.parse(JSON.stringify(window.PLAYER.resources))
