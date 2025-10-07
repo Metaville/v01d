@@ -324,7 +324,7 @@ if (!window.PLAYER.telegram_id && tg != null) {
   document.addEventListener('DOMContentLoaded', async () => {
     await loadPlayerIntoGame();          // 1) подтянуть сохранённое из БД
     if (window.mvSyncPlayer) {
-      await window.mvSyncPlayer('boot'); // 2) заодно обновить last_login и зафиксировать актуальное
+     // await window.mvSyncPlayer('boot'); // 2) заодно обновить last_login и зафиксировать актуальное
     }
   });
 })();
@@ -13235,7 +13235,14 @@ window.addEventListener('beforeunload', function(){
     const tg = window.PLAYER?.telegram_id || MV.resolveTelegramId();
     if (!tg) return;
 
-    const resources = MV.readUiRes();
+    // 1) читаем из state
+let resources = { ...(window.PLAYER?.resources || {}) };
+
+// 2) если по какой-то причине state ещё пуст (ранний вызов) — подстраховка DOM
+if (!Object.keys(resources).length) {
+  resources = MV.readUiRes();
+}
+
     if (MV.LAST_SENT && MV.shallowEqual(resources, MV.LAST_SENT)) {
       MV.RES_DIRTY = false;
       return;
@@ -13301,7 +13308,10 @@ window.addEventListener('beforeunload', function(){
       console.warn('[MV load] fail', e);
     }
     MV.BOOT_LOADING = false;
-    MV.scheduleSync('boot');
+// мы только что отрисовали ресурсы из БД — считаем снимок чистым
+MV.LAST_SENT = { ...(window.PLAYER?.resources || {}) };
+MV.RES_DIRTY = false;
+
   };
 
   window.addEventListener('load', MV.loadOrCreatePlayer);
