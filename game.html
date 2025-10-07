@@ -224,7 +224,7 @@ if (!window.PLAYER.telegram_id && tg != null) {
           callsign: 'Citizen',
           level: 1,
           exp: 0,
-          resources: { oxygen: 250, energy: 500, mvc: 500, bio: 100, parts: 100, ice: 120 },
+          resources: { oxygen: 200, energy: 600, mvc: 100, bio: 0, parts: 0, ice: 20 },
           progress: {},
           stats: {}
         });
@@ -4377,17 +4377,17 @@ html, body { overflow-x: hidden; }
         // Состояние игры (исправленное)
         const gameState = {
             resources: {
-                oxygen: 250,
-                energy: 500,
-                mvc: 500,
-                bio: 100,
-                parts: 100,
+                oxygen: 200,
+                energy: 600,
+                mvc: 100,
+                bio: 0,
+                parts: 0,
                 /**
                  * Запас льда используется майнером кислорода как сырьё. Этот ресурс
                  * не отображается в общем счётчике, но хранится в состоянии. Для
                  * начала задаём небольшой стартовый запас.
                  */
-                ice: 120,
+                ice: 20,
                 /**
                  * Дополнительные ресурсы для торговли. Полимеры и редкоземы
                  * хранятся в общем счётчике, чтобы отображаться на верхней панели.
@@ -7310,8 +7310,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Export Blueprints API for console access
   window.Blueprints = {
-  list: () => ({ known:[...(blueprints||[])], installed:[...(installed||[])], all: ALL_BLUEPRINTS }),
-  ...
+  list: () => ({ known:[...blueprints], installed:[...installed], all: ALL_BLUEPRINTS }),
+  install: installModule,
+  study: (id) => { blueprints.add(id); saveBlueprints(); }
 };
 })();
 </script>
@@ -10116,7 +10117,7 @@ const Timers = (() => {
     set(name, fn, ms) { this.clear(name); const id = setInterval(fn, ms); map.set(name, {type:'int', id}); return id; },
     raf(name, fn) { this.clear(name); let id; const loop=()=>{ try { fn(); } finally { id = requestAnimationFrame(loop); } }; id = requestAnimationFrame(loop); map.set(name, {type:'raf', id}); return id; },
     clear(name){ const t=map.get(name); if(!t) return; if (t.type==='raf') cancelAnimationFrame(t.id); else clearInterval(t.id); map.delete(name); },
-    clearAll(){ for (const k of map.keys()) this.clear(k); }
+    clearAll(){ for (const k of map.keys()) this.clear(k); },
 
   };
 })();
@@ -13183,6 +13184,8 @@ window.addEventListener('beforeunload', function(){
     set('ice-value',    res?.ice    || 0);
     set('bio-value',    res?.bio    || 0);
     set('parts-value',  res?.parts  || 0);
+    set('polymers-value', res?.polymers || 0);
+    set('rare-value',     res?.rare     || 0);
   };
   MV.readUiRes = function(){
     const num = id => {
@@ -13326,7 +13329,7 @@ MV.RES_DIRTY = false;
 };
       window.updateResource.__wrapped = true;
     }
-    const ids = ['oxygen-value','energy-value','mvc-value','ice-value','bio-value','parts-value'];
+    const ids = ['oxygen-value','energy-value','mvc-value','ice-value','bio-value','parts-value','polymers-value','rare-value'];
     ids.forEach(id=>{
       const el = document.getElementById(id);
       if (!el) return;
