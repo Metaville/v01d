@@ -52,7 +52,7 @@ window.__LAST_HUD_MUTATION_AT = 0;
 // хелпер: глубокое сравнение простого объекта ресурсов
 function sameRes(a,b){
   if (!a || !b) return false;
-  const keys = ['oxygen','energy','mvc','ice','bio','parts'];
+  const keys = ['oxygen','energy','mvc','ice','bio','parts','polymers','rare'];
   for (const k of keys) if (Number(a[k]||0) !== Number(b[k]||0)) return false;
   return true;
 }
@@ -88,7 +88,7 @@ function scheduleSync(reason = 'resources') {
   // следим только за реальными цифрами ресурсов
   const selectors = [
     '#oxygen-value','#energy-value','#mvc-value',
-    '#ice-value','#bio-value','#parts-value',
+    '#ice-value','#bio-value','#parts-value''#polymers-value','#rare-value',,
     '[data-oxygen]','[data-energy]','[data-mvc]',
     '[data-ice]','[data-bio]','[data-parts]'
   ];
@@ -106,6 +106,8 @@ function scheduleSync(reason = 'resources') {
       ice:    pick('#ice-value')    || pick('[data-ice]'),
       bio:    pick('#bio-value')    || pick('[data-bio]'),
       parts:  pick('#parts-value')  || pick('[data-parts]'),
+      polymers:  pick('#polymers-value')|| pick('[data-polymers]'),
+      rare:      pick('#rare-value')    || pick('[data-rare]'),
     };
   }
 
@@ -296,25 +298,17 @@ if (!window.PLAYER.telegram_id && tg != null) {
       // твой глобальный стейт
       const GS = (window.gameState = window.gameState || {});
       const P  = (GS.player     = GS.player     || {});
-      GS.resources = dbp.resources ?? GS.resources ?? {};
-      GS.progress  = dbp.progress  ?? GS.progress  ?? {};
-      P.stats      = dbp.stats     ?? P.stats      ?? {};
-
-      // простые поля
-      P.callsign   = dbp.callsign ?? P.callsign ?? 'Citizen';
-      P.level      = Number(dbp.level ?? P.level ?? 1);
-      P.exp        = Number(dbp.exp   ?? P.exp   ?? 0);
-
-      // опционально, если используешь
-      P.solAddress = dbp.sol_address ?? P.solAddress ?? null;
-
-      console.log('[load] ok', {
-        id: dbp.id,
-        telegram_id: dbp.telegram_id,
-        callsign: P.callsign,
-        level: P.level,
-        exp: P.exp
-      });
+        window.__SILENT_UI = (window.__SILENT_UI||0) + 1; // чтобы не триггерить sync на собственную отрисовку
+     applyPlayer(dbp);
+     renderHUD();
+     window.__SILENT_UI--;
+     window.__BOOT_LOADING = false;
+     window.__LAST_SYNC_RES = { ...(window.PLAYER?.resources||{}) };
+     window.__RES_DIRTY = false;
+     console.log('[load] ok', {
+       id: dbp.id, telegram_id: dbp.telegram_id,
+      callsign: PLAYER.callsign, level: PLAYER.level, exp: PLAYER.exp
+     });
     } catch (e) {
       console.error('[load] error', e);
     }
@@ -12923,7 +12917,8 @@ const $ = (sel) => document.querySelector(sel);
 
 // ===== применить игрока в state и кэш =====
 function applyPlayer(p) {
-const DEF = { oxygen:50, energy:500, mvc:0, bio:0, parts:0, ice:20 }; // если у тебя уже есть DEFAULT_RES — используй его
+const DEF = { oxygen:50, energy:500, mvc:0, bio:0, parts:0, ice:20, polymers:0, rare:0 };
+  
   window.PLAYER.telegram_id = Number(p.telegram_id || p.telegramId || window.PLAYER.telegram_id);
   window.PLAYER.callsign    = p.callsign ?? window.PLAYER.callsign;
   window.PLAYER.level       = Number(p.level ?? window.PLAYER.level);
