@@ -78,7 +78,12 @@ async function boot(){
 
 document.addEventListener('DOMContentLoaded', boot);
 </script>
-
+<script>
+  function getTgInitHeader() {
+    try { return window.Telegram?.WebApp?.initData || ''; }
+    catch (_) { return ''; }
+  }
+</script>
 <script>
   // --- debounce sync + boot-flag ---
   window.__SYNC_TIMER = null;
@@ -227,20 +232,27 @@ function scheduleSync(reason = 'resources') {
   }
 
   // ===== 3) Обёртки API =====
- async function apiGetPlayerByTg(tg) {
-  const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
-  if (!r.ok) return null;
-  const j = await r.json();
-  return j.player;
-}
+ const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Telegram-Init': getTgInitHeader(),
+    'Accept': 'application/json'
+  },
+  body: JSON.stringify(payload),
+});
 
 
   async function apiSyncPlayer(payload) {
     const r = await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId || payload.telegram_id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Telegram-Init': getTgInitHeader(),
+    'Accept': 'application/json'
+  },
+  body: JSON.stringify(payload),
+});
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'sync_failed');
     return j.player;
@@ -13146,10 +13158,17 @@ window.addEventListener('beforeunload', function(){
     const data = new Blob([JSON.stringify(payload)], { type:'application/json' });
 
     if (!navigator.sendBeacon || !navigator.sendBeacon(url, data)) {
-      fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), keepalive:true });
-    }
-  } catch(_){}
+      fetch(url, {
+  method:'POST',
+  headers:{
+    'Content-Type':'application/json',
+    'X-Telegram-Init': getTgInitHeader(),
+    'Accept':'application/json'
+  },
+  body: JSON.stringify(payload),
+  keepalive:true
 });
+
 
 </script>
 <script>
@@ -13222,10 +13241,15 @@ window.addEventListener('beforeunload', function(){
   window.apiSyncPlayer = async function(payload){
     const tg = payload.telegramId || payload.telegram_id;
     const r = await fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify(payload),
-    });
+  method: 'POST',
+  headers: {
+    'Content-Type':'application/json',
+    'X-Telegram-Init': getTgInitHeader(),
+    'Accept': 'application/json'
+  },
+  body: JSON.stringify(payload),
+});
+
     const j = await r.json().catch(()=>null);
     if (!r.ok) throw new Error(j?.error || 'sync_failed');
     return j.player;
@@ -13325,10 +13349,14 @@ if (!Object.keys(resources).length) {
       };
 
       const r = await fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify(payload),
-      });
+  method: 'POST',
+  headers: {
+    'Content-Type':'application/json',
+    'X-Telegram-Init': getTgInitHeader(),
+    'Accept': 'application/json'
+  },
+  body: JSON.stringify(payload),
+});
       const j = await r.json().catch(()=>null);
       if (!r.ok) throw new Error(j?.error || `HTTP_${r.status}`);
 
