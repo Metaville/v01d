@@ -46,13 +46,12 @@ async function boot(){
     let data = r.ok ? await r.json() : null;
     let player = data?.player;
 
-    // 2) создаём если надо
-    if (!player) {
-      const payload = {
-        telegram_id: tg, // серверу удобнее snake_case
-        callsign: 'Citizen', level: 1, exp: 0,
-        resources: { oxygen: 200, energy: 600, mvc: 100, bio: 0, parts: 0, ice: 20 }
-      };
+   // Если игрок в БД не найден — ничего не создаём на клиенте
+if (!player) {
+  console.log('[load] player not found in DB');
+  return;
+}
+
       r = await fetch(`${API_BASE}/api/player/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Telegram-Init': getTgInitHeader(), 'Accept':'application/json'},
@@ -75,7 +74,7 @@ async function boot(){
   } finally {
     window.__BOOT_LOADING = false;
   }
-}
+
 
 document.addEventListener('DOMContentLoaded', boot);
 </script>
@@ -280,20 +279,11 @@ if (!window.PLAYER.telegram_id && tg != null) {
       // 5.1. Пытаемся прочитать игрока
       let player = await apiGetPlayerByTg(tg);
 
-      // 5.2. Если нет — создаём с дефолтами (можешь поменять под свои)
-      if (!player) {
-        player = await apiSyncPlayer({
-          telegramId: tg,
-          callsign: 'Citizen',
-          level: 1,
-          exp: 0,
-          resources: { oxygen: 200, energy: 600, mvc: 100, bio: 0, parts: 0, ice: 20 },
-          progress: {},
-          stats: {}
-        });
-      }
-
-      console.log('[load] player:', player);
+     // Если игрок в БД не найден — ничего не создаём на клиенте
+if (!player) {
+  console.log('[load] player not found in DB');
+  return;
+}
       
       //window.__BOOT_LOADING = false; // PATCH: boot finished
 } catch (e) {
@@ -355,6 +345,10 @@ if (!window.PLAYER.telegram_id && tg != null) {
       }
 
       const dbp = data.player;
+
+      // применяем в единый state и сразу перерисовываем HUD
+       applyPlayer(dbp);
+       renderHUD();
 
       // твой глобальный стейт
       const GS = (window.gameState = window.gameState || {});
@@ -13317,10 +13311,10 @@ window.addEventListener('beforeunload', function(){
 
     // 1) читаем из state
 let resources = { ...(window.PLAYER?.resources || {}) };
+for (const k in resources) resources[k] = Number(resources[k]) || 0;
 
 // 2) если по какой-то причине state ещё пуст (ранний вызов) — подстраховка DOM
-if (!Object.keys(resources).length) {
-  resources = MV.readUiRes();
+if (!Object.keys(resources).length) {resources = MV.readUiRes(); // редкий фолбэк
 }
 
     if (MV.LAST_SENT && MV.shallowEqual(resources, MV.LAST_SENT)) {
