@@ -40,9 +40,11 @@ function scheduleSync(reason='resources'){
 
     const tryObserve = () => {
       if (window.__BOOT_LOADING) { requestAnimationFrame(tryObserve); return; }
-      const obs = new MutationObserver(() => {
-        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
-      });
+            const obs = new MutationObserver(() => {
+    if (!window.__BOOT_LOADING && !window.__UPDATING_HUD) {
+      scheduleSync('hud-mutation');
+    }
+  });
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) obs.observe(el, { childList: true, subtree: true, characterData: true });
@@ -120,10 +122,10 @@ function readHudResources() {
   };
 }
 
-function shallowEqual(a,b){ 
+function shallowEqual(a, b) {
   if (!a || !b) return false;
   const k = new Set([...Object.keys(a), ...Object.keys(b)]);
-  for (const key of k) if ((a[key]||0)!==(b[key]||0)) return false;
+  for (const key of k) if ((a[key] || 0) !== (b[key] || 0)) return false;
   return true;
 }
 
@@ -140,7 +142,7 @@ async function syncPlayer(reason='unknown'){
   const tg = window.PLAYER?.telegram_id || window.__telegramId || resolveTelegramId();
   if (!tg) return;
 
-  const res = readHudResources();
+ const res = normalizeResources(readHudResources());
   const payload = {
     telegramId: tg,
     callsign:   window.PLAYER?.callsign || 'Citizen',
@@ -171,21 +173,55 @@ async function syncPlayer(reason='unknown'){
   }
 
   // Успешно: запоминаем, что отправляли
-  window.__LAST_SENT = { ...payload.resources };
+ window.__LAST_SENT = { ...payload.resources };
 
-  // Берём авторитетные значения с бэка и рисуем HUD
+ // Берём ответ бэка, мерджим с текущими HUD-значениями и ТИХО обновляем UI
   if (serverPlayer?.resources) {
-    updateResourceBar(serverPlayer.resources);
+    const current    = normalizeResources(readHudResources());      // что на экране
+    const fromServer = normalizeResources(serverPlayer.resources);  // мог быть частичным
+    const merged     = { ...current, ...fromServer };               // сервер имеет приоритет
+
+    // Не триггерим observer при программном апдейте
+    const prevFlag = window.__UPDATING_HUD;
+    window.__UPDATING_HUD = true;
+    updateResourceBar(merged);
+    window.__UPDATING_HUD = prevFlag;
+
     window.PLAYER = {
       telegram_id: serverPlayer.telegram_id,
       callsign: serverPlayer.callsign,
       level: serverPlayer.level,
       exp: serverPlayer.exp,
-      resources: { ...serverPlayer.resources },
+      resources: merged,
       progress: serverPlayer.progress || {},
       stats: serverPlayer.stats || {}
     };
   }
+
+if (serverPlayer?.resources) {
+  // что сейчас на экране (в HUD)
+  const current = normalizeResources(readHudResources()); // читает по #oxygen-value и т.д. :contentReference[oaicite:4]{index=4}
+  // что пришло с бэка — могло быть частичным
+  const fromServer = normalizeResources(serverPlayer.resources);
+  // мерж: сервер имеет приоритет, но пустые поля заполняем текущими значениями
+  const merged = { ...current, ...fromServer };
+
+  // не даём мутационному наблюдателю запустить лишний sync
+  const prev = window.__UPDATING_HUD;
+  window.__UPDATING_HUD = true;
+  updateResourceBar(merged);                 // ставим все поля разом, включая ice/bio/parts/polymers/rare :contentReference[oaicite:5]{index=5}
+  window.__UPDATING_HUD = prev;
+
+  window.PLAYER = {
+    telegram_id: serverPlayer.telegram_id,
+    callsign: serverPlayer.callsign,
+    level: serverPlayer.level,
+    exp: serverPlayer.exp,
+    resources: merged,
+    progress: serverPlayer.progress || {},
+    stats: serverPlayer.stats || {}
+  };
+}
 
   window.__SYNC_INFLIGHT = false;
 
@@ -261,8 +297,8 @@ async function loadOrCreatePlayer(tgFromCaller) {
 
     // 2) HUD из БД
     if (typeof updateResourceBar === 'function') {
-      updateResourceBar(player.resources);
-    }
+  updateResourceBar(normalizeResources(player.resources));
+}
     // если у тебя есть renderHUD — можешь вызвать и его:
     try { if (typeof renderHUD==='function') renderHUD(); } catch(_){}
 
@@ -12971,9 +13007,11 @@ window.addEventListener('load', () => bootWithTelegramId(resolveTelegramId()));
       if (window.__BOOT_LOADING) { requestAnimationFrame(startObserver); return; }
       const els = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
       if (!els.length) { requestAnimationFrame(startObserver); return; }
-      const obs = new MutationObserver(() => {
-        if (!window.__BOOT_LOADING) scheduleSync('hud-mutation');
-      });
+       const obs = new MutationObserver(() => {
+    if (!window.__BOOT_LOADING && !window.__UPDATING_HUD) {
+      scheduleSync('hud-mutation');
+    }
+  });
       els.forEach(el => obs.observe(el, { childList: true, characterData: true, subtree: true }));
       console.log('[hud-observer] watching', els.length, 'nodes');
     }
