@@ -18,16 +18,58 @@
     stats: {}
   };
 </script>
+<script>
+// === Resources utils (ГЛОБАЛЬНО) ===
+window.normalizeResources = function (r = {}) {
+  return {
+    oxygen: 0, energy: 0, mvc: 0, ice: 0, bio: 0, parts: 0, polymers: 0, rare: 0,
+    ...r
+  };
+};
+
+// безопасное обновление HUD без триггера синка
+window.__UPDATING_HUD = false;
+window.safeHudUpdate = function (r = {}) {
+  const res = window.normalizeResources(r);
+  const prev = window.__UPDATING_HUD;
+  window.__UPDATING_HUD = true;
+
+  // если есть твоя функция — дай ей сделать прогресс-бары/иконки
+  if (typeof updateResourceBar === 'function') {
+    updateResourceBar(res);
+  } else {
+    // жёсткий фолбэк — прям в DOM
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = String(v ?? 0); };
+    set('oxygen-value', res.oxygen);
+    set('energy-value', res.energy);
+    set('mvc-value',    res.mvc);
+    set('ice-value',    res.ice);
+    set('bio-value',    res.bio);
+    set('parts-value',  res.parts);
+    set('polymers-value', res.polymers);
+    set('rare-value',     res.rare);
+  }
+
+  window.__UPDATING_HUD = prev;
+};
+</script>
 
 <script>
   // --- debounce sync + boot-flag ---
-  window.__SYNC_TIMER = null;
-  window.__BOOT_LOADING = true;
+  window.__SYNC_TIMER = window.__SYNC_TIMER || null;
+window.__SYNC_REASON = window.__SYNC_REASON || null;
 
-function scheduleSync(reason='resources'){
-  if (window.__BOOT_LOADING) return;
-  if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
-  window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(); } catch(_) {} }, 800);
+function scheduleSync(reason = 'unknown') {
+  window.__SYNC_REASON = reason;
+  if (window.__SYNC_TIMER) return; // уже запланировано — не логируем/не дёргаем второй раз
+
+  console.log('[scheduleSync]', { reason, boot: !!window.__BOOT_LOADING, tg: window.__telegramId });
+  window.__SYNC_TIMER = setTimeout(async () => {
+    const r = window.__SYNC_REASON;
+    window.__SYNC_TIMER = null;
+    window.__SYNC_REASON = null;
+    try { await syncPlayer(r); } catch (e) { console.error('[scheduleSync] sync failed', e); }
+  }, 600); // можно 400–800мс
 }
 </script>
 <script>
@@ -41,10 +83,10 @@ function scheduleSync(reason='resources'){
     const tryObserve = () => {
       if (window.__BOOT_LOADING) { requestAnimationFrame(tryObserve); return; }
             const obs = new MutationObserver(() => {
-    if (!window.__BOOT_LOADING && !window.__UPDATING_HUD) {
-      scheduleSync('hud-mutation');
-    }
-  });
+  if (!window.__BOOT_LOADING && !window.__UPDATING_HUD) {
+    scheduleSync('hud-mutation');
+  }
+});
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) obs.observe(el, { childList: true, subtree: true, characterData: true });
@@ -113,12 +155,14 @@ window.__LAST_SENT     = null;
 function readHudResources() {
   const val = id => Number((document.getElementById(id)?.textContent || '0').replace(/[^\d.-]/g,'')) || 0;
   return {
-    oxygen: val('oxygen-value'),
-    energy: val('energy-value'),
-    mvc:    val('mvc-value'),
-    ice:    val('ice-value'),
-    bio:    val('bio-value'),
-    parts:  val('parts-value')
+    oxygen:   val('oxygen-value'),
+    energy:   val('energy-value'),
+    mvc:      val('mvc-value'),
+    ice:      val('ice-value'),
+    bio:      val('bio-value'),
+    parts:    val('parts-value'),
+    polymers: val('polymers-value'),
+    rare:     val('rare-value'),
   };
 }
 
@@ -198,14 +242,6 @@ async function syncPlayer(reason='unknown'){
     };
   }
 
-if (serverPlayer?.resources) {
-  // что сейчас на экране (в HUD)
-  const current = normalizeResources(readHudResources()); // читает по #oxygen-value и т.д. :contentReference[oaicite:4]{index=4}
-  // что пришло с бэка — могло быть частичным
-  const fromServer = normalizeResources(serverPlayer.resources);
-  // мерж: сервер имеет приоритет, но пустые поля заполняем текущими значениями
-  const merged = { ...current, ...fromServer };
-
   // не даём мутационному наблюдателю запустить лишний sync
   const prev = window.__UPDATING_HUD;
   window.__UPDATING_HUD = true;
@@ -229,23 +265,28 @@ if (serverPlayer?.resources) {
   if (window.__RES_DIRTY) {
     window.__RES_DIRTY = false;
     scheduleSync('dirty-loop');
-  }
-
   console.log('[syncPlayer] done');
 }
 
 // Переиспользуем дебаунсер:
-window.scheduleSync = function(reason='resources'){
+// Одна функция для всех случаев
+window.scheduleSync = function(reason = 'unknown') {
   if (window.__BOOT_LOADING) return;
   if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
-  window.__SYNC_TIMER = setTimeout(() => { try { syncPlayer(reason); } catch(_){} }, 800);
+  window.__SYNC_TIMER = setTimeout(() => {
+    try { 
+      syncPlayer(reason); 
+    } catch(e) {
+      console.error('[scheduleSync] error:', e);
+    }
+  }, 600);
 };
 
   // ===== 4) Проставляем ресурсы в верхнюю панель =====
   function updateResourceBar(res = {}) {
     const num = v => (typeof v === 'number' ? v : Number(v) || 0);
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = num(v); };
-
+    window.safeHudUpdate(player.resources);
     set('oxygen-value', res.oxygen);
     set('energy-value',  res.energy);
     set('mvc-value',     res.mvc);
@@ -278,7 +319,7 @@ async function loadOrCreatePlayer(tgFromCaller) {
         callsign: 'Citizen',
         level: 1,
         exp: 0,
-        resources: { oxygen: 250, energy: 500, mvc: 500, bio: 100, parts: 100, ice: 120 },
+        resources: { oxygen: 250, energy: 500, mvc: 500, bio: 100, parts: 100, ice: 120, polymers: 0, rare: 0 },
         progress: {},
         stats: {}
       });
@@ -308,9 +349,13 @@ async function loadOrCreatePlayer(tgFromCaller) {
     window.__BOOT_LOADING = false;
     if (typeof scheduleSync === 'function') scheduleSync('boot');
   } catch (e) {
-    console.error('load_failed', e);
-    window.__BOOT_LOADING = false;
-  }
+  console.error('[sync] network error', e);
+  window.__SYNC_INFLIGHT = false;
+  window.__RES_DIRTY = true;
+  // Сбросить LAST_SENT при ошибке
+  window.__LAST_SENT = null;
+  setTimeout(() => scheduleSync('retry-after-error'), 1500);
+  return;
 }
 </script>
 
@@ -13008,8 +13053,8 @@ window.addEventListener('load', () => bootWithTelegramId(resolveTelegramId()));
       const els = selectors.flatMap(s => Array.from(document.querySelectorAll(s)));
       if (!els.length) { requestAnimationFrame(startObserver); return; }
        const obs = new MutationObserver(() => {
-    if (!window.__BOOT_LOADING && !window.__UPDATING_HUD) {
-      scheduleSync('hud-mutation');
+  if (!window.__BOOT_LOADING && !window.__UPDATING_HUD) {
+    scheduleSync('hud-mutation');
     }
   });
       els.forEach(el => obs.observe(el, { childList: true, characterData: true, subtree: true }));
