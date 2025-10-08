@@ -5159,23 +5159,29 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
                     let resourceName = "";
                     let resourceAmount = 0;
                     
-                    switch(resource) {
-                        case "polymers":
-                        case "rare":
-                            resourceName = resource === "polymers" ? "polymers" : "rare materials";
-                            break;
-                        case "oxygen":
-                            updateResource('oxygen', amount);
-                            resourceName = "O₂";
-                            resourceAmount = amount;
-                            break;
-                        case "stealth":
-                            gameState.slots--;
-                            resourceName = "stealth module";
-                            resourceAmount = 1;
-                            break;
-                    }
-                    
+                    switch (resource) {
+  case "polymers":
+    updateResource('polymers', amount);
+    resourceName = "polymers";
+    resourceAmount = amount;
+    break;
+  case "rare":
+    updateResource('rare', amount);
+    resourceName = "rare materials";
+    resourceAmount = amount;
+    break;
+  case "oxygen":
+    updateResource('oxygen', amount);
+    resourceName = "O₂";
+    resourceAmount = amount;
+    break;
+  case "stealth":
+    gameState.slots--;
+    resourceName = "stealth module";
+    resourceAmount = 1;
+    break;
+}
+
                     showNotification(`Purchased: ${resourceAmount > 0 ? resourceAmount + ' ' : ''}${resourceName}`, true);
                     updateUI();
                 }
@@ -8211,6 +8217,7 @@ if (typeof battAbsEl !== 'undefined' && battAbsEl) {
                     // Обновляем запасы ресурса у игрока
                     let resourceName = '';
                     let resourceAmount = amount;
+    break;
                     switch (resource) {
                         case 'polymers':
                             resourceName = 'полимеры';
@@ -13265,12 +13272,14 @@ window.addEventListener('beforeunload', function(){
       return Number(s) || 0;
     };
     return {
-      oxygen: num('oxygen-value'),
-      energy: num('energy-value'),
-      mvc:    num('mvc-value'),
-      ice:    num('ice-value'),
-      bio:    num('bio-value'),
-      parts:  num('parts-value'),
+      oxygen:   num('oxygen-value'),
+      energy:   num('energy-value'),
+      mvc:      num('mvc-value'),
+      ice:      num('ice-value'),
+      bio:      num('bio-value'),
+      parts:    num('parts-value'),
+      polymers: num('polymers-value'),
+      rare:     num('rare-value'),
     };
   };
 
