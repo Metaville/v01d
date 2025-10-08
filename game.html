@@ -10,7 +10,6 @@
   // Глобальный контейнер профиля игрока 
   window.PLAYER = window.PLAYER || {
     telegram_id: null,
-    telegramId: null,
     callsign: 'Citizen',
     level: 1,
     exp: 0,
@@ -46,15 +45,16 @@ async function boot(){
     let data = r.ok ? await r.json() : null;
     let player = data?.player;
 
-   // Если игрок в БД не найден — ничего не создаём на клиенте
-if (!player) {
-  console.log('[load] player not found in DB');
-  return;
-}
-
-      r = await fetch(`${API_BASE}/api/player/sync`, {
+    // 2) создаём если надо
+    if (!player) {
+      const payload = {
+        telegram_id: tg, // серверу удобнее snake_case
+        callsign: 'Citizen', level: 1, exp: 0,
+        resources: { oxygen: 200, energy: 600, mvc: 100, bio: 0, parts: 0, ice: 20 }
+      };
+      r = await fetch(`${API_BASE}/api/player/sync?tg=${tg}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Telegram-Init': getTgInitHeader(), 'Accept':'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const j = await r.json();
@@ -74,16 +74,11 @@ if (!player) {
   } finally {
     window.__BOOT_LOADING = false;
   }
-
+}
 
 document.addEventListener('DOMContentLoaded', boot);
 </script>
-<script>
-  function getTgInitHeader() {
-    try { return window.Telegram?.WebApp?.initData || ''; }
-    catch (_) { return ''; }
-  }
-</script>
+
 <script>
   // --- debounce sync + boot-flag ---
   window.__SYNC_TIMER = null;
@@ -214,6 +209,10 @@ function scheduleSync(reason = 'resources') {
 </script>
 
 <script>
+  // ===== 1) Настройки API =====
+  const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // <-- свой домен
+  // PATCH: expose for legacy
+  window.API_BASE = API_BASE;
 
   // ===== 2) Получаем telegramId из Telegram или из ?tg=... =====
   function resolveTelegramId() {
@@ -227,17 +226,21 @@ function scheduleSync(reason = 'resources') {
     return null;
   }
 
-    // ===== 3) Обёртки API =====
-async function apiSyncPlayer(payload) {
-    const r = await fetch(`${API_BASE}/api/player/sync`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-Telegram-Init': getTgInitHeader(),
-    'Accept': 'application/json'
-  },
-  body: JSON.stringify(payload),
-});
+  // ===== 3) Обёртки API =====
+ async function apiGetPlayerByTg(tg) {
+  const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
+  if (!r.ok) return null;
+  const j = await r.json();
+  return j.player;
+}
+
+
+  async function apiSyncPlayer(payload) {
+    const r = await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId || payload.telegram_id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'sync_failed');
     return j.player;
@@ -275,11 +278,20 @@ if (!window.PLAYER.telegram_id && tg != null) {
       // 5.1. Пытаемся прочитать игрока
       let player = await apiGetPlayerByTg(tg);
 
-     // Если игрок в БД не найден — ничего не создаём на клиенте
-if (!player) {
-  console.log('[load] player not found in DB');
-  return;
-}
+      // 5.2. Если нет — создаём с дефолтами (можешь поменять под свои)
+      if (!player) {
+        player = await apiSyncPlayer({
+          telegramId: tg,
+          callsign: 'Citizen',
+          level: 1,
+          exp: 0,
+          resources: { oxygen: 200, energy: 600, mvc: 100, bio: 0, parts: 0, ice: 20 },
+          progress: {},
+          stats: {}
+        });
+      }
+
+      console.log('[load] player:', player);
       
       //window.__BOOT_LOADING = false; // PATCH: boot finished
 } catch (e) {
@@ -341,10 +353,6 @@ if (!player) {
       }
 
       const dbp = data.player;
-
-      // применяем в единый state и сразу перерисовываем HUD
-       applyPlayer(dbp);
-       renderHUD();
 
       // твой глобальный стейт
       const GS = (window.gameState = window.gameState || {});
@@ -5155,29 +5163,23 @@ function showScanResultModal(sectorData, resourceOrArray, resourceAmount) {
                     let resourceName = "";
                     let resourceAmount = 0;
                     
-                    switch (resource) {
-  case "polymers":
-    updateResource('polymers', amount);
-    resourceName = "polymers";
-    resourceAmount = amount;
-    break;
-  case "rare":
-    updateResource('rare', amount);
-    resourceName = "rare materials";
-    resourceAmount = amount;
-    break;
-  case "oxygen":
-    updateResource('oxygen', amount);
-    resourceName = "O₂";
-    resourceAmount = amount;
-    break;
-  case "stealth":
-    gameState.slots--;
-    resourceName = "stealth module";
-    resourceAmount = 1;
-    break;
-}
-
+                    switch(resource) {
+                        case "polymers":
+                        case "rare":
+                            resourceName = resource === "polymers" ? "polymers" : "rare materials";
+                            break;
+                        case "oxygen":
+                            updateResource('oxygen', amount);
+                            resourceName = "O₂";
+                            resourceAmount = amount;
+                            break;
+                        case "stealth":
+                            gameState.slots--;
+                            resourceName = "stealth module";
+                            resourceAmount = 1;
+                            break;
+                    }
+                    
                     showNotification(`Purchased: ${resourceAmount > 0 ? resourceAmount + ' ' : ''}${resourceName}`, true);
                     updateUI();
                 }
@@ -8213,7 +8215,6 @@ if (typeof battAbsEl !== 'undefined' && battAbsEl) {
                     // Обновляем запасы ресурса у игрока
                     let resourceName = '';
                     let resourceAmount = amount;
-    break;
                     switch (resource) {
                         case 'polymers':
                             resourceName = 'полимеры';
@@ -13059,9 +13060,9 @@ function setResource(name, val) {
     stats:      P.stats,
   };
 
-  const r = await fetch(`${API_BASE}/api/player/sync`, {
+  const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Telegram-Init': getTgInitHeader(), 'Accept':'application/json'},
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify(payload),
   });
   if (!r.ok) throw new Error(`sync_http_${r.status}`);
@@ -13141,21 +13142,14 @@ window.addEventListener('beforeunload', function(){
       reason:     'unload'
     };
 
-    const url  = `${window.API_BASE}/api/player/sync`;
+    const url  = `${window.API_BASE}/api/player/sync?tg=${tg}`;
     const data = new Blob([JSON.stringify(payload)], { type:'application/json' });
 
     if (!navigator.sendBeacon || !navigator.sendBeacon(url, data)) {
-      fetch(url, {
-  method:'POST',
-  headers:{
-    'Content-Type':'application/json',
-    'X-Telegram-Init': getTgInitHeader(),
-    'Accept':'application/json'
-  },
-  body: JSON.stringify(payload),
-  keepalive:true
+      fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), keepalive:true });
+    }
+  } catch(_){}
 });
-
 
 </script>
 <script>
@@ -13226,20 +13220,12 @@ window.addEventListener('beforeunload', function(){
     return j.player;
   };
   window.apiSyncPlayer = async function(payload){
-    payload = payload || {};
-    if (!payload.telegramId && payload.telegram_id) payload.telegramId = payload.telegram_id;
-
     const tg = payload.telegramId || payload.telegram_id;
-    const r = await fetch(`${window.API_BASE}/api/player/sync`, {
-  method: 'POST',
-  headers: {
-    'Content-Type':'application/json',
-    'X-Telegram-Init': getTgInitHeader(),
-    'Accept': 'application/json'
-  },
-  body: JSON.stringify(payload),
-});
-
+    const r = await fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify(payload),
+    });
     const j = await r.json().catch(()=>null);
     if (!r.ok) throw new Error(j?.error || 'sync_failed');
     return j.player;
@@ -13268,14 +13254,12 @@ window.addEventListener('beforeunload', function(){
       return Number(s) || 0;
     };
     return {
-      oxygen:   num('oxygen-value'),
-      energy:   num('energy-value'),
-      mvc:      num('mvc-value'),
-      ice:      num('ice-value'),
-      bio:      num('bio-value'),
-      parts:    num('parts-value'),
-      polymers: num('polymers-value'),
-      rare:     num('rare-value'),
+      oxygen: num('oxygen-value'),
+      energy: num('energy-value'),
+      mvc:    num('mvc-value'),
+      ice:    num('ice-value'),
+      bio:    num('bio-value'),
+      parts:  num('parts-value'),
     };
   };
 
@@ -13316,10 +13300,10 @@ window.addEventListener('beforeunload', function(){
 
     // 1) читаем из state
 let resources = { ...(window.PLAYER?.resources || {}) };
-for (const k in resources) resources[k] = Number(resources[k]) || 0;
 
 // 2) если по какой-то причине state ещё пуст (ранний вызов) — подстраховка DOM
-if (!Object.keys(resources).length) {resources = MV.readUiRes(); // редкий фолбэк
+if (!Object.keys(resources).length) {
+  resources = MV.readUiRes();
 }
 
     if (MV.LAST_SENT && MV.shallowEqual(resources, MV.LAST_SENT)) {
@@ -13340,15 +13324,11 @@ if (!Object.keys(resources).length) {resources = MV.readUiRes(); // редкий
         reason
       };
 
-      const r = await fetch(`${window.API_BASE}/api/player/sync`, {
-  method: 'POST',
-  headers: {
-    'Content-Type':'application/json',
-    'X-Telegram-Init': getTgInitHeader(),
-    'Accept': 'application/json'
-  },
-  body: JSON.stringify(payload),
-});
+      const r = await fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload),
+      });
       const j = await r.json().catch(()=>null);
       if (!r.ok) throw new Error(j?.error || `HTTP_${r.status}`);
 
@@ -13439,10 +13419,10 @@ if (!Object.keys(resources).length) {
 
       const payload = JSON.stringify({ telegramId: tg, resources: res, reason: 'hide' });
       if (navigator.sendBeacon) {
-        navigator.sendBeacon(`${window.API_BASE}/api/player/sync`, payload);
+        navigator.sendBeacon(`${window.API_BASE}/api/player/sync?tg=${tg}`, payload);
       } else {
-        fetch(`${window.API_BASE}/api/player/sync`, {
-          method: 'POST', headers: { 'Content-Type':'application/json', 'X-Telegram-Init': getTgInitHeader(), 'Accept':'application/json'},
+        fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
+          method: 'POST', headers: { 'Content-Type':'application/json' },
           body: payload, keepalive: true
         }).catch(()=>{});
       }
