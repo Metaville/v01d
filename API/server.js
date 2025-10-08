@@ -153,7 +153,7 @@ app.get("/api/player/by-tg/:tg", async (req, res) => {
     const q = await pool.query(
       `SELECT id, telegram_id, sol_address, callsign, level, exp, resources, progress, stats, created_at, last_login
          FROM ${PLAYERS_TABLE}
-        WHERE telegram_id = $1::bigint OR telegram_id::text = $1
+        WHERE telegram_id = $1::bigint OR telegram_id::text = $1::text
         LIMIT 1`,
       [tg]
     );
@@ -233,7 +233,7 @@ app.post("/api/player/sync", async (req, res) => {
             progress    = COALESCE($7::json, progress),
             stats       = (COALESCE(stats, '{}'::json)::jsonb || COALESCE($8::json, '{}'::json)::jsonb)::json,
             last_login  = now()
-         WHERE telegram_id = $1::bigint OR telegram_id::text = $1
+         WHERE telegram_id = $1::bigint OR telegram_id::text = $1::text
          RETURNING id, telegram_id, sol_address, callsign, level, exp, resources, progress, stats, created_at, last_login`,
         [telegramId, solAddress, callsign, level, exp, resources, progress, stats]
       );
@@ -295,12 +295,12 @@ app.post("/api/player/sync", async (req, res) => {
     console.log("sync ok:", { telegramId, solAddress, playerId: row.id });
     res.json({ ok:true, player: row });
   } catch (e) {
-    await pool.query("ROLLBACK").catch(()=>{});
+    try { await client.query("ROLLBACK"); } catch (_) {}
     console.error("sync error:", e);
     res.status(500).json({ ok:false, error:"server_error" });
   } finally {
     // client.release() обязательно в finally
-    try { (await client).release?.(); } catch {}
+    try { client.release(); } catch {}
   }
 });
 
