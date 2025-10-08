@@ -1,7 +1,7 @@
 {
-  "name": "metaville-server",
-  "type": "module",
+  "name": "metaville-server-no-mongo",
   "private": true,
+  "engines": { "node": ">=18" },
   "scripts": {
     "start": "node server.js",
     "dev": "NODE_ENV=development nodemon server.js"
@@ -10,7 +10,6 @@
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
-    "mongoose": "^8.6.0",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
