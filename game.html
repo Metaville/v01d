@@ -10,6 +10,7 @@
   // Глобальный контейнер профиля игрока 
   window.PLAYER = window.PLAYER || {
     telegram_id: null,
+    telegramId: null,
     callsign: 'Citizen',
     level: 1,
     exp: 0,
@@ -52,9 +53,9 @@ async function boot(){
         callsign: 'Citizen', level: 1, exp: 0,
         resources: { oxygen: 200, energy: 600, mvc: 100, bio: 0, parts: 0, ice: 20 }
       };
-      r = await fetch(`${API_BASE}/api/player/sync?tg=${tg}`, {
+      r = await fetch(`${API_BASE}/api/player/sync`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Telegram-Init': getTgInitHeader(), 'Accept':'application/json'},
         body: JSON.stringify(payload)
       });
       const j = await r.json();
@@ -231,31 +232,9 @@ function scheduleSync(reason = 'resources') {
     return null;
   }
 
-  // ===== 3) Обёртки API =====
-// ===== 3) Обёртки API =====
-function tgHeaders(extra = {}) {
-  return {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'X-Telegram-Init': window.Telegram?.WebApp?.initData || '',
-    ...extra,
-  };
-}
-
+    // ===== 3) Обёртки API =====
 async function apiSyncPlayer(payload) {
-  const tg = payload.telegram_id ?? payload.telegramId;
-  const r = await fetch(`${API_BASE}/api/player/sync?tg=${tg}`, {
-    method: 'POST',
-    headers: tgHeaders(),
-    body: JSON.stringify(payload),
-  });
-  if (!r.ok) throw new Error(`sync_http_${r.status}`);
-  return r.json(); // вернёт { player: ... }
-}
-
-
-  async function apiSyncPlayer(payload) {
-    const r = await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId || payload.telegram_id}`, {
+    const r = await fetch(`${API_BASE}/api/player/sync`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -13083,9 +13062,9 @@ function setResource(name, val) {
     stats:      P.stats,
   };
 
-  const r = await fetch(`${API_BASE}/api/player/sync?tg=${P.telegram_id}`, {
+  const r = await fetch(`${API_BASE}/api/player/sync`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Telegram-Init': getTgInitHeader(), 'Accept':'application/json'},
     body: JSON.stringify(payload),
   });
   if (!r.ok) throw new Error(`sync_http_${r.status}`);
@@ -13094,31 +13073,29 @@ function setResource(name, val) {
 
   if (data && data.player) {
     window.__SILENT_UI = (window.__SILENT_UI || 0) + 1;
+    try {
+      // ТИХИЙ РЕНДЕР, чтобы observer не поставил ещё один sync
+      applyPlayer(data.player);
+      renderHUD();
 
-try {
-  if (data && data.player) {
-    // ТИХИЙ РЕНДЕР, чтобы observer не поставил ещё один sync
-    applyPlayer(data.player);
-    renderHUD();
-
-    // после успешного применения БД = «чисто»
-    const res = window.PLAYER?.resources
-      ? JSON.parse(JSON.stringify(window.PLAYER.resources))
-      : null;
-    window.__LAST_SYNC_RES = res;
-    window.__RES_DIRTY = false;
-    window.__LAST_SYNC_AT = Date.now();
+      // после успешного применения БД = «чисто»
+      const res = window.PLAYER && window.PLAYER.resources
+        ? JSON.parse(JSON.stringify(window.PLAYER.resources))
+        : null;
+      window.__LAST_SYNC_RES = res;
+      window.__RES_DIRTY = false;
+      window.__LAST_SYNC_AT = Date.now();
+    } catch (e) {
+      console.warn('[sync] exception', e);
+    } finally {
+      setTimeout(() => {
+        window.__SILENT_UI = Math.max(0, (window.__SILENT_UI || 0) - 1);
+      }, 350);
+    }
   } else {
     console.warn('[sync] fail', data);
   }
-} catch (e) {
-  console.warn('[sync] exception', e);
-} finally {                             // ВАЖНО: пробел перед finally, НИКАКИХ запятых
-  setTimeout(() => {
-    window.__SILENT_UI = Math.max(0, (window.__SILENT_UI || 0) - 1);
-  }, 350);
-}
-       
+}         
 // ===== общий boot =====
 async function bootWithTelegramId(tgId) {
   try {
@@ -13167,7 +13144,7 @@ window.addEventListener('beforeunload', function(){
       reason:     'unload'
     };
 
-    const url  = `${window.API_BASE}/api/player/sync?tg=${tg}`;
+    const url  = `${window.API_BASE}/api/player/sync`;
     const data = new Blob([JSON.stringify(payload)], { type:'application/json' });
 
     if (!navigator.sendBeacon || !navigator.sendBeacon(url, data)) {
@@ -13252,8 +13229,11 @@ window.addEventListener('beforeunload', function(){
     return j.player;
   };
   window.apiSyncPlayer = async function(payload){
+    payload = payload || {};
+    if (!payload.telegramId && payload.telegram_id) payload.telegramId = payload.telegram_id;
+
     const tg = payload.telegramId || payload.telegram_id;
-    const r = await fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
+    const r = await fetch(`${window.API_BASE}/api/player/sync`, {
   method: 'POST',
   headers: {
     'Content-Type':'application/json',
@@ -13361,7 +13341,7 @@ if (!Object.keys(resources).length) {
         reason
       };
 
-      const r = await fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
+      const r = await fetch(`${window.API_BASE}/api/player/sync`, {
   method: 'POST',
   headers: {
     'Content-Type':'application/json',
@@ -13460,10 +13440,10 @@ if (!Object.keys(resources).length) {
 
       const payload = JSON.stringify({ telegramId: tg, resources: res, reason: 'hide' });
       if (navigator.sendBeacon) {
-        navigator.sendBeacon(`${window.API_BASE}/api/player/sync?tg=${tg}`, payload);
+        navigator.sendBeacon(`${window.API_BASE}/api/player/sync`, payload);
       } else {
-        fetch(`${window.API_BASE}/api/player/sync?tg=${tg}`, {
-          method: 'POST', headers: { 'Content-Type':'application/json' },
+        fetch(`${window.API_BASE}/api/player/sync`, {
+          method: 'POST', headers: { 'Content-Type':'application/json', 'X-Telegram-Init': getTgInitHeader(), 'Accept':'application/json'},
           body: payload, keepalive: true
         }).catch(()=>{});
       }
