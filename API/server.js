@@ -78,7 +78,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization","X-Requested-With","X-Telegram-Bot-Api-Secret-Token"]
+  allowedHeaders: ["Content-Type","Authorization","X-Requested-With","X-Telegram-Bot-Api-Secret-Token" , 'X-Telegram-Init']
 };
 
 app.use(cors(corsOptions));
@@ -97,6 +97,24 @@ app.get("/api/health", async (_, res) => {
   try {
     await pool.query("SELECT 1");
     res.json({ ok: true });
+
+// player by telegram id (for a quick existence check)
+app.get("/api/player/by-tg/:tg", async (req, res) => {
+  try {
+    const tg = req.params.tg;
+    if (!tg || !/^\d+$/.test(tg)) return res.status(400).json({ ok:false, error:"bad_telegram_id" });
+    const q = await pool.query(
+      `SELECT id, telegram_id, sol_address, callsign, level, exp, resources, progress, stats, created_at, last_login
+       FROM %s WHERE telegram_id = $1`.replace('%s', PLAYERS_TABLE),
+      [tg]
+    );
+    if (!q.rowCount) return res.status(404).json({ ok:false, error:"not_found" });
+    return res.json({ ok:true, player: q.rows[0] });
+  } catch (e) {
+    console.error("by-tg error:", e);
+    return res.status(500).json({ ok:false, error:"server_error" });
+  }
+});
   } catch (e) {
     console.error("health db:", e);
     res.status(500).json({ ok:false });
@@ -122,8 +140,8 @@ app.get("/api/health", async (_, res) => {
  */
 app.post("/api/player/sync", async (req, res) => {
   const b = req.body || {};
-  const telegramId = b.telegramId ?? null;
-  const solAddress = b.solAddress ?? null;
+  const telegramId = (b.telegramId ?? b.telegram_id ?? null);
+  const solAddress = (b.solAddress ?? b.sol_address ?? null);
 
   if (!telegramId && !solAddress) {
     return res.status(400).json({ ok:false, error:"Need telegramId or solAddress" });
