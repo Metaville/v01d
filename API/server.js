@@ -2,6 +2,7 @@
 import express from "express";
 import cors from "cors";
 import pg from "pg";
+import { randomUUID } from "crypto";
 
 const { Pool } = pg;
 
@@ -25,6 +26,9 @@ const TG_SECRET    = process.env.TG_SECRET || "";
 const FRONT_URL    = (process.env.FRONT_URL || "https://v01d-production.up.railway.app").replace(/\/$/, "");
 
 /* ========= DB ========= */
+
+let ID_META = { dataType: null, hasDefault: false };
+
 const pool = new Pool({
   connectionString: DB_URL,
   ssl: { rejectUnauthorized: false } // Railway PG обычно требует SSL
@@ -78,6 +82,7 @@ async function ensureSchema() {
     const row = q.rows[0] || {};
     const dataType = row.data_type;
     const hasDefault = !!row.column_default;
+    ID_META = { dataType, hasDefault };
 
     if (!hasDefault) {
       if (dataType === 'uuid') {
@@ -146,10 +151,37 @@ app.get("/api/health", async (_, res) => {
     res.json({ ok: true });
 
 // player by telegram id (for a quick existence check)
+
 app.get("/api/player/by-tg/:tg", async (req, res) => {
   try {
-    const tg = req.params.tg;
+    const ensure = req.query.ensure === '1';
+    const tg = (req.params.tg || '').trim();
     if (!tg || !/^\d+$/.test(tg)) return res.status(400).json({ ok:false, error:"bad_telegram_id" });
+    const q = await pool.query(
+      `SELECT id, telegram_id, sol_address, callsign, level, exp, resources, progress, stats, created_at, last_login
+         FROM ${PLAYERS_TABLE}
+        WHERE telegram_id = $1::bigint OR telegram_id::text = $1
+        LIMIT 1`,
+      [tg]
+    );
+    if (q.rowCount) return res.json({ ok:true, player: q.rows[0] });
+    if (!ensure) return res.status(404).json({ ok:false, error:"not_found" });
+    const def = {
+      telegramId: tg, callsign: 'Citizen', level: 1, exp: 0,
+      resources: { oxygen:200, energy:600, mvc:100, bio:0, parts:0, ice:20 }, progress: {}, stats: {}
+    };
+    const ins = await pool.query(
+      `INSERT INTO ${PLAYERS_TABLE} (telegram_id, callsign, level, exp, resources, progress, stats)
+       VALUES ($1,$2,$3,$4,$5::json,$6::json,$7::json)
+       RETURNING id, telegram_id, sol_address, callsign, level, exp, resources, progress, stats, created_at, last_login`,
+      [tg, def.callsign, def.level, def.exp, def.resources, def.progress, def.stats]
+    );
+    return res.json({ ok:true, player: ins.rows[0], created: true });
+  } catch (e) {
+    console.error("by-tg error:", e);
+    return res.status(500).json({ ok:false, error:"server_error" });
+  }
+});
     const q = await pool.query(
       `SELECT id, telegram_id, sol_address, callsign, level, exp, resources, progress, stats, created_at, last_login
        FROM %s WHERE telegram_id = $1`.replace('%s', PLAYERS_TABLE),
@@ -276,7 +308,8 @@ app.post("/api/player/sync", async (req, res) => {
     }
 
     await client.query("COMMIT");
-    return res.json({ ok:true, player: row });
+    return console.log("sync ok:", { telegramId, solAddress, playerId: row.id });
+    res.json({ ok:true, player: row });
   } catch (e) {
     await client.query("ROLLBACK");
     console.error("sync 500:", e);
