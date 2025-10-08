@@ -207,18 +207,10 @@ function scheduleSync(reason = 'resources') {
   }
 })();
 
-
-</script>          
-  <script>
   window.updateResourceBar ||= function(){};
 </script>
 
 <script>
-  // ===== 1) Настройки API =====
-  const API_BASE = 'https://vibrant-upliftment-production-fc51.up.railway.app'; // <-- свой домен
-  // PATCH: expose for legacy
-  window.API_BASE = API_BASE;
-
   // ===== 2) Получаем telegramId из Telegram или из ?tg=... =====
   function resolveTelegramId() {
     try {
