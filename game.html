@@ -25,6 +25,32 @@ window.normalizeResources = function (r = {}) {
     oxygen: 0, energy: 0, mvc: 0, ice: 0, bio: 0, parts: 0, polymers: 0, rare: 0,
     ...r
   };
+
+// ====== CAS/Delta sync globals ======
+window.__SERVER_REV = window.__SERVER_REV || 0;          // ревизия сервера
+window.__RES_DELTA  = window.__RES_DELTA  || {};         // накопленные дельты
+
+// Обёртка updateResource: накапливаем дельту и планируем синк
+;(function(){
+  if (typeof updateResource === 'function' && !updateResource.__mvDeltaWrapped) {
+    const orig = updateResource;
+    window.updateResource = function(resource, amount){
+      const ok = orig.apply(this, arguments);
+      if (ok !== false) {
+        const key = String(resource);
+        const d = Number(amount || 0);
+        if (!Number.isNaN(d)) {
+          window.__RES_DELTA[key] = (window.__RES_DELTA[key] || 0) + d;
+          window.__RES_DIRTY = true;
+          if (typeof scheduleSync === 'function') scheduleSync('delta');
+        }
+      }
+      return ok;
+    };
+    window.updateResource.__mvDeltaWrapped = true;
+  }
+})();
+
 };
 
 // безопасное обновление HUD без триггера синка
@@ -130,15 +156,55 @@ function scheduleSync(reason = 'unknown') {
   }
 
   // ===== 3) Обёртки API =====
-  async function apiGetPlayerByTg(tg) {
-    const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
+  
+async function apiGetPlayerByTg(tg) {
+  const r = await fetch(`${API_BASE}/api/player/by-tg/${tg}`);
+  if (!r.ok) return null;
+  const j = await r.json();
+  if (j?.player?.rev != null) window.__SERVER_REV = Number(j.player.rev)||0;
+  return j.player;
+}
+/api/player/by-tg/${tg}`);
     if (!r.ok) return null;
     const j = await r.json();
     return j.player;
   }
 
-  async function apiSyncPlayer(payload) {
-    const r = await fetch(`${API_BASE}/api/player/sync?tg=${payload.telegramId || payload.telegram_id}`, {
+  
+async function apiSyncPlayer(payload) {
+  const tg = payload.telegramId || payload.telegram_id;
+  const baseRev = Number(window.__SERVER_REV || 0);
+
+  // decide delta vs snapshot
+  const deltas = window.normalizeResources(window.__RES_DELTA || {});
+  const hasDelta = Object.values(deltas).some(v => v !== 0);
+  const body = {
+    telegramId: tg,
+    callsign: payload.callsign,
+    level: payload.level,
+    exp: payload.exp,
+    progress: payload.progress || {},
+    stats: payload.stats || {},
+    baseRev
+  };
+  if (hasDelta) body.resourcesDelta = deltas; else body.resources = payload.resources;
+
+  const r = await fetch(`${API_BASE}/api/player/sync?tg=${tg}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  const j = await r.json().catch(()=> ({}));
+  if (r.status === 409) {
+    return { conflict: true, player: j.player };
+  }
+  if (!r.ok) {
+    throw new Error(j.error || 'sync_failed');
+  }
+  return { conflict: false, player: j.player };
+}
+/api/player/sync?tg=${payload.telegramId || payload.telegram_id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -173,20 +239,19 @@ function shallowEqual(a, b) {
   return true;
 }
 
+
 async function syncPlayer(reason='unknown'){
   if (window.__BOOT_LOADING) return;
 
-  // Не пускать параллельные синки
   if (window.__SYNC_INFLIGHT) { 
     window.__RES_DIRTY = true; 
     return; 
   }
 
-  // Собираем payload
   const tg = window.PLAYER?.telegram_id || window.__telegramId || resolveTelegramId();
   if (!tg) return;
 
- const res = normalizeResources(readHudResources());
+  const res = normalizeResources(readHudResources());
   const payload = {
     telegramId: tg,
     callsign:   window.PLAYER?.callsign || 'Citizen',
@@ -198,66 +263,73 @@ async function syncPlayer(reason='unknown'){
     reason
   };
 
-  // Не слать дубликаты подряд
-  if (shallowEqual(payload.resources, window.__LAST_SENT)) {
+  // Не слать дубликаты подряд (по снимку)
+  if (shallowEqual(payload.resources, window.__LAST_SENT))
     return;
-  }
 
   window.__SYNC_INFLIGHT = true;
-  let serverPlayer = null;
 
   try {
-    serverPlayer = await apiSyncPlayer(payload);
-  } catch (e) {
-    console.warn('[sync] network error, will retry', e);
-    window.__SYNC_INFLIGHT = false;
-    window.__RES_DIRTY = true;       // оставляем «грязным», дебаунсер повторит
-    setTimeout(() => scheduleSync('retry'), 1500);  // мягкий бэкофф
-    return;
-  }
+    const resp = await apiSyncPlayer(payload);
 
-  // Успешно: запоминаем, что отправляли
- window.__LAST_SENT = { ...payload.resources };
+    if (resp.conflict) {
+      const srv = normalizeResources(resp.player?.resources || {});
+      const prev = window.__UPDATING_HUD; window.__UPDATING_HUD = true;
+      updateResourceBar(srv);
+      window.__UPDATING_HUD = prev;
 
- // Берём ответ бэка, мерджим с текущими HUD-значениями и ТИХО обновляем UI
-  if (serverPlayer?.resources) {
-    const current    = normalizeResources(readHudResources());      // что на экране
-    const fromServer = normalizeResources(serverPlayer.resources);  // мог быть частичным
-    const merged     = { ...current, ...fromServer };               // сервер имеет приоритет
+      window.PLAYER = { 
+        telegram_id: resp.player.telegram_id,
+        callsign: resp.player.callsign,
+        level: resp.player.level,
+        exp: resp.player.exp,
+        resources: srv,
+        progress: resp.player.progress || {},
+        stats: resp.player.stats || {}
+      };
+      window.__SERVER_REV = Number(resp.player?.rev || 0);
+      window.__RES_DELTA = {}; // сброс локальных дельт
+      // планируем повторный синк (дебаунс сам сведёт дубликаты)
+      scheduleSync('after-409');
+      return;
+    }
 
-    // Не триггерим observer при программном апдейте
-    const prevFlag = window.__UPDATING_HUD;
-    window.__UPDATING_HUD = true;
-    updateResourceBar(merged);
-    window.__UPDATING_HUD = prevFlag;
+    const player = resp.player;
+    window.__SERVER_REV = Number(player?.rev || 0);
+    window.__RES_DELTA = {}; // сброс локальных дельт
+
+    const srv = normalizeResources(player?.resources || {});
+    const prev = window.__UPDATING_HUD; window.__UPDATING_HUD = true;
+    updateResourceBar(srv);
+    window.__UPDATING_HUD = prev;
 
     window.PLAYER = {
-      telegram_id: serverPlayer.telegram_id,
-      callsign: serverPlayer.callsign,
-      level: serverPlayer.level,
-      exp: serverPlayer.exp,
-      resources: merged,
-      progress: serverPlayer.progress || {},
-      stats: serverPlayer.stats || {}
+      telegram_id: player.telegram_id,
+      callsign: player.callsign,
+      level: player.level,
+      exp: player.exp,
+      resources: srv,
+      progress: player.progress || {},
+      stats: player.stats || {}
     };
+
+    window.__LAST_SENT = { ...payload.resources };
+  } catch (e) {
+    console.warn('[sync] error', e);
+    window.__RES_DIRTY = true;
+    setTimeout(() => scheduleSync('retry'), 1200);
+    return;
+  } finally {
+    window.__SYNC_INFLIGHT = false;
   }
 
-  // не даём мутационному наблюдателю запустить лишний sync
-  const prev = window.__UPDATING_HUD;
-  window.__UPDATING_HUD = true;
-  updateResourceBar(merged);                 // ставим все поля разом, включая ice/bio/parts/polymers/rare :contentReference[oaicite:5]{index=5}
-  window.__UPDATING_HUD = prev;
-
-  window.PLAYER = {
-    telegram_id: serverPlayer.telegram_id,
-    callsign: serverPlayer.callsign,
-    level: serverPlayer.level,
-    exp: serverPlayer.exp,
-    resources: merged,
-    progress: serverPlayer.progress || {},
-    stats: serverPlayer.stats || {}
-  };
+  if (window.__RES_DIRTY) {
+    window.__RES_DIRTY = false;
+    scheduleSync('dirty-loop');
+  }
+  console.log('[syncPlayer] done');
 }
+
 
   window.__SYNC_INFLIGHT = false;
 
