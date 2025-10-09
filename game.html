@@ -13153,3 +13153,205 @@ window.addEventListener('load', () => bootWithTelegramId(resolveTelegramId()));
     }
   });
 </script>
+
+<!-- BEGIN SYNC FIXES ADDED BY AI -->
+<script>
+/* Unified apiSyncPlayer: always returns { conflict: boolean, player: object } */
+async function apiSyncPlayer(payload) {
+  try {
+    const tg = payload.telegramId || payload.telegram_id || window.__telegramId || (window.PLAYER && window.PLAYER.telegram_id);
+    const url = `${(typeof API_BASE !== 'undefined' ? API_BASE : '') || ''}/api/player/sync?tg=${encodeURIComponent(tg || '')}`;
+
+    const baseRev = Number(payload.baseRev || window.__SERVER_REV || 0);
+    const localDelta = payload.resourcesDelta || window.__RES_DELTA || {};
+    const hasDelta = Object.keys(localDelta).some(k => Number(localDelta[k] || 0) !== 0);
+
+    const body = {
+      telegramId: tg,
+      callsign: payload.callsign,
+      level: payload.level,
+      exp: payload.exp,
+      stats: payload.stats || {},
+      progress: payload.progress || {},
+      baseRev
+    };
+    if (hasDelta) body.resourcesDelta = localDelta;
+    else body.resources = payload.resources || (window.PLAYER && window.PLAYER.resources) || {};
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      keepalive: true
+    });
+
+    let j = {};
+    try { j = await resp.json(); } catch (e) { /* ignore json parse errors */ }
+
+    if (resp.status === 409) {
+      return { conflict: true, player: j.player || j };
+    }
+    if (!resp.ok) {
+      throw new Error(j?.error || `sync_failed_${resp.status}`);
+    }
+    return { conflict: false, player: j.player || j };
+  } catch (err) {
+    throw err;
+  }
+}
+
+/* Unified scheduleSync: debounce with restart (600ms) */
+window.scheduleSync = function(reason = 'unknown') {
+  try {
+    if (window.__BOOT_LOADING) return;
+    window.__SYNC_REASON = reason;
+    if (window.__SYNC_TIMER) clearTimeout(window.__SYNC_TIMER);
+    window.__SYNC_TIMER = setTimeout(() => {
+      syncPlayer(reason).catch(e => console.error('[syncPlayer] error', e));
+      window.__SYNC_TIMER = null;
+      window.__SYNC_REASON = null;
+    }, 600);
+  } catch (e) {
+    console.error('[scheduleSync] ', e);
+  }
+};
+
+/* updateResourceBar: uses passed res */
+function updateResourceBar(res = {}) {
+  try {
+    if (typeof window.safeHudUpdate === 'function') {
+      window.safeHudUpdate(res);
+    }
+  } catch (e) {
+    console.warn('[updateResourceBar] safeHudUpdate failed', e);
+  }
+
+  const num = v => (typeof v === 'number' ? v : Number(v) || 0);
+  const set = (id, v) => {
+    try {
+      const el = document.getElementById(id);
+      if (el) el.textContent = String(num(v));
+    } catch (e) {}
+  };
+  set('oxygen-value', res.oxygen);
+  set('food-value', res.food);
+  set('water-value', res.water);
+}
+
+/* beforeunload: use sendBeacon best-effort */
+window.addEventListener('beforeunload', () => {
+  try {
+    if (!navigator.sendBeacon) return;
+    const tg = (window.PLAYER && window.PLAYER.telegram_id) || window.__telegramId;
+    if (!tg) return;
+    const payload = {
+      telegramId: tg,
+      resources: window.PLAYER && window.PLAYER.resources ? window.PLAYER.resources : (window.__RES_LAST_SNAPSHOT || {}),
+      reason: 'unload',
+      baseRev: Number(window.__SERVER_REV || 0)
+    };
+    const url = `${(typeof API_BASE !== 'undefined' ? API_BASE : '') || ''}/api/player/sync?tg=${encodeURIComponent(tg)}`;
+    navigator.sendBeacon(url, JSON.stringify(payload));
+  } catch (e) { /* best-effort */ }
+});
+
+/* syncPlayer: handle 409 by merging local deltas onto server snapshot */
+async function syncPlayer(reason = 'manual') {
+  if (window.__SYNC_INFLIGHT) {
+    window.__RES_DIRTY = true;
+    return;
+  }
+  window.__SYNC_INFLIGHT = true;
+  try {
+    const payload = {
+      telegramId: (window.PLAYER && window.PLAYER.telegram_id) || window.__telegramId,
+      callsign: window.PLAYER && window.PLAYER.callsign,
+      level: window.PLAYER && window.PLAYER.level,
+      exp: window.PLAYER && window.PLAYER.exp,
+      stats: window.PLAYER && window.PLAYER.stats,
+      progress: window.PLAYER && window.PLAYER.progress,
+      baseRev: Number(window.__SERVER_REV || 0)
+    };
+    if (Object.keys(window.__RES_DELTA || {}).length) payload.resourcesDelta = window.__RES_DELTA;
+    else payload.resources = (window.PLAYER && window.PLAYER.resources) || {};
+
+    const resp = await apiSyncPlayer(payload);
+
+    if (resp.conflict) {
+      const srv = (resp.player && resp.player.resources) ? resp.player.resources : {};
+      const srvRev = Number(resp.player && resp.player.rev ? resp.player.rev : window.__SERVER_REV || 0);
+
+      const normalize = obj => {
+        const out = {};
+        Object.keys(obj || {}).forEach(k => out[k] = Number(obj[k] || 0));
+        return out;
+      };
+      const srvNorm = normalize(srv);
+      const localDelta = normalize(window.__RES_DELTA || {});
+
+      const merged = { ...srvNorm };
+      Object.keys(localDelta).forEach(k => merged[k] = (merged[k] || 0) + (localDelta[k] || 0));
+
+      window.safeHudUpdate && window.safeHudUpdate(merged);
+      if (!window.PLAYER) window.PLAYER = {};
+      window.PLAYER.resources = merged;
+      window.__SERVER_REV = srvRev;
+
+      const recomputedDelta = {};
+      Object.keys(merged).forEach(k => {
+        recomputedDelta[k] = merged[k] - (srvNorm[k] || 0);
+        if (recomputedDelta[k] === 0) delete recomputedDelta[k];
+      });
+      window.__RES_DELTA = recomputedDelta;
+      window.__RES_DIRTY = Object.keys(recomputedDelta).length > 0;
+
+      scheduleSync('after-409-merge');
+      return;
+    }
+
+    if (resp.player) {
+      window.PLAYER = resp.player;
+      window.__SERVER_REV = Number(resp.player.rev || window.__SERVER_REV || 0);
+      updateResourceBar(window.PLAYER.resources || {});
+    }
+    window.__RES_DELTA = {};
+    window.__RES_DIRTY = false;
+  } catch (err) {
+    console.error('[syncPlayer] failed', err);
+  } finally {
+    window.__SYNC_INFLIGHT = false;
+    if (window.__RES_DIRTY) scheduleSync('dirty-after-inflight');
+  }
+}
+
+/* Single wrapper for updateResource: caps/constraints + accumulate delta + scheduleSync */
+(function(){
+  if (!window.updateResource) return;
+  if (window.updateResource.__syncWrapped) return;
+  const origUpdate = window.updateResource;
+
+  window.updateResource = function(resource, amount) {
+    const amt = Number(amount || 0);
+    if (amt === 0) return true;
+
+    let apply = amt;
+    try {
+      if (resource === 'oxygen') {
+        const cap = (window.PLAYER && window.PLAYER.max_oxygen) || 100;
+        const cur = (window.PLAYER && window.PLAYER.resources && Number(window.PLAYER.resources.oxygen) ) || 0;
+        apply = Math.max(Math.min(apply, cap - cur), -cur);
+      }
+    } catch(e) {}
+    const ok = origUpdate.call(this, resource, apply);
+    if (ok !== false) {
+      window.__RES_DELTA = window.__RES_DELTA || {};
+      window.__RES_DELTA[resource] = (Number(window.__RES_DELTA[resource] || 0) + Number(apply || 0));
+      window.__RES_DIRTY = true;
+      scheduleSync('delta');
+    }
+    return ok;
+  };
+  window.updateResource.__syncWrapped = true;
+})();
+</script>
+<!-- END SYNC FIXES ADDED BY AI -->
